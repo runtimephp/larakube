@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use App\Console\Services\SessionManager;
+use App\Data\SessionOrganizationData;
+use App\Data\SessionUserData;
 
 beforeEach(function (): void {
-    $this->tempDir = sys_get_temp_dir() . '/session-manager-test-' . uniqid();
+    $this->tempDir = sys_get_temp_dir().'/session-manager-test-'.uniqid();
     mkdir($this->tempDir, 0700, true);
-    $this->tempPath = $this->tempDir . '/session.json';
+    $this->tempPath = $this->tempDir.'/session.json';
 });
 
 afterEach(function (): void {
@@ -75,7 +77,7 @@ test('isAuthenticated returns false after clear', function (): void {
 });
 
 test('save creates directory if it does not exist', function (): void {
-    $nestedPath = $this->tempDir . '/nested/deep/session.json';
+    $nestedPath = $this->tempDir.'/nested/deep/session.json';
 
     $manager = new SessionManager($nestedPath);
     $manager->set('key', 'value');
@@ -86,4 +88,81 @@ test('save creates directory if it does not exist', function (): void {
     unlink($nestedPath);
     rmdir(dirname($nestedPath));
     rmdir(dirname($nestedPath, 2));
+});
+
+test('setUser and getUser round-trip', function (): void {
+    $manager = new SessionManager($this->tempPath);
+
+    $userData = new SessionUserData(
+        id: 'uuid-123',
+        name: 'John Doe',
+        email: 'john@example.com',
+        token: 'token-abc',
+    );
+
+    $manager->setUser($userData);
+
+    $retrieved = $manager->getUser();
+
+    expect($retrieved)
+        ->toBeInstanceOf(SessionUserData::class)
+        ->id->toBe('uuid-123')
+        ->name->toBe('John Doe')
+        ->email->toBe('john@example.com')
+        ->token->toBe('token-abc');
+});
+
+test('getUser returns null when empty', function (): void {
+    $manager = new SessionManager($this->tempPath);
+
+    expect($manager->getUser())->toBeNull();
+});
+
+test('setOrganization and getOrganization round-trip', function (): void {
+    $manager = new SessionManager($this->tempPath);
+
+    $orgData = new SessionOrganizationData(
+        id: 'uuid-456',
+        name: 'Acme Corp',
+        slug: 'acme-corp',
+    );
+
+    $manager->setOrganization($orgData);
+
+    $retrieved = $manager->getOrganization();
+
+    expect($retrieved)
+        ->toBeInstanceOf(SessionOrganizationData::class)
+        ->id->toBe('uuid-456')
+        ->name->toBe('Acme Corp')
+        ->slug->toBe('acme-corp');
+});
+
+test('hasOrganization returns correct state', function (): void {
+    $manager = new SessionManager($this->tempPath);
+
+    expect($manager->hasOrganization())->toBeFalse();
+
+    $manager->setOrganization(new SessionOrganizationData(
+        id: 'uuid-456',
+        name: 'Acme Corp',
+        slug: 'acme-corp',
+    ));
+
+    expect($manager->hasOrganization())->toBeTrue();
+});
+
+test('setUser sets token for isAuthenticated', function (): void {
+    $manager = new SessionManager($this->tempPath);
+
+    expect($manager->isAuthenticated())->toBeFalse();
+
+    $manager->setUser(new SessionUserData(
+        id: 'uuid-123',
+        name: 'John Doe',
+        email: 'john@example.com',
+        token: 'token-abc',
+    ));
+
+    expect($manager->isAuthenticated())->toBeTrue();
 });
