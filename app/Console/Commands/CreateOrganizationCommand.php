@@ -25,10 +25,8 @@ final class CreateOrganizationCommand extends AuthenticatedCommand
      */
     protected $description = 'Create a new organization';
 
-    protected function handleCommand(): int
+    public function handleCommand(SessionManager $session, CreateOrganization $createOrganization): int
     {
-        $session = app(SessionManager::class);
-
         $name = text(
             label: 'Organization name',
             required: true,
@@ -41,7 +39,7 @@ final class CreateOrganizationCommand extends AuthenticatedCommand
         $owner = User::query()->find($this->user->id);
 
         try {
-            $organization = app(CreateOrganization::class)->handle(
+            $organization = $createOrganization->handle(
                 new CreateOrganizationData(
                     name: $name,
                     description: $description ?: null,

@@ -18,8 +18,6 @@ abstract class AuthenticatedCommand extends Command
 
     protected ?SessionOrganizationData $organization = null;
 
-    abstract protected function handleCommand(): int;
-
     public function handle(SessionManager $session): int
     {
         if (! $session->isAuthenticated()) {
@@ -60,6 +58,6 @@ abstract class AuthenticatedCommand extends Command
             $this->organization = $organization;
         }
 
-        return $this->handleCommand();
+        return $this->laravel->call([$this, 'handleCommand']);
     }
 }

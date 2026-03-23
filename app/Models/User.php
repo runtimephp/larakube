@@ -7,6 +7,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -23,6 +24,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read CarbonImmutable $email_verified_at
  * @property-read CarbonImmutable $created_at
  * @property-read CarbonImmutable $updated_at
+ * @property-read Collection<int, Organization> $organizations
  */
 final class User extends Authenticatable
 {
@@ -30,7 +32,7 @@ final class User extends Authenticatable
     use HasApiTokens, HasFactory, HasUuids, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * The attributes that are mass-assignable.
      *
      * @var list<string>
      */

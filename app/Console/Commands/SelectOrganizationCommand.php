@@ -22,9 +22,9 @@ final class SelectOrganizationCommand extends AuthenticatedCommand
      */
     protected $description = 'Select an organization to work with';
 
-    protected function handleCommand(): int
+    public function handleCommand(SessionManager $session): int
     {
-        $session = app(SessionManager::class);
+        /** @var User|null $user */
         $user = User::query()->find($this->user->id);
         $organizations = $user->organizations;
 

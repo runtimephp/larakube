@@ -6,10 +6,12 @@ namespace App\Models;
 
 use Carbon\CarbonImmutable;
 use Database\Factories\OrganizationFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property-read string $id
@@ -19,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property-read string $slug
  * @property-read string $description
  * @property-read string $logo
+ * @property-read Collection<int, CloudProvider> $cloudProviders
  */
 final class Organization extends Model
 {
@@ -50,5 +53,11 @@ final class Organization extends Model
             ->using(OrganizationUser::class)
             ->withPivot('role')
             ->withTimestamps();
+    }
+
+    /** @return HasMany<CloudProvider, $this> */
+    public function cloudProviders(): HasMany
+    {
+        return $this->hasMany(CloudProvider::class);
     }
 }
