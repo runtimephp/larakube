@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Contracts\ServerManagerInterface;
 use App\Models\CloudProvider;
+use App\Models\Infrastructure;
 
 final readonly class SyncServers
 {
@@ -13,6 +14,17 @@ final readonly class SyncServers
 
     public function handle(CloudProvider $provider): void
     {
+        $infrastructure = $provider->infrastructures()->first();
+
+        if (! $infrastructure) {
+            $infrastructure = Infrastructure::create([
+                'organization_id' => $provider->organization_id,
+                'cloud_provider_id' => $provider->id,
+                'name' => 'Default Infrastructure',
+                'description' => 'Auto-created infrastructure for synced servers',
+            ]);
+        }
+
         $remoteServers = $this->serverManager->list($provider);
 
         $remoteExternalIds = [];
@@ -25,6 +37,7 @@ final readonly class SyncServers
                 ['external_id' => $externalId],
                 [
                     'organization_id' => $provider->organization_id,
+                    'infrastructure_id' => $infrastructure->id,
                     'name' => $serverData->name,
                     'status' => $serverData->status,
                     'type' => $serverData->type,

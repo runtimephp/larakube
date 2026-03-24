@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read string $api_token
  * @property-read bool $is_verified
  * @property-read Collection<int, Server> $servers
+ * @property-read Collection<int, Region> $regions
+ * @property-read Collection<int, Infrastructure> $infrastructures
  * @property-read Organization $organization
  */
 final class CloudProvider extends Model
@@ -60,5 +62,17 @@ final class CloudProvider extends Model
     public function servers(): HasMany
     {
         return $this->hasMany(Server::class);
+    }
+
+    /** @return HasMany<Region, $this> */
+    public function regions(): HasMany
+    {
+        return $this->hasMany(Region::class);
+    }
+
+    /** @return HasMany<Infrastructure, $this> */
+    public function infrastructures(): HasMany
+    {
+        return $this->hasMany(Infrastructure::class);
     }
 }

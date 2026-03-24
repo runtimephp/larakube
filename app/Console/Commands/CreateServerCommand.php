@@ -49,6 +49,23 @@ final class CreateServerCommand extends AuthenticatedCommand
 
         $provider = $providers->firstWhere('id', $providerId);
 
+        $infrastructures = $provider->infrastructures;
+
+        if ($infrastructures->isEmpty()) {
+            $this->components->info('No infrastructures configured. Run [infrastructure:create] first.');
+
+            return self::SUCCESS;
+        }
+
+        $infrastructureChoices = $infrastructures->mapWithKeys(fn (\App\Models\Infrastructure $infra) => [
+            $infra->id => $infra->name,
+        ])->toArray();
+
+        $infrastructureId = select(
+            label: 'Select an infrastructure',
+            options: $infrastructureChoices,
+        );
+
         $name = text(
             label: 'Server name',
             required: true,
@@ -82,6 +99,7 @@ final class CreateServerCommand extends AuthenticatedCommand
                     type: $type,
                     image: $image,
                     region: $region,
+                    infrastructure_id: $infrastructureId,
                 ),
             );
         } catch (Throwable $e) {

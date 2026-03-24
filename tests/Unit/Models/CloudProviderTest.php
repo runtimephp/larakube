@@ -54,3 +54,24 @@ test('belongs to organization', function (): void {
     expect($cloudProvider->organization)
         ->toBeInstanceOf(Organization::class);
 });
+
+test('has many servers', function (): void {
+    /** @var CloudProvider $cloudProvider */
+    $cloudProvider = CloudProvider::factory()->create();
+
+    expect($cloudProvider->servers)->toBeEmpty();
+});
+
+test('has many regions', function (): void {
+    /** @var CloudProvider $cloudProvider */
+    $cloudProvider = CloudProvider::factory()->create();
+
+    expect($cloudProvider->regions)->toBeEmpty();
+});
+
+test('has many infrastructures', function (): void {
+    /** @var CloudProvider $cloudProvider */
+    $cloudProvider = CloudProvider::factory()->create();
+
+    expect($cloudProvider->infrastructures)->toBeEmpty();
+});

@@ -19,6 +19,7 @@ final readonly class CreateServer
 
         return $provider->servers()->create([
             'organization_id' => $provider->organization_id,
+            'infrastructure_id' => $data->infrastructure_id,
             'external_id' => (string) $serverData->externalId,
             'name' => $serverData->name,
             'status' => $serverData->status,

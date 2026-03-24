@@ -11,5 +11,6 @@ final readonly class CreateServerData
         public string $type,
         public string $image,
         public string $region,
+        public string $infrastructure_id,
     ) {}
 }

@@ -9,6 +9,7 @@ use App\Data\ServerData;
 use App\Data\SessionOrganizationData;
 use App\Enums\ServerStatus;
 use App\Models\CloudProvider;
+use App\Models\Infrastructure;
 use App\Models\Organization;
 use App\Models\User;
 
@@ -44,6 +45,11 @@ test('create server command creates server successfully', function (): void {
         'name' => 'Hetzner Prod',
     ]);
 
+    $infrastructure = Infrastructure::factory()->create([
+        'organization_id' => $organization->id,
+        'cloud_provider_id' => $provider->id,
+    ]);
+
     $userData = new LoginUser()->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
@@ -55,6 +61,7 @@ test('create server command creates server successfully', function (): void {
 
     $this->artisan('server:create')
         ->expectsQuestion('Select a cloud provider', $provider->id)
+        ->expectsQuestion('Select an infrastructure', $infrastructure->id)
         ->expectsQuestion('Server name', 'web-1')
         ->expectsQuestion('Server type', 'cx11')
         ->expectsQuestion('Image', 'ubuntu-22.04')

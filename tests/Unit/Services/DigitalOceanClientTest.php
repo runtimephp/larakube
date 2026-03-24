@@ -76,6 +76,7 @@ test('create server returns server data', function (): void {
         type: 's-2vcpu-2gb',
         image: 'ubuntu-22.04',
         region: 'sfo1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
     ));
 
     expect($server->externalId)->toBe(200)

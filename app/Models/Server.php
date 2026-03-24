@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ServerRole;
 use App\Enums\ServerStatus;
 use Carbon\CarbonImmutable;
 use Database\Factories\ServerFactory;
@@ -18,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read CarbonImmutable $updated_at
  * @property-read string $organization_id
  * @property-read string $cloud_provider_id
+ * @property-read string|null $infrastructure_id
+ * @property-read string|null $kubernetes_cluster_id
  * @property-read string $external_id
  * @property-read string $name
  * @property-read ServerStatus $status
@@ -26,8 +29,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read string|null $ipv4
  * @property-read string|null $ipv6
  * @property-read array|null $metadata
+ * @property-read ServerRole|null $role
  * @property-read Organization $organization
  * @property-read CloudProvider $cloudProvider
+ * @property-read Infrastructure|null $infrastructure
+ * @property-read KubernetesCluster|null $kubernetesCluster
  */
 final class Server extends Model
 {
@@ -47,6 +53,8 @@ final class Server extends Model
             'updated_at' => 'immutable_datetime',
             'organization_id' => 'string',
             'cloud_provider_id' => 'string',
+            'infrastructure_id' => 'string',
+            'kubernetes_cluster_id' => 'string',
             'external_id' => 'string',
             'name' => 'string',
             'status' => ServerStatus::class,
@@ -55,6 +63,7 @@ final class Server extends Model
             'ipv4' => 'string',
             'ipv6' => 'string',
             'metadata' => 'array',
+            'role' => ServerRole::class,
         ];
     }
 
@@ -68,5 +77,17 @@ final class Server extends Model
     public function cloudProvider(): BelongsTo
     {
         return $this->belongsTo(CloudProvider::class);
+    }
+
+    /** @return BelongsTo<Infrastructure, $this> */
+    public function infrastructure(): BelongsTo
+    {
+        return $this->belongsTo(Infrastructure::class);
+    }
+
+    /** @return BelongsTo<KubernetesCluster, $this> */
+    public function kubernetesCluster(): BelongsTo
+    {
+        return $this->belongsTo(KubernetesCluster::class);
     }
 }

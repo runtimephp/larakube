@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Enums\ServerStatus;
 use App\Models\CloudProvider;
+use App\Models\Infrastructure;
 use App\Models\Organization;
 use App\Models\Server;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,6 +26,8 @@ final class ServerFactory extends Factory
         return [
             'organization_id' => Organization::factory(),
             'cloud_provider_id' => CloudProvider::factory(),
+            'infrastructure_id' => Infrastructure::factory(),
+            'kubernetes_cluster_id' => null,
             'external_id' => (string) $this->faker->unique()->randomNumber(8),
             'name' => $this->faker->domainWord().'-server',
             'status' => ServerStatus::Running,
@@ -33,6 +36,7 @@ final class ServerFactory extends Factory
             'ipv4' => $this->faker->ipv4(),
             'ipv6' => null,
             'metadata' => null,
+            'role' => null,
         ];
     }
 

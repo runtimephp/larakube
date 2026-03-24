@@ -55,6 +55,7 @@ test('create creates server via provider api', function (): void {
         type: 'cx21',
         image: 'ubuntu-22.04',
         region: 'nbg1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
     ));
 
     expect($server->name)->toBe('web-2')

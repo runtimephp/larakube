@@ -29,6 +29,9 @@ test('to array', function (): void {
             'ipv4',
             'ipv6',
             'metadata',
+            'infrastructure_id',
+            'kubernetes_cluster_id',
+            'role',
         ]);
 });
 
@@ -48,4 +51,18 @@ test('belongs to cloud provider', function (): void {
     $server = Server::factory()->create();
 
     expect($server->cloudProvider)->toBeInstanceOf(CloudProvider::class);
+});
+
+test('belongs to infrastructure', function (): void {
+    /** @var Server $server */
+    $server = Server::factory()->create();
+
+    expect($server->infrastructure)->not->toBeNull();
+});
+
+test('belongs to kubernetes cluster', function (): void {
+    /** @var Server $server */
+    $server = Server::factory()->create();
+
+    expect($server->kubernetesCluster)->toBeNull();
 });

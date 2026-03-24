@@ -8,9 +8,14 @@ use App\Data\CreateServerData;
 use App\Data\ServerData;
 use App\Enums\ServerStatus;
 use App\Models\CloudProvider;
+use App\Models\Infrastructure;
 
 test('create server persists locally after api call', function (): void {
     $provider = CloudProvider::factory()->hetzner()->create();
+    $infrastructure = Infrastructure::factory()->create([
+        'organization_id' => $provider->organization_id,
+        'cloud_provider_id' => $provider->id,
+    ]);
 
     $serverData = new ServerData(
         externalId: 12345,
@@ -35,6 +40,7 @@ test('create server persists locally after api call', function (): void {
             type: 'cx11',
             image: 'ubuntu-22.04',
             region: 'fsn1',
+            infrastructure_id: $infrastructure->id,
         ),
     );
 

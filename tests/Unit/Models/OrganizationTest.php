@@ -30,3 +30,15 @@ test('has servers relationship', function (): void {
 
     expect($organization->servers)->toHaveCount(1);
 });
+
+test('has cloud providers relationship', function (): void {
+    $organization = Organization::factory()->create();
+
+    expect($organization->cloudProviders)->toBeEmpty();
+});
+
+test('has infrastructures relationship', function (): void {
+    $organization = Organization::factory()->create();
+
+    expect($organization->infrastructures)->toBeEmpty();
+});

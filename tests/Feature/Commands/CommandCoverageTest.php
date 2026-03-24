@@ -7,6 +7,7 @@ use App\Console\Services\SessionManager;
 use App\Contracts\ServerManagerInterface;
 use App\Data\SessionOrganizationData;
 use App\Models\CloudProvider;
+use App\Models\Infrastructure;
 use App\Models\Organization;
 use App\Models\Server;
 use App\Models\User;
@@ -47,6 +48,20 @@ test('server:create shows message when no providers', function (): void {
         ->assertSuccessful();
 });
 
+// CreateServerCommand: no infrastructures
+test('server:create shows message when no infrastructures', function (): void {
+    [, $organization] = setupAuthenticatedSession($this);
+
+    $provider = CloudProvider::factory()->hetzner()->create([
+        'organization_id' => $organization->id,
+    ]);
+
+    $this->artisan('server:create')
+        ->expectsQuestion('Select a cloud provider', $provider->id)
+        ->expectsOutputToContain('No infrastructures configured')
+        ->assertSuccessful();
+});
+
 // CreateServerCommand: api error
 test('server:create fails on api error', function (): void {
     $mockManager = Mockery::mock(ServerManagerInterface::class);
@@ -61,8 +76,14 @@ test('server:create fails on api error', function (): void {
         'organization_id' => $organization->id,
     ]);
 
+    $infrastructure = Infrastructure::factory()->create([
+        'organization_id' => $organization->id,
+        'cloud_provider_id' => $provider->id,
+    ]);
+
     $this->artisan('server:create')
         ->expectsQuestion('Select a cloud provider', $provider->id)
+        ->expectsQuestion('Select an infrastructure', $infrastructure->id)
         ->expectsQuestion('Server name', 'web-1')
         ->expectsQuestion('Server type', 'cx11')
         ->expectsQuestion('Image', 'ubuntu-22.04')

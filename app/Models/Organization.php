@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read string $logo
  * @property-read Collection<int, CloudProvider> $cloudProviders
  * @property-read Collection<int, Server> $servers
+ * @property-read Collection<int, Infrastructure> $infrastructures
  */
 final class Organization extends Model
 {
@@ -66,5 +67,11 @@ final class Organization extends Model
     public function servers(): HasMany
     {
         return $this->hasMany(Server::class);
+    }
+
+    /** @return HasMany<Infrastructure, $this> */
+    public function infrastructures(): HasMany
+    {
+        return $this->hasMany(Infrastructure::class);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Data\CreateServerData;
 use App\Enums\ServerStatus;
 use App\Services\CloudProviders\HetznerClient;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 test('validate token returns true on success', function (): void {
@@ -23,37 +24,41 @@ test('validate token returns false on failure', function (): void {
     expect($client->validateToken('invalid-token'))->toBeFalse();
 });
 
-test('get servers returns server data', function (): void {
-    Http::fake([
-        'api.hetzner.cloud/v1/servers' => Http::response([
-            'servers' => [
-                [
-                    'id' => 123,
-                    'name' => 'web-1',
-                    'status' => 'running',
-                    'server_type' => ['name' => 'cx11'],
-                    'datacenter' => ['name' => 'fsn1-dc14'],
-                    'public_net' => [
-                        'ipv4' => ['ip' => '1.2.3.4'],
-                        'ipv6' => ['ip' => '2001:db8::1'],
+test('get servers returns server data',
+    /**
+     * @throws ConnectionException
+     */
+    function (): void {
+        Http::fake([
+            'api.hetzner.cloud/v1/servers' => Http::response([
+                'servers' => [
+                    [
+                        'id' => 123,
+                        'name' => 'web-1',
+                        'status' => 'running',
+                        'server_type' => ['name' => 'cx11'],
+                        'datacenter' => ['name' => 'fsn1-dc14'],
+                        'public_net' => [
+                            'ipv4' => ['ip' => '1.2.3.4'],
+                            'ipv6' => ['ip' => '2001:db8::1'],
+                        ],
                     ],
                 ],
-            ],
-        ]),
-    ]);
+            ]),
+        ]);
 
-    $client = new HetznerClient;
-    $servers = $client->getServers('token');
+        $client = new HetznerClient;
+        $servers = $client->getServers('token');
 
-    expect($servers)->toHaveCount(1)
-        ->and($servers[0]->externalId)->toBe(123)
-        ->and($servers[0]->name)->toBe('web-1')
-        ->and($servers[0]->status)->toBe(ServerStatus::Running)
-        ->and($servers[0]->type)->toBe('cx11')
-        ->and($servers[0]->region)->toBe('fsn1-dc14')
-        ->and($servers[0]->ipv4)->toBe('1.2.3.4')
-        ->and($servers[0]->ipv6)->toBe('2001:db8::1');
-});
+        expect($servers)->toHaveCount(1)
+            ->and($servers[0]->externalId)->toBe(123)
+            ->and($servers[0]->name)->toBe('web-1')
+            ->and($servers[0]->status)->toBe(ServerStatus::Running)
+            ->and($servers[0]->type)->toBe('cx11')
+            ->and($servers[0]->region)->toBe('fsn1-dc14')
+            ->and($servers[0]->ipv4)->toBe('1.2.3.4')
+            ->and($servers[0]->ipv6)->toBe('2001:db8::1');
+    });
 
 test('create server returns server data', function (): void {
     Http::fake([
@@ -78,6 +83,7 @@ test('create server returns server data', function (): void {
         type: 'cx21',
         image: 'ubuntu-22.04',
         region: 'nbg1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
     ));
 
     expect($server->externalId)->toBe(456)
