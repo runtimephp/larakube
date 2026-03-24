@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Organization;
+use App\Models\Server;
 
 test('to array', function (): void {
 
@@ -21,6 +22,11 @@ test('to array', function (): void {
             'logo',
             'description',
         ]);
+});
 
+test('has servers relationship', function (): void {
+    $organization = Organization::factory()->create();
+    Server::factory()->create(['organization_id' => $organization->id]);
 
+    expect($organization->servers)->toHaveCount(1);
 });

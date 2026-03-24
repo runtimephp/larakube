@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\CloudProvider;
 use App\Models\Organization;
 
 final class ListCloudProvidersCommand extends AuthenticatedCommand
@@ -34,7 +35,7 @@ final class ListCloudProvidersCommand extends AuthenticatedCommand
 
         $this->table(
             ['Name', 'Type', 'Verified', 'Created'],
-            $providers->map(fn ($provider) => [
+            $providers->map(fn (CloudProvider $provider) => [
                 $provider->name,
                 $provider->type->label(),
                 $provider->is_verified ? 'Yes' : 'No',

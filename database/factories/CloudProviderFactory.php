@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\CloudProviderType;
@@ -10,7 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /**
  * @extends Factory<CloudProvider>
  */
-class CloudProviderFactory extends Factory
+final class CloudProviderFactory extends Factory
 {
     /**
      * Define the model's default state.

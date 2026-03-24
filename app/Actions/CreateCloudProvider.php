@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Contracts\CloudProviderClientFactoryInterface;
 use App\Data\CreateCloudProviderData;
 use App\Models\CloudProvider;
 use App\Models\Organization;
-use App\Services\CloudProviders\CloudProviderClientFactory;
 use RuntimeException;
 
-final class CreateCloudProvider
+final readonly class CreateCloudProvider
 {
-    public function __construct(private CloudProviderClientFactory $clientFactory) {}
+    public function __construct(private CloudProviderClientFactoryInterface $clientFactory) {}
 
     /**
      * @throws RuntimeException

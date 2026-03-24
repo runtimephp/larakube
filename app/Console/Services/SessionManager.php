@@ -9,23 +9,16 @@ use App\Data\SessionUserData;
 
 final class SessionManager
 {
-    protected array $config = [];
+    private array $config = [];
 
     public function __construct(
-        protected string $path = '',
+        private string $path = '',
     ) {
         if ($this->path === '') {
             $this->path = $_SERVER['HOME'].'/.larakube/session.json';
         }
 
         $this->load();
-    }
-
-    protected function load(): void
-    {
-        if (file_exists($this->path)) {
-            $this->config = json_decode(file_get_contents($this->path), true) ?? [];
-        }
     }
 
     public function save(): void
@@ -96,5 +89,12 @@ final class SessionManager
     public function hasOrganization(): bool
     {
         return $this->get('organization') !== null;
+    }
+
+    private function load(): void
+    {
+        if (file_exists($this->path)) {
+            $this->config = json_decode(file_get_contents($this->path), true) ?? [];
+        }
     }
 }

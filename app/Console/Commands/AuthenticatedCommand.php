@@ -18,7 +18,7 @@ abstract class AuthenticatedCommand extends Command
 
     protected ?SessionOrganizationData $organization = null;
 
-    public function handle(SessionManager $session): int
+    final public function handle(SessionManager $session): int
     {
         if (! $session->isAuthenticated()) {
             $this->components->error('You are not logged in. Run [user:login] first.');

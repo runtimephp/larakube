@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\CloudProvider;
 use App\Models\Organization;
 
 use function Laravel\Prompts\confirm;
@@ -34,7 +35,7 @@ final class RemoveCloudProviderCommand extends AuthenticatedCommand
             return self::SUCCESS;
         }
 
-        $choices = $providers->mapWithKeys(fn ($provider) => [
+        $choices = $providers->mapWithKeys(fn (CloudProvider $provider) => [
             $provider->id => "{$provider->name} ({$provider->type->label()})",
         ])->toArray();
 

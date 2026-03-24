@@ -36,6 +36,30 @@ test('authenticated command allows authenticated users', function (): void {
         ->assertSuccessful();
 });
 
+test('authenticated command detects corrupted session', function (): void {
+    $session = app(SessionManager::class);
+    $session->set('token', 'some-token');
+
+    $this->artisan('organization:select')
+        ->expectsOutputToContain('Session is corrupted')
+        ->assertFailed();
+});
+
+test('authenticated command fails when no organization selected', function (): void {
+    $user = User::factory()->create([
+        'email' => 'john@example.com',
+        'password' => 'password123',
+    ]);
+
+    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $session = app(SessionManager::class);
+    $session->setUser($userData);
+
+    $this->artisan('cloud-provider:list')
+        ->expectsOutputToContain('No organization selected')
+        ->assertFailed();
+});
+
 test('authenticated command detects expired token', function (): void {
     $user = User::factory()->create([
         'email' => 'john@example.com',

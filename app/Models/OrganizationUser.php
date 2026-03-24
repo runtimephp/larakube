@@ -11,9 +11,9 @@ final class OrganizationUser extends Pivot
 {
     use HasUuids;
 
-    protected $table = 'organization_user';
-
     public $incrementing = false;
+
+    protected $table = 'organization_user';
 
     protected $keyType = 'string';
 }

@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use SensitiveParameter;
+
 final readonly class SessionUserData
 {
     public function __construct(
         public string $id,
         public string $name,
         public string $email,
-        #[\SensitiveParameter]
+        #[SensitiveParameter]
         public string $token,
     ) {}
 

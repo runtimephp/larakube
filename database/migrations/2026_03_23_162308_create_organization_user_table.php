@@ -17,10 +17,12 @@ return new class extends Migration
     {
         Schema::create('organization_user', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Organization::class)->constrained()->cascadeOnDelete();
-            $table->string('role')->default('member');
             $table->timestamps();
+            $table->foreignIdFor(User::class)
+                ->constrained();
+            $table->foreignIdFor(Organization::class)
+                ->constrained();
+            $table->string('role')->default('member');
 
             $table->unique(['user_id', 'organization_id']);
         });

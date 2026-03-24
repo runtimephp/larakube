@@ -16,23 +16,25 @@ test('to array', function (): void {
     expect(array_keys($cloudProvider->toArray()))
         ->toBe([
             'id',
+            'created_at',
+            'updated_at',
             'organization_id',
             'name',
             'type',
             'api_token',
             'is_verified',
-            'created_at',
-            'updated_at',
         ]);
 });
 
 test('type is cast to enum', function (): void {
+    /** @var CloudProvider $cloudProvider */
     $cloudProvider = CloudProvider::factory()->hetzner()->create();
 
     expect($cloudProvider->type)->toBe(CloudProviderType::Hetzner);
 });
 
 test('api token is encrypted', function (): void {
+    /** @var CloudProvider $cloudProvider */
     $cloudProvider = CloudProvider::factory()->create([
         'api_token' => 'my-secret-token',
     ]);
@@ -46,7 +48,9 @@ test('api token is encrypted', function (): void {
 });
 
 test('belongs to organization', function (): void {
+    /** @var CloudProvider $cloudProvider */
     $cloudProvider = CloudProvider::factory()->create();
 
-    expect($cloudProvider->organization)->toBeInstanceOf(Organization::class);
+    expect($cloudProvider->organization)
+        ->toBeInstanceOf(Organization::class);
 });

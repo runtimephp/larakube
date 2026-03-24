@@ -21,7 +21,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read string $email
  * @property-read string $password
  * @property-read string $remember_token
- * @property-read CarbonImmutable $email_verified_at
+ * @property-read CarbonImmutable|null $email_verified_at
  * @property-read CarbonImmutable $created_at
  * @property-read CarbonImmutable $updated_at
  * @property-read Collection<int, Organization> $organizations
@@ -52,6 +52,15 @@ final class User extends Authenticatable
         'remember_token',
     ];
 
+    /** @return BelongsToMany<Organization, $this, OrganizationUser, 'pivot'> */
+    public function organizations(): BelongsToMany
+    {
+        return $this->belongsToMany(Organization::class)
+            ->using(OrganizationUser::class)
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
     /**
      * @return array<string, string>
      */
@@ -67,14 +76,5 @@ final class User extends Authenticatable
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
-    }
-
-    /** @return BelongsToMany<Organization, $this> */
-    public function organizations(): BelongsToMany
-    {
-        return $this->belongsToMany(Organization::class)
-            ->using(OrganizationUser::class)
-            ->withPivot('role')
-            ->withTimestamps();
     }
 }

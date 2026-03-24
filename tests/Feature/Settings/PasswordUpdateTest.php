@@ -1,7 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+
+test('password settings page can be rendered', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get('/settings/password');
+
+    $response->assertOk();
+});
 
 test('password can be updated', function () {
     $user = User::factory()->create();

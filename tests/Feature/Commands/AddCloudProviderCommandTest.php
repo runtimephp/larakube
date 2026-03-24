@@ -5,11 +5,11 @@ declare(strict_types=1);
 use App\Actions\LoginUser;
 use App\Console\Services\SessionManager;
 use App\Contracts\CloudProviderClient;
+use App\Contracts\CloudProviderClientFactoryInterface;
 use App\Data\SessionOrganizationData;
 use App\Enums\CloudProviderType;
 use App\Models\Organization;
 use App\Models\User;
-use App\Services\CloudProviders\CloudProviderClientFactory;
 
 beforeEach(function (): void {
     $tempPath = sys_get_temp_dir().'/add-cloud-provider-test-'.uniqid().'/session.json';
@@ -20,9 +20,9 @@ test('add cloud provider command creates provider with valid token', function ()
     $mockClient = Mockery::mock(CloudProviderClient::class);
     $mockClient->shouldReceive('validateToken')->once()->andReturnTrue();
 
-    $mockFactory = Mockery::mock(CloudProviderClientFactory::class);
+    $mockFactory = Mockery::mock(CloudProviderClientFactoryInterface::class);
     $mockFactory->shouldReceive('make')->with(CloudProviderType::Hetzner)->once()->andReturn($mockClient);
-    $this->app->instance(CloudProviderClientFactory::class, $mockFactory);
+    $this->app->instance(CloudProviderClientFactoryInterface::class, $mockFactory);
 
     $user = User::factory()->create([
         'email' => 'john@example.com',
@@ -60,9 +60,9 @@ test('add cloud provider command fails with invalid token', function (): void {
     $mockClient = Mockery::mock(CloudProviderClient::class);
     $mockClient->shouldReceive('validateToken')->once()->andReturnFalse();
 
-    $mockFactory = Mockery::mock(CloudProviderClientFactory::class);
+    $mockFactory = Mockery::mock(CloudProviderClientFactoryInterface::class);
     $mockFactory->shouldReceive('make')->with(CloudProviderType::Hetzner)->once()->andReturn($mockClient);
-    $this->app->instance(CloudProviderClientFactory::class, $mockFactory);
+    $this->app->instance(CloudProviderClientFactoryInterface::class, $mockFactory);
 
     $user = User::factory()->create([
         'email' => 'john@example.com',

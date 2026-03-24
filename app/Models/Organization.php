@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read string $description
  * @property-read string $logo
  * @property-read Collection<int, CloudProvider> $cloudProviders
+ * @property-read Collection<int, Server> $servers
  */
 final class Organization extends Model
 {
@@ -46,7 +47,7 @@ final class Organization extends Model
         ];
     }
 
-    /** @return BelongsToMany<User, $this> */
+    /** @return BelongsToMany<User, $this, OrganizationUser, 'pivot'> */
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
@@ -59,5 +60,11 @@ final class Organization extends Model
     public function cloudProviders(): HasMany
     {
         return $this->hasMany(CloudProvider::class);
+    }
+
+    /** @return HasMany<Server, $this> */
+    public function servers(): HasMany
+    {
+        return $this->hasMany(Server::class);
     }
 }
