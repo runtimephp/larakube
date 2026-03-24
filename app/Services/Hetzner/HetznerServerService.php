@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Services\CloudProviders;
+namespace App\Services\Hetzner;
 
-use App\Contracts\CloudProviderClient;
+use App\Contracts\ServerServiceContract;
 use App\Data\CreateServerData;
 use App\Data\ServerData;
 use App\Enums\ServerStatus;
@@ -12,20 +12,9 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use SensitiveParameter;
 
-final class HetznerClient implements CloudProviderClient
+class HetznerServerService implements ServerServiceContract
 {
     private const string BASE_URL = 'https://api.hetzner.cloud/v1';
-
-    /**
-     * @throws ConnectionException
-     */
-    public function validateToken(#[SensitiveParameter] string $token): bool
-    {
-        $response = Http::withToken($token)
-            ->get(self::BASE_URL.'/datacenters');
-
-        return $response->successful();
-    }
 
     /**
      * @return array<int, ServerData>

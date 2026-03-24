@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Contracts\CloudProviderClientFactoryInterface;
+use App\Contracts\ServiceFactoryInterface;
 use App\Data\CreateCloudProviderData;
 use App\Models\CloudProvider;
 use App\Models\Organization;
@@ -12,16 +12,16 @@ use RuntimeException;
 
 final readonly class CreateCloudProvider
 {
-    public function __construct(private CloudProviderClientFactoryInterface $clientFactory) {}
+    public function __construct(private ServiceFactoryInterface $serviceFactory) {}
 
     /**
      * @throws RuntimeException
      */
     public function handle(CreateCloudProviderData $data, Organization $organization): CloudProvider
     {
-        $client = $this->clientFactory->make($data->type);
+        $service = $this->serviceFactory->makeBaseService($data->type);
 
-        if (! $client->validateToken($data->apiToken)) {
+        if (! $service->validateToken($data->apiToken)) {
             throw new RuntimeException("The API token for {$data->type->label()} is invalid.");
         }
 

@@ -3,18 +3,19 @@
 declare(strict_types=1);
 
 use App\Actions\CreateCloudProvider;
-use App\Contracts\CloudProviderClient;
-use App\Contracts\CloudProviderClientFactoryInterface;
+use App\Contracts\ServiceFactoryInterface;
 use App\Data\CreateCloudProviderData;
 use App\Enums\CloudProviderType;
 use App\Models\Organization;
+use App\Services\DigitalOcean\DigitalOceanService;
+use App\Services\Hetzner\HetznerService;
 
 test('create cloud provider with valid token', function (): void {
-    $mockClient = Mockery::mock(CloudProviderClient::class);
-    $mockClient->shouldReceive('validateToken')->once()->andReturnTrue();
+    $mockService = Mockery::mock(HetznerService::class);
+    $mockService->shouldReceive('validateToken')->once()->andReturnTrue();
 
-    $mockFactory = Mockery::mock(CloudProviderClientFactoryInterface::class);
-    $mockFactory->shouldReceive('make')->with(CloudProviderType::Hetzner)->once()->andReturn($mockClient);
+    $mockFactory = Mockery::mock(ServiceFactoryInterface::class);
+    $mockFactory->shouldReceive('makeBaseService')->with(CloudProviderType::Hetzner)->once()->andReturn($mockService);
 
     $organization = Organization::factory()->create();
 
@@ -35,11 +36,11 @@ test('create cloud provider with valid token', function (): void {
 });
 
 test('create cloud provider with invalid token throws exception', function (): void {
-    $mockClient = Mockery::mock(CloudProviderClient::class);
-    $mockClient->shouldReceive('validateToken')->once()->andReturnFalse();
+    $mockService = Mockery::mock(DigitalOceanService::class);
+    $mockService->shouldReceive('validateToken')->once()->andReturnFalse();
 
-    $mockFactory = Mockery::mock(CloudProviderClientFactoryInterface::class);
-    $mockFactory->shouldReceive('make')->with(CloudProviderType::DigitalOcean)->once()->andReturn($mockClient);
+    $mockFactory = Mockery::mock(ServiceFactoryInterface::class);
+    $mockFactory->shouldReceive('makeBaseService')->with(CloudProviderType::DigitalOcean)->once()->andReturn($mockService);
 
     $organization = Organization::factory()->create();
 

@@ -4,25 +4,9 @@ declare(strict_types=1);
 
 use App\Data\CreateServerData;
 use App\Enums\ServerStatus;
-use App\Services\CloudProviders\HetznerClient;
+use App\Services\Hetzner\HetznerServerService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
-
-test('validate token returns true on success', function (): void {
-    Http::fake(['api.hetzner.cloud/*' => Http::response([], 200)]);
-
-    $client = new HetznerClient;
-
-    expect($client->validateToken('valid-token'))->toBeTrue();
-});
-
-test('validate token returns false on failure', function (): void {
-    Http::fake(['api.hetzner.cloud/*' => Http::response([], 401)]);
-
-    $client = new HetznerClient;
-
-    expect($client->validateToken('invalid-token'))->toBeFalse();
-});
 
 test('get servers returns server data',
     /**
@@ -47,8 +31,8 @@ test('get servers returns server data',
             ]),
         ]);
 
-        $client = new HetznerClient;
-        $servers = $client->getServers('token');
+        $service = new HetznerServerService;
+        $servers = $service->getServers('token');
 
         expect($servers)->toHaveCount(1)
             ->and($servers[0]->externalId)->toBe(123)
@@ -77,8 +61,8 @@ test('create server returns server data', function (): void {
         ]),
     ]);
 
-    $client = new HetznerClient;
-    $server = $client->createServer('token', new CreateServerData(
+    $service = new HetznerServerService;
+    $server = $service->createServer('token', new CreateServerData(
         name: 'web-2',
         type: 'cx21',
         image: 'ubuntu-22.04',
@@ -107,8 +91,8 @@ test('get server by name returns server data', function (): void {
         ]),
     ]);
 
-    $client = new HetznerClient;
-    $server = $client->getServerByName('token', 'web-1');
+    $service = new HetznerServerService;
+    $server = $service->getServerByName('token', 'web-1');
 
     expect($server)->not->toBeNull()
         ->and($server->name)->toBe('web-1');
@@ -119,9 +103,9 @@ test('get server by name returns null when not found', function (): void {
         'api.hetzner.cloud/v1/servers*' => Http::response(['servers' => []]),
     ]);
 
-    $client = new HetznerClient;
+    $service = new HetznerServerService;
 
-    expect($client->getServerByName('token', 'nonexistent'))->toBeNull();
+    expect($service->getServerByName('token', 'nonexistent'))->toBeNull();
 });
 
 test('delete server returns true on success', function (): void {
@@ -129,9 +113,9 @@ test('delete server returns true on success', function (): void {
         'api.hetzner.cloud/v1/servers/*' => Http::response([], 200),
     ]);
 
-    $client = new HetznerClient;
+    $service = new HetznerServerService;
 
-    expect($client->deleteServer('token', 123))->toBeTrue();
+    expect($service->deleteServer('token', 123))->toBeTrue();
 });
 
 test('delete server returns false on failure', function (): void {
@@ -139,7 +123,7 @@ test('delete server returns false on failure', function (): void {
         'api.hetzner.cloud/v1/servers/*' => Http::response([], 404),
     ]);
 
-    $client = new HetznerClient;
+    $service = new HetznerServerService;
 
-    expect($client->deleteServer('token', 999))->toBeFalse();
+    expect($service->deleteServer('token', 999))->toBeFalse();
 });

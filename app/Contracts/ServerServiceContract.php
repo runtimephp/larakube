@@ -8,11 +8,11 @@ use App\Data\CreateServerData;
 use App\Data\ServerData;
 use SensitiveParameter;
 
-interface CloudProviderClient
+interface ServerServiceContract
 {
-    public function validateToken(#[SensitiveParameter] string $token): bool;
-
-    /** @return array<int, ServerData> */
+    /**
+     * @return array<int, ServerData>
+     */
     public function getServers(#[SensitiveParameter] string $token): array;
 
     public function createServer(#[SensitiveParameter] string $token, CreateServerData $data): ServerData;
