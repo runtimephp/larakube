@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Contracts\ServerManagerInterface;
 use App\Data\CreateServerData;
 use App\Models\CloudProvider;
 use App\Models\Server;
+use App\Services\CloudProviderFactory;
 
 final readonly class CreateServer
 {
-    public function __construct(private ServerManagerInterface $serverManager) {}
+    public function __construct(private CloudProviderFactory $factory) {}
 
     public function handle(CloudProvider $provider, CreateServerData $data): Server
     {
-        $serverData = $this->serverManager->create($provider, $data);
+        $serverService = $this->factory->makeServerService($provider->type, $provider->api_token);
+        $serverData = $serverService->create($data);
 
         return $provider->servers()->create([
             'organization_id' => $provider->organization_id,

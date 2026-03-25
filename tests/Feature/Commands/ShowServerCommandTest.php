@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 use App\Actions\LoginUser;
 use App\Console\Services\SessionManager;
-use App\Contracts\ServerManagerInterface;
+use App\Contracts\ServerService;
 use App\Data\ServerData;
 use App\Data\SessionOrganizationData;
 use App\Enums\ServerStatus;
 use App\Models\CloudProvider;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\CloudProviderFactory;
 
 beforeEach(function (): void {
     $tempPath = sys_get_temp_dir().'/show-server-test-'.uniqid().'/session.json';
@@ -18,8 +19,8 @@ beforeEach(function (): void {
 });
 
 test('show server displays server details', function (): void {
-    $mockManager = Mockery::mock(ServerManagerInterface::class);
-    $mockManager->shouldReceive('findByName')
+    $mockServerService = Mockery::mock(ServerService::class);
+    $mockServerService->shouldReceive('find')
         ->once()
         ->andReturn(new ServerData(
             externalId: 789,
@@ -29,7 +30,12 @@ test('show server displays server details', function (): void {
             region: 'fsn1',
             ipv4: '1.2.3.4',
         ));
-    $this->app->instance(ServerManagerInterface::class, $mockManager);
+
+    $mockFactory = Mockery::mock(CloudProviderFactory::class);
+    $mockFactory->shouldReceive('makeServerService')
+        ->once()
+        ->andReturn($mockServerService);
+    $this->app->instance(CloudProviderFactory::class, $mockFactory);
 
     $user = User::factory()->create([
         'email' => 'john@example.com',
@@ -61,11 +67,16 @@ test('show server displays server details', function (): void {
 });
 
 test('show server shows error when not found', function (): void {
-    $mockManager = Mockery::mock(ServerManagerInterface::class);
-    $mockManager->shouldReceive('findByName')
+    $mockServerService = Mockery::mock(ServerService::class);
+    $mockServerService->shouldReceive('find')
         ->once()
         ->andReturnNull();
-    $this->app->instance(ServerManagerInterface::class, $mockManager);
+
+    $mockFactory = Mockery::mock(CloudProviderFactory::class);
+    $mockFactory->shouldReceive('makeServerService')
+        ->once()
+        ->andReturn($mockServerService);
+    $this->app->instance(CloudProviderFactory::class, $mockFactory);
 
     $user = User::factory()->create([
         'email' => 'john@example.com',

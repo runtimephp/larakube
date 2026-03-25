@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use App\Actions\CreateServer;
-use App\Contracts\ServerManagerInterface;
+use App\Contracts\ServerService;
 use App\Data\CreateServerData;
 use App\Data\ServerData;
 use App\Enums\ServerStatus;
 use App\Models\CloudProvider;
 use App\Models\Infrastructure;
+use App\Services\CloudProviderFactory;
 
 test('create server persists locally after api call', function (): void {
     $provider = CloudProvider::factory()->hetzner()->create();
@@ -27,12 +28,17 @@ test('create server persists locally after api call', function (): void {
         ipv6: null,
     );
 
-    $mockManager = Mockery::mock(ServerManagerInterface::class);
-    $mockManager->shouldReceive('create')
+    $mockServerService = Mockery::mock(ServerService::class);
+    $mockServerService->shouldReceive('create')
         ->once()
         ->andReturn($serverData);
 
-    $action = new CreateServer($mockManager);
+    $mockFactory = Mockery::mock(CloudProviderFactory::class);
+    $mockFactory->shouldReceive('makeServerService')
+        ->once()
+        ->andReturn($mockServerService);
+
+    $action = new CreateServer($mockFactory);
     $server = $action->handle(
         $provider,
         new CreateServerData(

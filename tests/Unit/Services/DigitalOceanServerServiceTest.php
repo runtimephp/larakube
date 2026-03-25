@@ -4,26 +4,10 @@ declare(strict_types=1);
 
 use App\Data\CreateServerData;
 use App\Enums\ServerStatus;
-use App\Services\CloudProviders\DigitalOceanClient;
+use App\Services\DigitalOceanServerService;
 use Illuminate\Support\Facades\Http;
 
-test('validate token returns true on success', function (): void {
-    Http::fake(['api.digitalocean.com/*' => Http::response([], 200)]);
-
-    $client = new DigitalOceanClient;
-
-    expect($client->validateToken('valid-token'))->toBeTrue();
-});
-
-test('validate token returns false on failure', function (): void {
-    Http::fake(['api.digitalocean.com/*' => Http::response([], 401)]);
-
-    $client = new DigitalOceanClient;
-
-    expect($client->validateToken('invalid-token'))->toBeFalse();
-});
-
-test('get servers returns server data', function (): void {
+test('get all returns collection of server data', function (): void {
     Http::fake([
         'api.digitalocean.com/v2/droplets' => Http::response([
             'droplets' => [
@@ -44,8 +28,8 @@ test('get servers returns server data', function (): void {
         ]),
     ]);
 
-    $client = new DigitalOceanClient;
-    $servers = $client->getServers('token');
+    $service = new DigitalOceanServerService('token');
+    $servers = $service->getAll();
 
     expect($servers)->toHaveCount(1)
         ->and($servers[0]->externalId)->toBe(100)
@@ -56,7 +40,7 @@ test('get servers returns server data', function (): void {
         ->and($servers[0]->ipv4)->toBe('1.2.3.4');
 });
 
-test('create server returns server data', function (): void {
+test('create returns server data', function (): void {
     Http::fake([
         'api.digitalocean.com/v2/droplets' => Http::response([
             'droplet' => [
@@ -70,8 +54,8 @@ test('create server returns server data', function (): void {
         ]),
     ]);
 
-    $client = new DigitalOceanClient;
-    $server = $client->createServer('token', new CreateServerData(
+    $service = new DigitalOceanServerService('token');
+    $server = $service->create(new CreateServerData(
         name: 'web-2',
         type: 's-2vcpu-2gb',
         image: 'ubuntu-22.04',
@@ -85,7 +69,7 @@ test('create server returns server data', function (): void {
         ->and($server->ipv4)->toBeNull();
 });
 
-test('get server by name returns server data', function (): void {
+test('find returns server data', function (): void {
     Http::fake([
         'api.digitalocean.com/v2/droplets*' => Http::response([
             'droplets' => [
@@ -101,29 +85,29 @@ test('get server by name returns server data', function (): void {
         ]),
     ]);
 
-    $client = new DigitalOceanClient;
-    $server = $client->getServerByName('token', 'web-1');
+    $service = new DigitalOceanServerService('token');
+    $server = $service->find('web-1');
 
     expect($server)->not->toBeNull()
         ->and($server->name)->toBe('web-1');
 });
 
-test('get server by name returns null when not found', function (): void {
+test('find returns null when not found', function (): void {
     Http::fake([
         'api.digitalocean.com/v2/droplets*' => Http::response(['droplets' => []]),
     ]);
 
-    $client = new DigitalOceanClient;
+    $service = new DigitalOceanServerService('token');
 
-    expect($client->getServerByName('token', 'nonexistent'))->toBeNull();
+    expect($service->find('nonexistent'))->toBeNull();
 });
 
-test('delete server returns true on success', function (): void {
+test('destroy returns true on success', function (): void {
     Http::fake([
         'api.digitalocean.com/v2/droplets/*' => Http::response([], 204),
     ]);
 
-    $client = new DigitalOceanClient;
+    $service = new DigitalOceanServerService('token');
 
-    expect($client->deleteServer('token', 100))->toBeTrue();
+    expect($service->destroy(100))->toBeTrue();
 });

@@ -68,3 +68,35 @@ test('remove cloud provider shows message when none exist', function (): void {
         ->expectsOutputToContain('No cloud providers to remove')
         ->assertSuccessful();
 });
+
+test('remove cloud provider cancels when user declines confirmation', function (): void {
+    $user = User::factory()->create([
+        'email' => 'john@example.com',
+        'password' => 'password123',
+    ]);
+
+    $organization = Organization::factory()->create();
+    $organization->users()->attach($user, ['role' => 'owner']);
+
+    $cloudProvider = CloudProvider::factory()->hetzner()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Hetzner Production',
+    ]);
+
+    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $session = app(SessionManager::class);
+    $session->setUser($userData);
+    $session->setOrganization(new SessionOrganizationData(
+        id: $organization->id,
+        name: $organization->name,
+        slug: $organization->slug,
+    ));
+
+    $this->artisan('cloud-provider:remove')
+        ->expectsQuestion('Select a cloud provider to remove', $cloudProvider->id)
+        ->expectsConfirmation("Are you sure you want to remove [{$cloudProvider->name}]?", 'no')
+        ->expectsOutputToContain('Cancelled')
+        ->assertSuccessful();
+
+    $this->assertDatabaseHas('cloud_providers', ['id' => $cloudProvider->id]);
+});

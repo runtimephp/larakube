@@ -2,54 +2,39 @@
 
 declare(strict_types=1);
 
-namespace App\Services\CloudProviders;
+namespace App\Services;
 
-use App\Contracts\CloudProviderClient;
+use App\Contracts\ServerService;
 use App\Data\CreateServerData;
 use App\Data\ServerData;
 use App\Enums\ServerStatus;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
-use SensitiveParameter;
 
-final class DigitalOceanClient implements CloudProviderClient
+final readonly class DigitalOceanServerService implements ServerService
 {
-    private const string BASE_URL = 'https://api.digitalocean.com/v2';
+    public function __construct(private string $token) {}
 
     /**
      * @throws ConnectionException
      */
-    public function validateToken(#[SensitiveParameter] string $token): bool
+    public function getAll(): Collection
     {
-        $response = Http::withToken($token)
-            ->get(self::BASE_URL.'/account');
+        $response = Http::withToken($this->token)
+            ->get('https://api.digitalocean.com/v2/droplets');
 
-        return $response->successful();
-    }
-
-    /**
-     * @return array<int, ServerData>
-     *
-     * @throws ConnectionException
-     */
-    public function getServers(#[SensitiveParameter] string $token): array
-    {
-        $response = Http::withToken($token)
-            ->get(self::BASE_URL.'/droplets');
-
-        return array_map(
-            $this->mapServerData(...),
-            $response->json('droplets', []),
-        );
+        return collect($response->json('droplets', []))
+            ->map($this->mapServerData(...));
     }
 
     /**
      * @throws ConnectionException
      */
-    public function createServer(#[SensitiveParameter] string $token, CreateServerData $data): ServerData
+    public function create(CreateServerData $data): ServerData
     {
-        $response = Http::withToken($token)
-            ->post(self::BASE_URL.'/droplets', [
+        $response = Http::withToken($this->token)
+            ->post('https://api.digitalocean.com/v2/droplets', [
                 'name' => $data->name,
                 'size' => $data->type,
                 'image' => $data->image,
@@ -62,10 +47,10 @@ final class DigitalOceanClient implements CloudProviderClient
     /**
      * @throws ConnectionException
      */
-    public function getServerByName(#[SensitiveParameter] string $token, string $name): ?ServerData
+    public function find(string $name): ?ServerData
     {
-        $response = Http::withToken($token)
-            ->get(self::BASE_URL.'/droplets', ['name' => $name]);
+        $response = Http::withToken($this->token)
+            ->get('https://api.digitalocean.com/v2/droplets', ['name' => $name]);
 
         $droplets = $response->json('droplets', []);
 
@@ -79,10 +64,10 @@ final class DigitalOceanClient implements CloudProviderClient
     /**
      * @throws ConnectionException
      */
-    public function deleteServer(#[SensitiveParameter] string $token, int|string $externalId): bool
+    public function destroy(int|string $externalId): bool
     {
-        $response = Http::withToken($token)
-            ->delete(self::BASE_URL."/droplets/{$externalId}");
+        $response = Http::withToken($this->token)
+            ->delete("https://api.digitalocean.com/v2/droplets/{$externalId}");
 
         return $response->successful();
     }

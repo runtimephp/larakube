@@ -2,54 +2,39 @@
 
 declare(strict_types=1);
 
-namespace App\Services\CloudProviders;
+namespace App\Services;
 
-use App\Contracts\CloudProviderClient;
+use App\Contracts\ServerService;
 use App\Data\CreateServerData;
 use App\Data\ServerData;
 use App\Enums\ServerStatus;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
-use SensitiveParameter;
 
-final class HetznerClient implements CloudProviderClient
+final readonly class HetznerServerService implements ServerService
 {
-    private const string BASE_URL = 'https://api.hetzner.cloud/v1';
+    public function __construct(private string $token) {}
 
     /**
      * @throws ConnectionException
      */
-    public function validateToken(#[SensitiveParameter] string $token): bool
+    public function getAll(): Collection
     {
-        $response = Http::withToken($token)
-            ->get(self::BASE_URL.'/datacenters');
+        $response = Http::withToken($this->token)
+            ->get('https://api.hetzner.cloud/v1/servers');
 
-        return $response->successful();
-    }
-
-    /**
-     * @return array<int, ServerData>
-     *
-     * @throws ConnectionException
-     */
-    public function getServers(#[SensitiveParameter] string $token): array
-    {
-        $response = Http::withToken($token)
-            ->get(self::BASE_URL.'/servers');
-
-        return array_map(
-            $this->mapServerData(...),
-            $response->json('servers', []),
-        );
+        return collect($response->json('servers', []))
+            ->map($this->mapServerData(...));
     }
 
     /**
      * @throws ConnectionException
      */
-    public function createServer(#[SensitiveParameter] string $token, CreateServerData $data): ServerData
+    public function create(CreateServerData $data): ServerData
     {
-        $response = Http::withToken($token)
-            ->post(self::BASE_URL.'/servers', [
+        $response = Http::withToken($this->token)
+            ->post('https://api.hetzner.cloud/v1/servers', [
                 'name' => $data->name,
                 'server_type' => $data->type,
                 'image' => $data->image,
@@ -62,10 +47,10 @@ final class HetznerClient implements CloudProviderClient
     /**
      * @throws ConnectionException
      */
-    public function getServerByName(#[SensitiveParameter] string $token, string $name): ?ServerData
+    public function find(string $name): ?ServerData
     {
-        $response = Http::withToken($token)
-            ->get(self::BASE_URL.'/servers', ['name' => $name]);
+        $response = Http::withToken($this->token)
+            ->get('https://api.hetzner.cloud/v1/servers', ['name' => $name]);
 
         $servers = $response->json('servers', []);
 
@@ -79,10 +64,10 @@ final class HetznerClient implements CloudProviderClient
     /**
      * @throws ConnectionException
      */
-    public function deleteServer(#[SensitiveParameter] string $token, int|string $externalId): bool
+    public function destroy(int|string $externalId): bool
     {
-        $response = Http::withToken($token)
-            ->delete(self::BASE_URL."/servers/{$externalId}");
+        $response = Http::withToken($this->token)
+            ->delete("https://api.hetzner.cloud/v1/servers/{$externalId}");
 
         return $response->successful();
     }

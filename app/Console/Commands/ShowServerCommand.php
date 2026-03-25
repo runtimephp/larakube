@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Contracts\ServerManagerInterface;
 use App\Models\CloudProvider;
 use App\Models\Organization;
+use App\Services\CloudProviderFactory;
 
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -25,7 +25,7 @@ final class ShowServerCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(ServerManagerInterface $serverManager): int
+    public function handleCommand(CloudProviderFactory $factory): int
     {
         $organization = Organization::query()->find($this->organization->id);
         $providers = $organization->cloudProviders;
@@ -52,7 +52,8 @@ final class ShowServerCommand extends AuthenticatedCommand
             required: true,
         );
 
-        $serverData = $serverManager->findByName($provider, $name);
+        $serverService = $factory->makeServerService($provider->type, $provider->api_token);
+        $serverData = $serverService->find($name);
 
         if ($serverData === null) {
             $this->components->error("Server [{$name}] not found.");

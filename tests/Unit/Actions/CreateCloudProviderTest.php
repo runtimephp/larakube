@@ -3,18 +3,17 @@
 declare(strict_types=1);
 
 use App\Actions\CreateCloudProvider;
-use App\Contracts\CloudProviderClient;
-use App\Contracts\CloudProviderClientFactoryInterface;
 use App\Data\CreateCloudProviderData;
 use App\Enums\CloudProviderType;
 use App\Models\Organization;
+use App\Services\CloudProviderFactory;
 
 test('create cloud provider with valid token', function (): void {
-    $mockClient = Mockery::mock(CloudProviderClient::class);
-    $mockClient->shouldReceive('validateToken')->once()->andReturnTrue();
+    $mockService = Mockery::mock(CloudProviderService::class);
+    $mockService->shouldReceive('validateToken')->once()->andReturnTrue();
 
-    $mockFactory = Mockery::mock(CloudProviderClientFactoryInterface::class);
-    $mockFactory->shouldReceive('make')->with(CloudProviderType::Hetzner)->once()->andReturn($mockClient);
+    $mockFactory = Mockery::mock(CloudProviderFactory::class);
+    $mockFactory->shouldReceive('makeForValidation')->with(CloudProviderType::Hetzner, 'valid-token')->once()->andReturn($mockService);
 
     $organization = Organization::factory()->create();
 
@@ -35,11 +34,11 @@ test('create cloud provider with valid token', function (): void {
 });
 
 test('create cloud provider with invalid token throws exception', function (): void {
-    $mockClient = Mockery::mock(CloudProviderClient::class);
-    $mockClient->shouldReceive('validateToken')->once()->andReturnFalse();
+    $mockService = Mockery::mock(CloudProviderService::class);
+    $mockService->shouldReceive('validateToken')->once()->andReturnFalse();
 
-    $mockFactory = Mockery::mock(CloudProviderClientFactoryInterface::class);
-    $mockFactory->shouldReceive('make')->with(CloudProviderType::DigitalOcean)->once()->andReturn($mockClient);
+    $mockFactory = Mockery::mock(CloudProviderFactory::class);
+    $mockFactory->shouldReceive('makeForValidation')->with(CloudProviderType::DigitalOcean, 'invalid-token')->once()->andReturn($mockService);
 
     $organization = Organization::factory()->create();
 

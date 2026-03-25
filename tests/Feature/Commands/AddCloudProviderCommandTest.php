@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 use App\Actions\LoginUser;
 use App\Console\Services\SessionManager;
-use App\Contracts\CloudProviderClient;
-use App\Contracts\CloudProviderClientFactoryInterface;
 use App\Data\SessionOrganizationData;
 use App\Enums\CloudProviderType;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\CloudProviderFactory;
 
 beforeEach(function (): void {
     $tempPath = sys_get_temp_dir().'/add-cloud-provider-test-'.uniqid().'/session.json';
@@ -17,12 +16,12 @@ beforeEach(function (): void {
 });
 
 test('add cloud provider command creates provider with valid token', function (): void {
-    $mockClient = Mockery::mock(CloudProviderClient::class);
-    $mockClient->shouldReceive('validateToken')->once()->andReturnTrue();
+    $mockService = Mockery::mock(CloudProviderService::class);
+    $mockService->shouldReceive('validateToken')->once()->andReturnTrue();
 
-    $mockFactory = Mockery::mock(CloudProviderClientFactoryInterface::class);
-    $mockFactory->shouldReceive('make')->with(CloudProviderType::Hetzner)->once()->andReturn($mockClient);
-    $this->app->instance(CloudProviderClientFactoryInterface::class, $mockFactory);
+    $mockFactory = Mockery::mock(CloudProviderFactory::class);
+    $mockFactory->shouldReceive('makeForValidation')->with(CloudProviderType::Hetzner, 'valid-token')->once()->andReturn($mockService);
+    $this->app->instance(CloudProviderFactory::class, $mockFactory);
 
     $user = User::factory()->create([
         'email' => 'john@example.com',
@@ -57,12 +56,12 @@ test('add cloud provider command creates provider with valid token', function ()
 });
 
 test('add cloud provider command fails with invalid token', function (): void {
-    $mockClient = Mockery::mock(CloudProviderClient::class);
-    $mockClient->shouldReceive('validateToken')->once()->andReturnFalse();
+    $mockService = Mockery::mock(CloudProviderService::class);
+    $mockService->shouldReceive('validateToken')->once()->andReturnFalse();
 
-    $mockFactory = Mockery::mock(CloudProviderClientFactoryInterface::class);
-    $mockFactory->shouldReceive('make')->with(CloudProviderType::Hetzner)->once()->andReturn($mockClient);
-    $this->app->instance(CloudProviderClientFactoryInterface::class, $mockFactory);
+    $mockFactory = Mockery::mock(CloudProviderFactory::class);
+    $mockFactory->shouldReceive('makeForValidation')->with(CloudProviderType::Hetzner, 'invalid-token')->once()->andReturn($mockService);
+    $this->app->instance(CloudProviderFactory::class, $mockFactory);
 
     $user = User::factory()->create([
         'email' => 'john@example.com',

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Contracts\ServerManagerInterface;
 use App\Models\CloudProvider;
 use App\Models\Infrastructure;
+use App\Services\CloudProviderFactory;
 
 final readonly class SyncServers
 {
-    public function __construct(private ServerManagerInterface $serverManager) {}
+    public function __construct(private CloudProviderFactory $factory) {}
 
     public function handle(CloudProvider $provider): void
     {
@@ -25,7 +25,8 @@ final readonly class SyncServers
             ]);
         }
 
-        $remoteServers = $this->serverManager->list($provider);
+        $serverService = $this->factory->makeServerService($provider->type, $provider->api_token);
+        $remoteServers = $serverService->getAll();
 
         $remoteExternalIds = [];
 
