@@ -9,6 +9,7 @@ use App\Data\CreateCloudProviderData;
 use App\Enums\CloudProviderType;
 use App\Models\Organization;
 use Throwable;
+use ValueError;
 
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\select;
@@ -19,7 +20,7 @@ final class AddCloudProviderCommand extends AuthenticatedCommand
     /**
      * @var string
      */
-    protected $signature = 'cloud-provider:add';
+    protected $signature = 'cloud-provider:add {--type= : Cloud provider type (hetzner, digitalocean)} {--name= : Provider name} {--token= : API token}';
 
     /**
      * @var string
@@ -30,25 +31,39 @@ final class AddCloudProviderCommand extends AuthenticatedCommand
 
     public function handleCommand(CreateCloudProvider $createCloudProvider): int
     {
-        $typeOptions = [];
-        foreach (CloudProviderType::cases() as $case) {
-            $typeOptions[$case->value] = $case->label();
+        $typeOption = $this->option('type');
+
+        if ($typeOption) {
+            try {
+                $type = CloudProviderType::from($typeOption);
+            } catch (ValueError) {
+                $this->components->error('Invalid provider type. Use: hetzner, digitalocean');
+
+                return self::FAILURE;
+            }
+        } else {
+            $typeOptions = [];
+            foreach (CloudProviderType::cases() as $case) {
+                $typeOptions[$case->value] = $case->label();
+            }
+
+            $typeValue = select(
+                label: 'Select a cloud provider',
+                options: $typeOptions,
+            );
+
+            $type = CloudProviderType::from($typeValue);
         }
 
-        $typeValue = select(
-            label: 'Select a cloud provider',
-            options: $typeOptions,
-        );
-
-        $type = CloudProviderType::from($typeValue);
-
-        $name = text(
+        $nameOption = $this->option('name');
+        $name = $nameOption ?: text(
             label: 'Name for this provider',
             placeholder: "e.g. {$type->label()} Production",
             required: true,
         );
 
-        $apiToken = password(
+        $tokenOption = $this->option('token');
+        $apiToken = $tokenOption ?: password(
             label: 'API token',
             required: true,
         );

@@ -4,40 +4,79 @@ declare(strict_types=1);
 
 use App\Actions\LoginUser;
 use App\Console\Services\SessionManager;
-use App\Contracts\ServerService;
-use App\Data\ServerData;
 use App\Data\SessionOrganizationData;
-use App\Enums\ServerStatus;
 use App\Models\CloudProvider;
+use App\Models\Infrastructure;
 use App\Models\Organization;
 use App\Models\User;
-use App\Services\CloudProviderFactory;
 
 beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
 });
 
-test('list servers syncs and displays table', function (): void {
-    $mockServerService = Mockery::mock(ServerService::class);
-    $mockServerService->shouldReceive('getAll')
-        ->once()
-        ->andReturn(collect([
-            new ServerData(
-                externalId: 123,
-                name: 'web-1',
-                status: ServerStatus::Running,
-                type: 'cx11',
-                region: 'fsn1',
-                ipv4: '1.2.3.4',
-            ),
-        ]));
+test('select infrastructure command selects infrastructure successfully', function (): void {
+    $user = User::factory()->create([
+        'email' => 'john@example.com',
+        'password' => 'password123',
+    ]);
 
-    $mockFactory = Mockery::mock(CloudProviderFactory::class);
-    $mockFactory->shouldReceive('makeServerService')
-        ->once()
-        ->andReturn($mockServerService);
-    $this->app->instance(CloudProviderFactory::class, $mockFactory);
+    $organization = Organization::factory()->create();
+    $organization->users()->attach($user, ['role' => 'owner']);
 
+    $provider = CloudProvider::factory()->hetzner()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Hetzner Prod',
+    ]);
+
+    $infrastructure = Infrastructure::factory()->create([
+        'organization_id' => $organization->id,
+        'cloud_provider_id' => $provider->id,
+        'name' => 'Production',
+    ]);
+
+    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $session = app(SessionManager::class);
+    $session->setUser($userData);
+    $session->setOrganization(new SessionOrganizationData(
+        id: $organization->id,
+        name: $organization->name,
+        slug: $organization->slug,
+    ));
+
+    $this->artisan('infrastructure:select')
+        ->expectsQuestion('Select a cloud provider', $provider->id)
+        ->expectsQuestion('Select an infrastructure', $infrastructure->id)
+        ->expectsOutputToContain('Selected infrastructure [Production]')
+        ->assertSuccessful();
+
+    expect($session->getInfrastructure())->not->toBeNull()
+        ->and($session->getInfrastructure()?->id)->toBe($infrastructure->id);
+});
+
+test('select infrastructure command fails when no providers', function (): void {
+    $user = User::factory()->create([
+        'email' => 'john@example.com',
+        'password' => 'password123',
+    ]);
+
+    $organization = Organization::factory()->create();
+    $organization->users()->attach($user, ['role' => 'owner']);
+
+    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $session = app(SessionManager::class);
+    $session->setUser($userData);
+    $session->setOrganization(new SessionOrganizationData(
+        id: $organization->id,
+        name: $organization->name,
+        slug: $organization->slug,
+    ));
+
+    $this->artisan('infrastructure:select')
+        ->expectsOutputToContain('No cloud providers configured')
+        ->assertFailed();
+});
+
+test('select infrastructure command fails when no infrastructures', function (): void {
     $user = User::factory()->create([
         'email' => 'john@example.com',
         'password' => 'password123',
@@ -60,77 +99,29 @@ test('list servers syncs and displays table', function (): void {
         slug: $organization->slug,
     ));
 
-    $this->artisan('server:list')
+    $this->artisan('infrastructure:select')
         ->expectsQuestion('Select a cloud provider', $provider->id)
-        ->expectsOutputToContain('web-1')
-        ->assertSuccessful();
+        ->expectsOutputToContain('No infrastructures configured')
+        ->assertFailed();
 });
 
-test('list servers shows message when no providers', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
-
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
-
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
-
-    $this->artisan('server:list')
-        ->expectsOutputToContain('No cloud providers configured')
-        ->assertSuccessful();
-});
-
-test('list servers fails when not authenticated', function (): void {
-    $this->artisan('server:list')
+test('select infrastructure command fails when not authenticated', function (): void {
+    $this->artisan('infrastructure:select')
         ->expectsOutputToContain('You are not logged in')
         ->assertFailed();
 });
 
-test('list servers shows message when no servers found', function (): void {
-    $mockServerService = Mockery::mock(ServerService::class);
-    $mockServerService->shouldReceive('getAll')
-        ->once()
-        ->andReturn(collect([]));
-
-    $mockFactory = Mockery::mock(CloudProviderFactory::class);
-    $mockFactory->shouldReceive('makeServerService')
-        ->once()
-        ->andReturn($mockServerService);
-    $this->app->instance(CloudProviderFactory::class, $mockFactory);
-
+test('select infrastructure command fails when no organization selected', function (): void {
     $user = User::factory()->create([
         'email' => 'john@example.com',
         'password' => 'password123',
     ]);
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
-
-    $provider = CloudProvider::factory()->hetzner()->create([
-        'organization_id' => $organization->id,
-        'name' => 'Hetzner Prod',
-    ]);
-
     $userData = new LoginUser()->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
 
-    $this->artisan('server:list')
-        ->expectsQuestion('Select a cloud provider', $provider->id)
-        ->expectsOutputToContain('No servers found')
-        ->assertSuccessful();
+    $this->artisan('infrastructure:select')
+        ->expectsOutputToContain('No organization selected')
+        ->assertFailed();
 });

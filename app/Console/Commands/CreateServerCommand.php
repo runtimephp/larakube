@@ -27,6 +27,8 @@ final class CreateServerCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
+    protected bool $requiresInfrastructure = true;
+
     public function handleCommand(CreateServer $createServer): int
     {
         $organization = Organization::query()->find($this->organization->id);
@@ -49,22 +51,7 @@ final class CreateServerCommand extends AuthenticatedCommand
 
         $provider = $providers->firstWhere('id', $providerId);
 
-        $infrastructures = $provider->infrastructures;
-
-        if ($infrastructures->isEmpty()) {
-            $this->components->info('No infrastructures configured. Run [infrastructure:create] first.');
-
-            return self::SUCCESS;
-        }
-
-        $infrastructureChoices = $infrastructures->mapWithKeys(fn (\App\Models\Infrastructure $infra) => [
-            $infra->id => $infra->name,
-        ])->toArray();
-
-        $infrastructureId = select(
-            label: 'Select an infrastructure',
-            options: $infrastructureChoices,
-        );
+        $infrastructureId = $this->infrastructure->id;
 
         $name = text(
             label: 'Server name',

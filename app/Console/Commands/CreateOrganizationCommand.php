@@ -18,7 +18,7 @@ final class CreateOrganizationCommand extends AuthenticatedCommand
     /**
      * @var string
      */
-    protected $signature = 'organization:create';
+    protected $signature = 'organization:create {--name= : Organization name} {--description= : Organization description}';
 
     /**
      * @var string
@@ -27,12 +27,12 @@ final class CreateOrganizationCommand extends AuthenticatedCommand
 
     public function handleCommand(SessionManager $session, CreateOrganization $createOrganization): int
     {
-        $name = text(
+        $name = $this->option('name') ?: text(
             label: 'Organization name',
             required: true,
         );
 
-        $description = text(
+        $description = $this->option('description') ?: text(
             label: 'Description',
         );
 

@@ -8,8 +8,7 @@ use App\Models\Organization;
 use App\Models\User;
 
 beforeEach(function (): void {
-    $tempPath = sys_get_temp_dir().'/auth-cmd-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 test('authenticated command blocks unauthenticated users', function (): void {

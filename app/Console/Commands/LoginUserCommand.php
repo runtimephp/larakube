@@ -16,7 +16,7 @@ final class LoginUserCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'user:login';
+    protected $signature = 'user:login {--email= : User email} {--password= : User password}';
 
     /**
      * @var string
@@ -25,18 +25,25 @@ final class LoginUserCommand extends Command
 
     public function handle(LoginUser $loginUser, SessionManager $session): int
     {
-        $email = text(
-            label: 'Email',
-            required: true,
-            validate: ['email' => 'required|email'],
-        );
+        $email = $this->option('email');
+        $password = $this->option('password');
 
-        $inputPassword = password(
-            label: 'Password',
-            required: true,
-        );
+        if (! $email) {
+            $email = text(
+                label: 'Email',
+                required: true,
+                validate: ['email' => 'required|email'],
+            );
+        }
 
-        $userData = $loginUser->handle($email, $inputPassword);
+        if (! $password) {
+            $password = password(
+                label: 'Password',
+                required: true,
+            );
+        }
+
+        $userData = $loginUser->handle($email, $password);
 
         if ($userData === null) {
             $this->components->error('Invalid credentials.');
@@ -45,6 +52,9 @@ final class LoginUserCommand extends Command
         }
 
         $session->setUser($userData);
+
+        $session->clearOrganization();
+        $session->clearInfrastructure();
 
         $this->components->info("Logged in as [{$userData->name}].");
 

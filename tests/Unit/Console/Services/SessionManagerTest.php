@@ -166,3 +166,34 @@ test('setUser sets token for isAuthenticated', function (): void {
 
     expect($manager->isAuthenticated())->toBeTrue();
 });
+
+test('clearOrganization removes organization from session', function (): void {
+    $manager = new SessionManager($this->tempPath);
+
+    $manager->setOrganization(new SessionOrganizationData(
+        id: 'uuid-456',
+        name: 'Acme Corp',
+        slug: 'acme-corp',
+    ));
+
+    expect($manager->hasOrganization())->toBeTrue();
+
+    $manager->clearOrganization();
+
+    expect($manager->hasOrganization())->toBeFalse();
+});
+
+test('clearInfrastructure removes infrastructure from session', function (): void {
+    $manager = new SessionManager($this->tempPath);
+
+    $manager->setInfrastructure(new App\Data\SessionInfrastructureData(
+        id: 'uuid-789',
+        name: 'Production',
+    ));
+
+    expect($manager->getInfrastructure())->not->toBeNull();
+
+    $manager->clearInfrastructure();
+
+    expect($manager->getInfrastructure())->toBeNull();
+});

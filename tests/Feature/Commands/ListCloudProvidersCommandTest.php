@@ -10,8 +10,7 @@ use App\Models\Organization;
 use App\Models\User;
 
 beforeEach(function (): void {
-    $tempPath = sys_get_temp_dir().'/list-cloud-provider-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 test('list cloud providers shows table of providers', function (): void {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Console\Services\SessionManager;
+use App\Data\SessionInfrastructureData;
 use App\Data\SessionOrganizationData;
 use App\Data\SessionUserData;
 use Illuminate\Console\Command;
@@ -14,9 +15,13 @@ abstract class AuthenticatedCommand extends Command
 {
     protected bool $requiresOrganization = false;
 
+    protected bool $requiresInfrastructure = false;
+
     protected SessionUserData $user;
 
     protected ?SessionOrganizationData $organization = null;
+
+    protected ?SessionInfrastructureData $infrastructure = null;
 
     final public function handle(SessionManager $session): int
     {
@@ -56,6 +61,18 @@ abstract class AuthenticatedCommand extends Command
             }
 
             $this->organization = $organization;
+
+            if ($this->requiresInfrastructure) {
+                $infrastructure = $session->getInfrastructure();
+
+                if ($infrastructure === null) {
+                    $this->components->error('No infrastructure selected. Run [infrastructure:select] first.');
+
+                    return self::FAILURE;
+                }
+
+                $this->infrastructure = $infrastructure;
+            }
         }
 
         return $this->laravel->call([$this, 'handleCommand']);

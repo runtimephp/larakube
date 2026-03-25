@@ -15,8 +15,7 @@ use App\Models\User;
 use App\Services\CloudProviderFactory;
 
 beforeEach(function (): void {
-    $tempPath = sys_get_temp_dir().'/delete-server-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 test('delete server removes server successfully', function (): void {

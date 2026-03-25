@@ -11,8 +11,7 @@ use App\Models\User;
 use App\Services\CloudProviderFactory;
 
 beforeEach(function (): void {
-    $tempPath = sys_get_temp_dir().'/add-cloud-provider-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 test('add cloud provider command creates provider with valid token', function (): void {
@@ -91,5 +90,28 @@ test('add cloud provider command fails with invalid token', function (): void {
 test('add cloud provider command fails when not authenticated', function (): void {
     $this->artisan('cloud-provider:add')
         ->expectsOutputToContain('You are not logged in')
+        ->assertFailed();
+});
+
+test('add cloud provider command fails with invalid provider type from CLI option', function (): void {
+    $user = User::factory()->create([
+        'email' => 'john@example.com',
+        'password' => 'password123',
+    ]);
+
+    $organization = Organization::factory()->create();
+    $organization->users()->attach($user, ['role' => 'owner']);
+
+    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $session = app(SessionManager::class);
+    $session->setUser($userData);
+    $session->setOrganization(new SessionOrganizationData(
+        id: $organization->id,
+        name: $organization->name,
+        slug: $organization->slug,
+    ));
+
+    $this->artisan('cloud-provider:add --type=invalid-type --name="Test" --token="token"')
+        ->expectsOutputToContain('Invalid provider type. Use: hetzner, digitalocean')
         ->assertFailed();
 });

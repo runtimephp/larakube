@@ -7,8 +7,7 @@ use App\Console\Services\SessionManager;
 use App\Models\User;
 
 beforeEach(function (): void {
-    $tempPath = sys_get_temp_dir().'/logout-cmd-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 test('logout command clears session', function (): void {

@@ -10,8 +10,9 @@ use App\Models\Organization;
 use App\Models\User;
 
 beforeEach(function (): void {
+
     $tempPath = sys_get_temp_dir().'/remove-cloud-provider-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 test('remove cloud provider deletes the selected provider', function (): void {

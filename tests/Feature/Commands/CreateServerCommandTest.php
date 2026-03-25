@@ -6,6 +6,7 @@ use App\Actions\LoginUser;
 use App\Console\Services\SessionManager;
 use App\Contracts\ServerService;
 use App\Data\ServerData;
+use App\Data\SessionInfrastructureData;
 use App\Data\SessionOrganizationData;
 use App\Enums\ServerStatus;
 use App\Models\CloudProvider;
@@ -15,8 +16,7 @@ use App\Models\User;
 use App\Services\CloudProviderFactory;
 
 beforeEach(function (): void {
-    $tempPath = sys_get_temp_dir().'/create-server-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 test('create server command creates server successfully', function (): void {
@@ -64,10 +64,13 @@ test('create server command creates server successfully', function (): void {
         name: $organization->name,
         slug: $organization->slug,
     ));
+    $session->setInfrastructure(new SessionInfrastructureData(
+        id: $infrastructure->id,
+        name: $infrastructure->name,
+    ));
 
     $this->artisan('server:create')
         ->expectsQuestion('Select a cloud provider', $provider->id)
-        ->expectsQuestion('Select an infrastructure', $infrastructure->id)
         ->expectsQuestion('Server name', 'web-1')
         ->expectsQuestion('Server type', 'cx11')
         ->expectsQuestion('Image', 'ubuntu-22.04')
@@ -97,6 +100,10 @@ test('create server command shows message when no providers', function (): void 
     $organization = Organization::factory()->create();
     $organization->users()->attach($user, ['role' => 'owner']);
 
+    $infrastructure = Infrastructure::factory()->create([
+        'organization_id' => $organization->id,
+    ]);
+
     $userData = new LoginUser()->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
@@ -105,20 +112,17 @@ test('create server command shows message when no providers', function (): void 
         name: $organization->name,
         slug: $organization->slug,
     ));
+    $session->setInfrastructure(new SessionInfrastructureData(
+        id: $infrastructure->id,
+        name: $infrastructure->name,
+    ));
 
     $this->artisan('server:create')
         ->expectsOutputToContain('No cloud providers configured')
         ->assertSuccessful();
 });
 
-test('create server command shows message when no infrastructures', function (): void {
-    $mockServerService = Mockery::mock(ServerService::class);
-
-    $mockFactory = Mockery::mock(CloudProviderFactory::class);
-    $mockFactory->shouldReceive('makeServerService')
-        ->never();
-    $this->app->instance(CloudProviderFactory::class, $mockFactory);
-
+test('create server command fails when no infrastructure selected', function (): void {
     $user = User::factory()->create([
         'email' => 'john@example.com',
         'password' => 'password123',
@@ -127,7 +131,7 @@ test('create server command shows message when no infrastructures', function ():
     $organization = Organization::factory()->create();
     $organization->users()->attach($user, ['role' => 'owner']);
 
-    $provider = CloudProvider::factory()->hetzner()->create([
+    CloudProvider::factory()->hetzner()->create([
         'organization_id' => $organization->id,
         'name' => 'Hetzner Prod',
     ]);
@@ -142,9 +146,8 @@ test('create server command shows message when no infrastructures', function ():
     ));
 
     $this->artisan('server:create')
-        ->expectsQuestion('Select a cloud provider', $provider->id)
-        ->expectsOutputToContain('No infrastructures configured')
-        ->assertSuccessful();
+        ->expectsOutputToContain('No infrastructure selected')
+        ->assertFailed();
 });
 
 test('create server command fails when api throws exception', function (): void {
@@ -185,10 +188,13 @@ test('create server command fails when api throws exception', function (): void 
         name: $organization->name,
         slug: $organization->slug,
     ));
+    $session->setInfrastructure(new SessionInfrastructureData(
+        id: $infrastructure->id,
+        name: $infrastructure->name,
+    ));
 
     $this->artisan('server:create')
         ->expectsQuestion('Select a cloud provider', $provider->id)
-        ->expectsQuestion('Select an infrastructure', $infrastructure->id)
         ->expectsQuestion('Server name', 'web-1')
         ->expectsQuestion('Server type', 'cx11')
         ->expectsQuestion('Image', 'ubuntu-22.04')

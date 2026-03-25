@@ -17,7 +17,7 @@ final class CreateInfrastructureCommand extends AuthenticatedCommand
     /**
      * @var string
      */
-    protected $signature = 'infrastructure:create';
+    protected $signature = 'infrastructure:create {--provider= : Cloud provider ID} {--name= : Infrastructure name} {--description= : Infrastructure description}';
 
     /**
      * @var string
@@ -37,23 +37,36 @@ final class CreateInfrastructureCommand extends AuthenticatedCommand
             return self::SUCCESS;
         }
 
-        $choices = $providers->mapWithKeys(fn (CloudProvider $provider) => [
-            $provider->id => "{$provider->name} ({$provider->type->label()})",
-        ])->toArray();
+        $providerOption = $this->option('provider');
 
-        $providerId = select(
-            label: 'Select a cloud provider',
-            options: $choices,
-        );
+        if ($providerOption) {
+            $provider = $providers->firstWhere('id', $providerOption);
+            if (! $provider) {
+                $this->components->error('Provider not found.');
 
-        $provider = $providers->firstWhere('id', $providerId);
+                return self::FAILURE;
+            }
+        } else {
+            $choices = $providers->mapWithKeys(fn (CloudProvider $provider) => [
+                $provider->id => "{$provider->name} ({$provider->type->label()})",
+            ])->toArray();
 
-        $name = text(
+            $providerId = select(
+                label: 'Select a cloud provider',
+                options: $choices,
+            );
+
+            $provider = $providers->firstWhere('id', $providerId);
+        }
+
+        $nameOption = $this->option('name');
+        $name = $nameOption ?: text(
             label: 'Infrastructure name',
             required: true,
         );
 
-        $description = text(
+        $descOption = $this->option('description');
+        $description = $descOption ?: text(
             label: 'Description (optional)',
         );
 

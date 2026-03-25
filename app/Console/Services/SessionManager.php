@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Console\Services;
 
+use App\Data\SessionInfrastructureData;
 use App\Data\SessionOrganizationData;
 use App\Data\SessionUserData;
+use Illuminate\Container\Attributes\Config;
 
 final class SessionManager
 {
     private array $config = [];
 
     public function __construct(
-        private string $path = '',
+        #[Config('larakube.session_path')] private readonly string $path,
     ) {
-        if ($this->path === '') {
-            $this->path = $_SERVER['HOME'].'/.larakube/session.json';
-        }
-
         $this->load();
     }
 
@@ -28,7 +26,7 @@ final class SessionManager
             mkdir($dir, 0700, true);
         }
         file_put_contents($this->path, json_encode($this->config, JSON_PRETTY_PRINT));
-        chmod($this->path, 0600); // user-only read
+        chmod($this->path, 0600);
     }
 
     public function set(string $key, mixed $value): void
@@ -89,6 +87,32 @@ final class SessionManager
     public function hasOrganization(): bool
     {
         return $this->get('organization') !== null;
+    }
+
+    public function setInfrastructure(SessionInfrastructureData $infrastructure): void
+    {
+        $this->set('infrastructure', $infrastructure->toArray());
+    }
+
+    public function getInfrastructure(): ?SessionInfrastructureData
+    {
+        $data = $this->get('infrastructure');
+
+        if (! is_array($data)) {
+            return null;
+        }
+
+        return SessionInfrastructureData::fromArray($data);
+    }
+
+    public function clearOrganization(): void
+    {
+        $this->set('organization', null);
+    }
+
+    public function clearInfrastructure(): void
+    {
+        $this->set('infrastructure', null);
     }
 
     private function load(): void

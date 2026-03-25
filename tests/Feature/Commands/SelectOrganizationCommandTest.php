@@ -8,8 +8,7 @@ use App\Models\Organization;
 use App\Models\User;
 
 beforeEach(function (): void {
-    $tempPath = sys_get_temp_dir().'/select-org-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 test('select organization command lists and persists selection', function (): void {

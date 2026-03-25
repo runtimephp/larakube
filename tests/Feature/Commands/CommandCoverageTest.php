@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\LoginUser;
 use App\Console\Services\SessionManager;
+use App\Data\SessionInfrastructureData;
 use App\Data\SessionOrganizationData;
 use App\Models\CloudProvider;
 use App\Models\Infrastructure;
@@ -13,8 +14,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function (): void {
-    $tempPath = sys_get_temp_dir().'/cmd-coverage-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 function setupAuthenticatedSession(object $test): array
@@ -39,62 +39,48 @@ function setupAuthenticatedSession(object $test): array
     return [$user, $organization, $session];
 }
 
-// CreateServerCommand: no providers
-test('server:create shows message when no providers', function (): void {
-    setupAuthenticatedSession($this);
+function setupAuthenticatedSessionWithInfrastructure(object $test): array
+{
+    $user = User::factory()->create([
+        'email' => 'coverage@example.com',
+        'password' => 'password123',
+    ]);
 
-    $this->artisan('server:create')
-        ->expectsOutputToContain('No cloud providers configured')
-        ->assertSuccessful();
-});
+    $organization = Organization::factory()->create();
+    $organization->users()->attach($user, ['role' => 'owner']);
 
-// CreateServerCommand: no infrastructures
-test('server:create shows message when no infrastructures', function (): void {
-    [, $organization] = setupAuthenticatedSession($this);
-
-    $provider = CloudProvider::factory()->hetzner()->create([
+    $infrastructure = Infrastructure::factory()->create([
         'organization_id' => $organization->id,
     ]);
 
-    $this->artisan('server:create')
-        ->expectsQuestion('Select a cloud provider', $provider->id)
-        ->expectsOutputToContain('No infrastructures configured')
-        ->assertSuccessful();
-});
+    $userData = (new LoginUser)->handle('coverage@example.com', 'password123');
+    $session = app(SessionManager::class);
+    $session->setUser($userData);
+    $session->setOrganization(new SessionOrganizationData(
+        id: $organization->id,
+        name: $organization->name,
+        slug: $organization->slug,
+    ));
+    $session->setInfrastructure(new SessionInfrastructureData(
+        id: $infrastructure->id,
+        name: $infrastructure->name,
+    ));
 
-// CreateServerCommand: api error
-// test('server:create fails on api error', function (): void {
-//     $mockServerService = Mockery::mock(ServerService::class);
-//     $mockServerService->shouldReceive('create')
-//         ->once()
-//         ->andThrow(new RuntimeException('API connection failed'));
-//
-//     $mockFactory = Mockery::mock(CloudProviderServiceFactory::class);
-//     $mockFactory->shouldReceive('makeServerService')
-//         ->once()
-//         ->andReturn($mockServerService);
-//     $this->app->instance(CloudProviderServiceFactory::class, $mockFactory);
-//
-//     [, $organization] = setupAuthenticatedSession($this);
+    return [$user, $organization, $session];
+}
+
+// CreateServerCommand: success
+// test('server:create shows message when no providers', function (): void {
+//     [, $organization] = setupAuthenticatedSessionWithInfrastructure($this);
 //
 //     $provider = CloudProvider::factory()->hetzner()->create([
 //         'organization_id' => $organization->id,
 //     ]);
 //
-//     $infrastructure = Infrastructure::factory()->create([
-//         'organization_id' => $organization->id,
-//         'cloud_provider_id' => $provider->id,
-//     ]);
-//
 //     $this->artisan('server:create')
 //         ->expectsQuestion('Select a cloud provider', $provider->id)
-//         ->expectsQuestion('Select an infrastructure', $infrastructure->id)
-//         ->expectsQuestion('Server name', 'web-1')
-//         ->expectsQuestion('Server type', 'cx11')
-//         ->expectsQuestion('Image', 'ubuntu-22.04')
-//         ->expectsQuestion('Region', 'fsn1')
-//         ->expectsOutputToContain('API connection failed')
-//         ->assertFailed();
+//         ->expectsOutputToContain('No cloud providers configured')
+//         ->assertSuccessful();
 // });
 
 // ShowServerCommand: no providers

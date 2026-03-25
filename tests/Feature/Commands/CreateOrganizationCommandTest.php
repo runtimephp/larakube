@@ -7,8 +7,7 @@ use App\Console\Services\SessionManager;
 use App\Models\User;
 
 beforeEach(function (): void {
-    $tempPath = sys_get_temp_dir().'/create-org-test-'.uniqid().'/session.json';
-    $this->app->singleton(SessionManager::class, fn () => new SessionManager($tempPath));
+    $this->app->singleton(SessionManager::class);
 });
 
 test('create organization command creates org and auto-selects it', function (): void {
