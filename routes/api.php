@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\V1\CloudProviderController;
 use App\Http\Controllers\Api\V1\InfrastructureController;
 use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\RegisterController;
+use App\Http\Controllers\Api\V1\ServerController;
+use App\Http\Middleware\ResolveInfrastructure;
 use App\Http\Middleware\ResolveOrganization;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +35,14 @@ Route::prefix('v1')->as('api.v1.')->group(function (): void {
             Route::apiResource('infrastructures', InfrastructureController::class)
                 ->only(['index', 'store'])
                 ->names('infrastructures');
+
+            Route::apiResource('servers', ServerController::class)
+                ->only(['index', 'show', 'destroy'])
+                ->names('servers');
+
+            Route::post('servers', [ServerController::class, 'store'])
+                ->middleware(ResolveInfrastructure::class)
+                ->name('servers.store');
         });
     });
 });

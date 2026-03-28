@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\CreateServer;
+use App\Contracts\CloudProviderClient;
+use App\Contracts\ServerClient;
 use App\Data\CreateServerData;
-use App\Models\CloudProvider;
-use App\Models\Organization;
-use App\Queries\CloudProviderQuery;
-use Throwable;
+use App\Enums\CloudProviderType;
+use App\Exceptions\LarakubeApiException;
 
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -30,67 +29,51 @@ final class CreateServerCommand extends AuthenticatedCommand
 
     protected bool $requiresInfrastructure = true;
 
-    public function handleCommand(CreateServer $createServer, CloudProviderQuery $cloudProviderQuery): int
+    public function handleCommand(ServerClient $serverClient, CloudProviderClient $cloudProviderClient): int
     {
-        $organization = Organization::query()->find($this->organization->id);
-        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
+        try {
+            $providers = $cloudProviderClient->list();
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
-        if ($providers->isEmpty()) {
+            return self::FAILURE;
+        }
+
+        if ($providers === []) {
             $this->components->info('No cloud providers configured. Run [cloud-provider:add] first.');
 
             return self::SUCCESS;
         }
 
-        $choices = $providers->mapWithKeys(fn (CloudProvider $provider) => [
-            $provider->id => "{$provider->name} ({$provider->type->label()})",
-        ])->toArray();
+        $choices = [];
+        foreach ($providers as $p) {
+            $choices[$p->id] = "{$p->name} (".CloudProviderType::from($p->type)->label().')';
+        }
 
         $providerId = select(
             label: 'Select a cloud provider',
             options: $choices,
         );
 
-        $provider = $providers->firstWhere('id', $providerId);
-
-        $infrastructureId = $this->infrastructure->id;
-
-        $name = text(
-            label: 'Server name',
-            required: true,
-        );
-
-        $type = text(
-            label: 'Server type',
-            placeholder: 'e.g. cx11 (Hetzner) or s-1vcpu-1gb (DigitalOcean)',
-            required: true,
-        );
-
-        $image = text(
-            label: 'Image',
-            default: 'ubuntu-22.04',
-            required: true,
-        );
-
-        $region = text(
-            label: 'Region',
-            placeholder: 'e.g. fsn1 (Hetzner) or nyc1 (DigitalOcean)',
-            required: true,
-        );
+        $name = text(label: 'Server name', required: true);
+        $type = text(label: 'Server type', placeholder: 'e.g. cx11 (Hetzner) or s-1vcpu-1gb (DigitalOcean)', required: true);
+        $image = text(label: 'Image', default: 'ubuntu-22.04', required: true);
+        $region = text(label: 'Region', placeholder: 'e.g. fsn1 (Hetzner) or nyc1 (DigitalOcean)', required: true);
 
         $this->components->info('Creating server...');
 
         try {
-            $server = $createServer->handle(
-                $provider,
+            $server = $serverClient->create(
                 new CreateServerData(
                     name: $name,
                     type: $type,
                     image: $image,
                     region: $region,
-                    infrastructure_id: $infrastructureId,
+                    infrastructure_id: $this->infrastructure->id,
                 ),
+                $providerId,
             );
-        } catch (Throwable $e) {
+        } catch (LarakubeApiException $e) {
             $this->components->error($e->getMessage());
 
             return self::FAILURE;

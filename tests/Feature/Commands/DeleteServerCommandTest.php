@@ -3,21 +3,18 @@
 declare(strict_types=1);
 
 use App\Actions\LoginUser;
+use App\Client\InMemoryServerClient;
 use App\Console\Services\SessionManager;
-use App\Data\ServerData;
+use App\Contracts\ServerClient;
+use App\Data\ServerResourceData;
 use App\Data\SessionOrganizationData;
-use App\Enums\ServerStatus;
-use App\Models\CloudProvider;
 use App\Models\Organization;
-use App\Models\Server;
 use App\Models\User;
-use App\Services\InMemory\InMemoryHetznerServerService;
 
 beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
-
-    /** @var LoginUser $this->loginUser */
-    $this->loginUser = app(LoginUser::class);
+    $this->serverClient = new InMemoryServerClient();
+    $this->app->instance(ServerClient::class, $this->serverClient);
 });
 
 test('delete server removes server successfully',
@@ -25,60 +22,29 @@ test('delete server removes server successfully',
      * @throws Throwable
      */
     function (): void {
-        /** @var InMemoryHetznerServerService $serverService */
-        $serverService = useInMemoryHetznerServerService();
-        $serverService->addServer(new ServerData(
-            externalId: '123',
-            name: 'web-1',
-            status: ServerStatus::Running,
-            type: 'cx11',
-            region: 'fsn1',
-            ipv4: '1.2.3.4',
-        ));
-
-        bindInMemoryHetznerFactory(serverService: $serverService);
-
         /** @var User $user */
-        $user = User::factory()->create([
-            'email' => 'john@example.com',
-            'password' => 'password123',
-        ]);
-
+        $user = User::factory()->create(['email' => 'john@example.com', 'password' => 'password123']);
         /** @var Organization $organization */
         $organization = Organization::factory()->create();
         $organization->users()->attach($user, ['role' => 'owner']);
 
-        /** @var CloudProvider $provider */
-        $provider = CloudProvider::factory()->hetzner()->create([
-            'organization_id' => $organization->id,
-            'name' => 'Hetzner Prod',
-        ]);
-
-        /** @var Server $server */
-        $server = Server::factory()->create([
-            'organization_id' => $organization->id,
-            'cloud_provider_id' => $provider->id,
-            'name' => 'web-1',
-            'external_id' => '123',
-        ]);
-
-        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
         $session = app(SessionManager::class);
         $session->setUser($userData);
-        $session->setOrganization(new SessionOrganizationData(
-            id: $organization->id,
-            name: $organization->name,
-            slug: $organization->slug,
-        ));
+        $session->setOrganization(new SessionOrganizationData(id: $organization->id, name: $organization->name, slug: $organization->slug));
+
+        $this->serverClient->setListResponse([
+            new ServerResourceData(id: 'srv-1', name: 'web-1', status: 'running', type: 'cx11', region: 'fsn1', ipv4: '1.2.3.4', ipv6: null, externalId: '123', cloudProviderId: 'cp-1', infrastructureId: 'infra-1'),
+        ]);
 
         $this->artisan('server:delete')
-            ->expectsQuestion('Select a cloud provider', $provider->id)
-            ->expectsQuestion('Select a server to delete', $server->id)
-            ->expectsConfirmation("Are you sure you want to delete [{$server->name}]?", 'yes')
+            ->expectsQuestion('Select a server to delete', 'srv-1')
+            ->expectsConfirmation('Are you sure you want to delete [web-1]?', 'yes')
             ->expectsOutputToContain('Server [web-1] deleted')
             ->assertSuccessful();
 
-        $this->assertDatabaseMissing('servers', ['id' => $server->id]);
+        expect($this->serverClient->deleteCalled)->toBeTrue()
+            ->and($this->serverClient->deletedId)->toBe('srv-1');
     });
 
 test('delete server shows message when no servers',
@@ -86,40 +52,18 @@ test('delete server shows message when no servers',
      * @throws Throwable
      */
     function (): void {
-        /** @var InMemoryHetznerServerService $serverService */
-        $serverService = useInMemoryHetznerServerService();
-
-        bindInMemoryHetznerFactory(serverService: $serverService);
-
         /** @var User $user */
-        $user = User::factory()->create([
-            'email' => 'john@example.com',
-            'password' => 'password123',
-        ]);
-
+        $user = User::factory()->create(['email' => 'john@example.com', 'password' => 'password123']);
         /** @var Organization $organization */
         $organization = Organization::factory()->create();
         $organization->users()->attach($user, ['role' => 'owner']);
 
-        CloudProvider::factory()->hetzner()->create([
-            'organization_id' => $organization->id,
-            'name' => 'Hetzner Prod',
-        ]);
-
-        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
         $session = app(SessionManager::class);
         $session->setUser($userData);
-        $session->setOrganization(new SessionOrganizationData(
-            id: $organization->id,
-            name: $organization->name,
-            slug: $organization->slug,
-        ));
-
-        /** @var CloudProvider $provider */
-        $provider = $organization->cloudProviders->first();
+        $session->setOrganization(new SessionOrganizationData(id: $organization->id, name: $organization->name, slug: $organization->slug));
 
         $this->artisan('server:delete')
-            ->expectsQuestion('Select a cloud provider', $provider->id)
             ->expectsOutputToContain('No servers to delete')
             ->assertSuccessful();
     });
@@ -129,60 +73,28 @@ test('delete server cancels when user declines confirmation',
      * @throws Throwable
      */
     function (): void {
-        /** @var InMemoryHetznerServerService $serverService */
-        $serverService = useInMemoryHetznerServerService();
-        $serverService->addServer(new ServerData(
-            externalId: '123',
-            name: 'web-1',
-            status: ServerStatus::Running,
-            type: 'cx11',
-            region: 'fsn1',
-            ipv4: '1.2.3.4',
-        ));
-
-        bindInMemoryHetznerFactory(serverService: $serverService);
-
         /** @var User $user */
-        $user = User::factory()->create([
-            'email' => 'john@example.com',
-            'password' => 'password123',
-        ]);
-
+        $user = User::factory()->create(['email' => 'john@example.com', 'password' => 'password123']);
         /** @var Organization $organization */
         $organization = Organization::factory()->create();
         $organization->users()->attach($user, ['role' => 'owner']);
 
-        /** @var CloudProvider $provider */
-        $provider = CloudProvider::factory()->hetzner()->create([
-            'organization_id' => $organization->id,
-            'name' => 'Hetzner Prod',
-        ]);
-
-        /** @var Server $server */
-        $server = Server::factory()->create([
-            'organization_id' => $organization->id,
-            'cloud_provider_id' => $provider->id,
-            'name' => 'web-1',
-            'external_id' => '123',
-        ]);
-
-        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
         $session = app(SessionManager::class);
         $session->setUser($userData);
-        $session->setOrganization(new SessionOrganizationData(
-            id: $organization->id,
-            name: $organization->name,
-            slug: $organization->slug,
-        ));
+        $session->setOrganization(new SessionOrganizationData(id: $organization->id, name: $organization->name, slug: $organization->slug));
+
+        $this->serverClient->setListResponse([
+            new ServerResourceData(id: 'srv-1', name: 'web-1', status: 'running', type: 'cx11', region: 'fsn1', ipv4: '1.2.3.4', ipv6: null, externalId: '123', cloudProviderId: 'cp-1', infrastructureId: 'infra-1'),
+        ]);
 
         $this->artisan('server:delete')
-            ->expectsQuestion('Select a cloud provider', $provider->id)
-            ->expectsQuestion('Select a server to delete', $server->id)
-            ->expectsConfirmation("Are you sure you want to delete [{$server->name}]?", 'no')
+            ->expectsQuestion('Select a server to delete', 'srv-1')
+            ->expectsConfirmation('Are you sure you want to delete [web-1]?', 'no')
             ->expectsOutputToContain('Cancelled')
             ->assertSuccessful();
 
-        $this->assertDatabaseHas('servers', ['id' => $server->id]);
+        expect($this->serverClient->deleteCalled)->toBeFalse();
     });
 
 test('delete server shows error when api call fails',
@@ -190,59 +102,48 @@ test('delete server shows error when api call fails',
      * @throws Throwable
      */
     function (): void {
-        /** @var InMemoryHetznerServerService $serverService */
-        $serverService = useInMemoryHetznerServerService();
-        $serverService->addServer(new ServerData(
-            externalId: '123',
-            name: 'web-1',
-            status: ServerStatus::Running,
-            type: 'cx11',
-            region: 'fsn1',
-            ipv4: '1.2.3.4',
-        ));
-        $serverService->shouldFailDelete(true);
-
-        bindInMemoryHetznerFactory(serverService: $serverService);
-
         /** @var User $user */
-        $user = User::factory()->create([
-            'email' => 'john@example.com',
-            'password' => 'password123',
-        ]);
-
+        $user = User::factory()->create(['email' => 'john@example.com', 'password' => 'password123']);
         /** @var Organization $organization */
         $organization = Organization::factory()->create();
         $organization->users()->attach($user, ['role' => 'owner']);
 
-        /** @var CloudProvider $provider */
-        $provider = CloudProvider::factory()->hetzner()->create([
-            'organization_id' => $organization->id,
-            'name' => 'Hetzner Prod',
-        ]);
-
-        /** @var Server $server */
-        $server = Server::factory()->create([
-            'organization_id' => $organization->id,
-            'cloud_provider_id' => $provider->id,
-            'name' => 'web-1',
-            'external_id' => '123',
-        ]);
-
-        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
         $session = app(SessionManager::class);
         $session->setUser($userData);
-        $session->setOrganization(new SessionOrganizationData(
-            id: $organization->id,
-            name: $organization->name,
-            slug: $organization->slug,
-        ));
+        $session->setOrganization(new SessionOrganizationData(id: $organization->id, name: $organization->name, slug: $organization->slug));
+
+        $this->serverClient->setListResponse([
+            new ServerResourceData(id: 'srv-1', name: 'web-1', status: 'running', type: 'cx11', region: 'fsn1', ipv4: '1.2.3.4', ipv6: null, externalId: '123', cloudProviderId: 'cp-1', infrastructureId: 'infra-1'),
+        ]);
+        $this->serverClient->shouldFailDelete();
 
         $this->artisan('server:delete')
-            ->expectsQuestion('Select a cloud provider', $provider->id)
-            ->expectsQuestion('Select a server to delete', $server->id)
-            ->expectsConfirmation("Are you sure you want to delete [{$server->name}]?", 'yes')
-            ->expectsOutputToContain('Failed to delete server')
+            ->expectsQuestion('Select a server to delete', 'srv-1')
+            ->expectsConfirmation('Are you sure you want to delete [web-1]?', 'yes')
+            ->expectsOutputToContain('Failed to delete server.')
             ->assertFailed();
+    });
 
-        $this->assertDatabaseHas('servers', ['id' => $server->id]);
+test('delete server displays error on list failure',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->create(['email' => 'john@example.com', 'password' => 'password123']);
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
+
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(id: $organization->id, name: $organization->name, slug: $organization->slug));
+
+        $this->serverClient->shouldFailList();
+
+        $this->artisan('server:delete')
+            ->expectsOutputToContain('Unauthenticated.')
+            ->assertFailed();
     });

@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 use App\Actions\LoginUser;
 use App\Client\InMemoryOrganizationClient;
+use App\Client\InMemoryServerClient;
 use App\Console\Services\SessionManager;
 use App\Contracts\OrganizationClient;
+use App\Contracts\ServerClient;
 use App\Data\SessionInfrastructureData;
 use App\Data\SessionOrganizationData;
-use App\Models\CloudProvider;
-use App\Models\Infrastructure;
 use App\Models\Organization;
-use App\Models\Server;
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
 
 beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
     $this->organizationClient = new InMemoryOrganizationClient();
     $this->app->instance(OrganizationClient::class, $this->organizationClient);
+    $this->serverClient = new InMemoryServerClient();
+    $this->app->instance(ServerClient::class, $this->serverClient);
 });
 
 function setupAuthenticatedSession(object $test): array
@@ -87,21 +87,23 @@ function setupAuthenticatedSessionWithInfrastructure(object $test): array
 //         ->assertSuccessful();
 // });
 
-// ShowServerCommand: no providers
-test('server:show shows message when no providers', function (): void {
+// ShowServerCommand: server not found
+test('server:show shows error when server not found', function (): void {
     setupAuthenticatedSession($this);
 
-    $this->artisan('server:show')
-        ->expectsOutputToContain('No cloud providers configured')
-        ->assertSuccessful();
+    $this->serverClient->shouldFailShow();
+
+    $this->artisan('server:show --id=nonexistent')
+        ->expectsOutputToContain('Server not found.')
+        ->assertFailed();
 });
 
-// DeleteServerCommand: no providers
-test('server:delete shows message when no providers', function (): void {
+// DeleteServerCommand: no servers
+test('server:delete shows message when no servers', function (): void {
     setupAuthenticatedSession($this);
 
     $this->artisan('server:delete')
-        ->expectsOutputToContain('No cloud providers configured')
+        ->expectsOutputToContain('No servers to delete')
         ->assertSuccessful();
 });
 
