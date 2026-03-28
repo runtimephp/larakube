@@ -29,14 +29,14 @@ test('logout clears session and revokes tokens', function (): void {
         'password' => 'password123',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
 
     $session = new SessionManager($this->tempPath);
     $session->setUser($userData);
 
     expect($session->isAuthenticated())->toBeTrue();
 
-    new LogoutUser()->handle($session);
+    app(LogoutUser::class)->handle($session);
 
     expect($session->isAuthenticated())->toBeFalse()
         ->and($session->getUser())->toBeNull()
@@ -46,7 +46,7 @@ test('logout clears session and revokes tokens', function (): void {
 test('logout handles missing user gracefully', function (): void {
     $session = new SessionManager($this->tempPath);
 
-    new LogoutUser()->handle($session);
+    app(LogoutUser::class)->handle($session);
 
     expect($session->isAuthenticated())->toBeFalse();
 });

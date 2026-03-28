@@ -34,7 +34,7 @@ test('select infrastructure command selects infrastructure successfully', functi
         'name' => 'Production',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -62,7 +62,7 @@ test('select infrastructure command fails when no providers', function (): void 
     $organization = Organization::factory()->create();
     $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -90,7 +90,7 @@ test('select infrastructure command fails when no infrastructures', function ():
         'name' => 'Hetzner Prod',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -117,7 +117,7 @@ test('select infrastructure command fails when no organization selected', functi
         'password' => 'password123',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
 

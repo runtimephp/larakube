@@ -29,7 +29,7 @@ test('remove cloud provider deletes the selected provider', function (): void {
         'name' => 'Hetzner Production',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -56,7 +56,7 @@ test('remove cloud provider shows message when none exist', function (): void {
     $organization = Organization::factory()->create();
     $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -84,7 +84,7 @@ test('remove cloud provider cancels when user declines confirmation', function (
         'name' => 'Hetzner Production',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(

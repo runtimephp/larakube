@@ -30,7 +30,7 @@ test('add cloud provider command creates provider with valid token', function ()
     $organization = Organization::factory()->create();
     $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -70,7 +70,7 @@ test('add cloud provider command fails with invalid token', function (): void {
     $organization = Organization::factory()->create();
     $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -102,7 +102,7 @@ test('add cloud provider command fails with invalid provider type from CLI optio
     $organization = Organization::factory()->create();
     $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(

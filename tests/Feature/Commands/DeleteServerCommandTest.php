@@ -62,7 +62,7 @@ test('delete server removes server successfully', function (): void {
         'external_id' => '123',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -106,7 +106,7 @@ test('delete server shows message when no servers', function (): void {
         'name' => 'Hetzner Prod',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -164,7 +164,7 @@ test('delete server cancels when user declines confirmation', function (): void 
         'external_id' => '123',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -227,7 +227,7 @@ test('delete server shows error when api call fails', function (): void {
         'external_id' => '123',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(

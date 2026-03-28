@@ -6,7 +6,8 @@ namespace App\Console\Commands;
 
 use App\Console\Services\SessionManager;
 use App\Data\SessionOrganizationData;
-use App\Models\User;
+use App\Queries\OrganizationQuery;
+use App\Queries\UserQuery;
 
 use function Laravel\Prompts\select;
 
@@ -22,11 +23,10 @@ final class SelectOrganizationCommand extends AuthenticatedCommand
      */
     protected $description = 'Select an organization to work with';
 
-    public function handleCommand(SessionManager $session): int
+    public function handleCommand(SessionManager $session, UserQuery $userQuery, OrganizationQuery $organizationQuery): int
     {
-        /** @var User|null $user */
-        $user = User::query()->find($this->user->id);
-        $organizations = $user->organizations;
+        $user = ($userQuery)()->byEmail($this->user->email)->first();
+        $organizations = ($organizationQuery)()->byUser($user)->get();
 
         if ($organizations->isEmpty()) {
             $this->components->error('You do not belong to any organizations. Run [organization:create] first.');

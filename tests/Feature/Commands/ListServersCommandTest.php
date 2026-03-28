@@ -51,7 +51,7 @@ test('list servers syncs and displays table', function (): void {
         'name' => 'Hetzner Prod',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -75,7 +75,7 @@ test('list servers shows message when no providers', function (): void {
     $organization = Organization::factory()->create();
     $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -120,7 +120,7 @@ test('list servers shows message when no servers found', function (): void {
         'name' => 'Hetzner Prod',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(

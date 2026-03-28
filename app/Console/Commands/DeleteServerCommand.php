@@ -9,6 +9,8 @@ use App\Actions\SyncServers;
 use App\Models\CloudProvider;
 use App\Models\Organization;
 use App\Models\Server;
+use App\Queries\CloudProviderQuery;
+use App\Queries\ServerQuery;
 use Throwable;
 
 use function Laravel\Prompts\confirm;
@@ -28,10 +30,10 @@ final class DeleteServerCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(SyncServers $syncServers, DeleteServer $deleteServer): int
+    public function handleCommand(SyncServers $syncServers, DeleteServer $deleteServer, CloudProviderQuery $cloudProviderQuery, ServerQuery $serverQuery): int
     {
         $organization = Organization::query()->find($this->organization->id);
-        $providers = $organization->cloudProviders;
+        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
 
         if ($providers->isEmpty()) {
             $this->components->info('No cloud providers configured. Run [cloud-provider:add] first.');
@@ -53,7 +55,7 @@ final class DeleteServerCommand extends AuthenticatedCommand
         $this->components->info('Syncing servers...');
         $syncServers->handle($provider);
 
-        $servers = $provider->servers()->get();
+        $servers = ($serverQuery)()->byProvider($provider)->get();
 
         if ($servers->isEmpty()) {
             $this->components->info('No servers to delete.');

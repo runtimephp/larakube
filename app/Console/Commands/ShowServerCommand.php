@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\CloudProvider;
 use App\Models\Organization;
+use App\Queries\CloudProviderQuery;
 use App\Services\CloudProviderFactory;
 
 use function Laravel\Prompts\select;
@@ -25,10 +26,10 @@ final class ShowServerCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(CloudProviderFactory $factory): int
+    public function handleCommand(CloudProviderFactory $factory, CloudProviderQuery $cloudProviderQuery): int
     {
         $organization = Organization::query()->find($this->organization->id);
-        $providers = $organization->cloudProviders;
+        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
 
         if ($providers->isEmpty()) {
             $this->components->info('No cloud providers configured. Run [cloud-provider:add] first.');

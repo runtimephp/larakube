@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Console\Services\SessionManager;
-use App\Models\User;
+use App\Queries\UserQuery;
 
-final class LogoutUser
+final readonly class LogoutUser
 {
+    public function __construct(private UserQuery $userQuery) {}
+
     public function handle(SessionManager $session): void
     {
         $userData = $session->getUser();
 
         if ($userData !== null) {
-            $user = User::query()->find($userData->id);
+            $user = ($this->userQuery)()->byEmail($userData->email)->first();
             $user?->tokens()->delete();
         }
 

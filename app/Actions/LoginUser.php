@@ -6,15 +6,17 @@ namespace App\Actions;
 
 use App\Data\SessionUserData;
 use App\Models\User;
+use App\Queries\UserQuery;
 use Illuminate\Support\Facades\Hash;
 use SensitiveParameter;
 
-final class LoginUser
+final readonly class LoginUser
 {
+    public function __construct(private UserQuery $userQuery) {}
+
     public function handle(string $email, #[SensitiveParameter] string $password): ?SessionUserData
     {
-        /** @var User|null $user */
-        $user = User::query()->where('email', $email)->first();
+        $user = ($this->userQuery)()->byEmail($email)->first();
 
         if (! $user instanceof User || ! Hash::check($password, $user->password)) {
             return null;

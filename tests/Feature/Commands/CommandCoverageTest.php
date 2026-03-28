@@ -27,7 +27,7 @@ function setupAuthenticatedSession(object $test): array
     $organization = Organization::factory()->create();
     $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = (new LoginUser)->handle('coverage@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('coverage@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(
@@ -53,7 +53,7 @@ function setupAuthenticatedSessionWithInfrastructure(object $test): array
         'organization_id' => $organization->id,
     ]);
 
-    $userData = (new LoginUser)->handle('coverage@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('coverage@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
     $session->setOrganization(new SessionOrganizationData(

@@ -6,15 +6,21 @@ namespace App\Actions;
 
 use App\Models\CloudProvider;
 use App\Models\Infrastructure;
+use App\Queries\InfrastructureQuery;
+use App\Queries\ServerQuery;
 use App\Services\CloudProviderFactory;
 
 final readonly class SyncServers
 {
-    public function __construct(private CloudProviderFactory $factory) {}
+    public function __construct(
+        private CloudProviderFactory $factory,
+        private InfrastructureQuery $infrastructureQuery,
+        private ServerQuery $serverQuery,
+    ) {}
 
     public function handle(CloudProvider $provider): void
     {
-        $infrastructure = $provider->infrastructures()->first();
+        $infrastructure = ($this->infrastructureQuery)()->byProvider($provider)->first();
 
         if (! $infrastructure) {
             $infrastructure = Infrastructure::create([
@@ -49,7 +55,9 @@ final readonly class SyncServers
             );
         }
 
-        $provider->servers()
+        ($this->serverQuery)()
+            ->byProvider($provider)
+            ->builder()
             ->whereNotIn('external_id', $remoteExternalIds)
             ->delete();
     }

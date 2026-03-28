@@ -8,6 +8,8 @@ use App\Console\Services\SessionManager;
 use App\Data\SessionInfrastructureData;
 use App\Models\CloudProvider;
 use App\Models\Organization;
+use App\Queries\CloudProviderQuery;
+use App\Queries\InfrastructureQuery;
 
 use function Laravel\Prompts\select;
 
@@ -25,10 +27,10 @@ final class SelectInfrastructureCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(SessionManager $session): int
+    public function handleCommand(SessionManager $session, CloudProviderQuery $cloudProviderQuery, InfrastructureQuery $infrastructureQuery): int
     {
         $organization = Organization::query()->find($this->organization->id);
-        $providers = $organization->cloudProviders;
+        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
 
         if ($providers->isEmpty()) {
             $this->components->error('No cloud providers configured. Run [cloud-provider:add] first.');
@@ -46,7 +48,7 @@ final class SelectInfrastructureCommand extends AuthenticatedCommand
         );
 
         $provider = $providers->firstWhere('id', $providerId);
-        $infrastructures = $provider->infrastructures;
+        $infrastructures = ($infrastructureQuery)()->byProvider($provider)->get();
 
         if ($infrastructures->isEmpty()) {
             $this->components->error('No infrastructures configured. Run [infrastructure:create] first.');

@@ -8,6 +8,7 @@ use App\Actions\CreateServer;
 use App\Data\CreateServerData;
 use App\Models\CloudProvider;
 use App\Models\Organization;
+use App\Queries\CloudProviderQuery;
 use Throwable;
 
 use function Laravel\Prompts\select;
@@ -29,10 +30,10 @@ final class CreateServerCommand extends AuthenticatedCommand
 
     protected bool $requiresInfrastructure = true;
 
-    public function handleCommand(CreateServer $createServer): int
+    public function handleCommand(CreateServer $createServer, CloudProviderQuery $cloudProviderQuery): int
     {
         $organization = Organization::query()->find($this->organization->id);
-        $providers = $organization->cloudProviders;
+        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
 
         if ($providers->isEmpty()) {
             $this->components->info('No cloud providers configured. Run [cloud-provider:add] first.');

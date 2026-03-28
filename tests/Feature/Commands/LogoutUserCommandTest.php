@@ -16,7 +16,7 @@ test('logout command clears session', function (): void {
         'password' => 'password123',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
 
     $session = app(SessionManager::class);
     $session->setUser($userData);

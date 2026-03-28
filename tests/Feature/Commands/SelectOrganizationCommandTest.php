@@ -20,7 +20,7 @@ test('select organization command lists and persists selection', function (): vo
     $organization = Organization::factory()->create(['name' => 'Acme Corp']);
     $user->organizations()->attach($organization, ['role' => 'member']);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
 
@@ -39,7 +39,7 @@ test('select organization command fails when user has no orgs', function (): voi
         'password' => 'password123',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
 

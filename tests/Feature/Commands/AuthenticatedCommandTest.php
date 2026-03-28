@@ -26,7 +26,7 @@ test('authenticated command allows authenticated users', function (): void {
     $organization = Organization::factory()->create();
     $user->organizations()->attach($organization, ['role' => 'owner']);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
 
@@ -50,7 +50,7 @@ test('authenticated command fails when no organization selected', function (): v
         'password' => 'password123',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
 
@@ -65,7 +65,7 @@ test('authenticated command detects expired token', function (): void {
         'password' => 'password123',
     ]);
 
-    $userData = new LoginUser()->handle('john@example.com', 'password123');
+    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
     $session = app(SessionManager::class);
     $session->setUser($userData);
 

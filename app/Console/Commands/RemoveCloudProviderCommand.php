@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\CloudProvider;
 use App\Models\Organization;
+use App\Queries\CloudProviderQuery;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\select;
@@ -24,10 +25,10 @@ final class RemoveCloudProviderCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(): int
+    public function handleCommand(CloudProviderQuery $cloudProviderQuery): int
     {
         $organization = Organization::query()->find($this->organization->id);
-        $providers = $organization->cloudProviders;
+        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
 
         if ($providers->isEmpty()) {
             $this->components->info('No cloud providers to remove.');
