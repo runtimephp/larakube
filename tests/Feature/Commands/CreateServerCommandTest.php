@@ -61,6 +61,40 @@ test('create server command creates server successfully',
             ->assertSuccessful();
     });
 
+test('create server command with multipass shows multipass-specific prompts',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->create(['email' => 'john@example.com', 'password' => 'password123']);
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->create(['organization_id' => $organization->id]);
+
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(id: $organization->id, name: $organization->name, slug: $organization->slug));
+        $session->setInfrastructure(new SessionInfrastructureData(id: $infrastructure->id, name: $infrastructure->name));
+
+        $this->cloudProviderClient->setListResponse([
+            new CloudProviderData(id: 'cp-mp', name: 'Local Multipass', type: 'multipass', isVerified: true),
+        ]);
+
+        $this->artisan('server:create')
+            ->expectsQuestion('Select a cloud provider', 'cp-mp')
+            ->expectsQuestion('Server name', 'web-1')
+            ->expectsQuestion('Ubuntu release', 'noble')
+            ->expectsQuestion('CPUs', '2')
+            ->expectsQuestion('Memory', '2G')
+            ->expectsQuestion('Disk', '20G')
+            ->expectsOutputToContain('Server [web-1] created successfully')
+            ->assertSuccessful();
+    });
+
 test('create server command displays error on list providers failure',
     /**
      * @throws Throwable

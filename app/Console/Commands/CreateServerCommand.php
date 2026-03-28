@@ -55,10 +55,32 @@ final class CreateServerCommand extends AuthenticatedCommand
             options: $choices,
         );
 
+        $selectedProvider = null;
+        foreach ($providers as $p) {
+            if ($p->id === $providerId) {
+                $selectedProvider = $p;
+                break;
+            }
+        }
+
+        $providerType = CloudProviderType::from($selectedProvider->type);
         $name = text(label: 'Server name', required: true);
-        $type = text(label: 'Server type', placeholder: 'e.g. cx11 (Hetzner) or s-1vcpu-1gb (DigitalOcean)', required: true);
-        $image = text(label: 'Image', default: 'ubuntu-22.04', required: true);
-        $region = text(label: 'Region', placeholder: 'e.g. fsn1 (Hetzner) or nyc1 (DigitalOcean)', required: true);
+
+        if ($providerType === CloudProviderType::Multipass) {
+            $image = text(label: 'Ubuntu release', default: 'noble', required: true);
+            $cpus = (int) text(label: 'CPUs', default: '1', required: true);
+            $memory = text(label: 'Memory', default: '1G', required: true);
+            $disk = text(label: 'Disk', default: '5G', required: true);
+            $type = 'custom';
+            $region = 'local';
+        } else {
+            $type = text(label: 'Server type', placeholder: 'e.g. cx11 (Hetzner) or s-1vcpu-1gb (DigitalOcean)', required: true);
+            $image = text(label: 'Image', default: 'ubuntu-22.04', required: true);
+            $region = text(label: 'Region', placeholder: 'e.g. fsn1 (Hetzner) or nyc1 (DigitalOcean)', required: true);
+            $cpus = null;
+            $memory = null;
+            $disk = null;
+        }
 
         $this->components->info('Creating server...');
 
@@ -70,6 +92,9 @@ final class CreateServerCommand extends AuthenticatedCommand
                     image: $image,
                     region: $region,
                     infrastructure_id: $this->infrastructure->id,
+                    cpus: $cpus,
+                    memory: $memory,
+                    disk: $disk,
                 ),
                 $providerId,
             );
