@@ -117,7 +117,7 @@ beforeEach(
      */
     function (): void {
         /** @var Country $country */
-        $this->country = Country::factory()->createQuietly();
+        $this->country = Country::factory()->create();
 
         /** @var CreateOffice $action */
         $this->action = app(CreateOffice::class);
@@ -152,7 +152,7 @@ test('example',
      */
     function (): void {  // @throws annotation BEFORE closure
         /** @var User $user */  // Type hint
-        $user = User::factory()->createQuietly();
+        $user = User::factory()->create();
 
         expect($user->id)->toBeInt();
     });
@@ -178,14 +178,15 @@ beforeEach(
 - **MUST be placed before the closure**, not before the test() or beforeEach() call
 
 ### Factory Methods
-- **ALWAYS use `createQuietly()`** - Prevents events from firing
+- **Use `create()` for factory calls** - Exercises the full model lifecycle
+- **Use `createQuietly()` only when you explicitly need to suppress events**
 - **Use `fresh()`** for records from migrations/seeders
 - **Pass data explicitly** - Don't rely on factory defaults in tests
 
 ```php
 // Create models
 /** @var User $user */
-$user = User::factory()->createQuietly(['name' => 'Test']);
+$user = User::factory()->create(['name' => 'Test']);
 
 // Retrieve seeded records
 /** @var Role $role */
@@ -346,7 +347,7 @@ bindInMemoryHetznerFactory(serverService: $serverService);
 ```php
 test('authorized user can access', function (): void {
     /** @var User $user */
-    $user = User::factory()->createQuietly();
+    $user = User::factory()->create();
     $user->assignRole('owner');
 
     $this->actingAs($user);
@@ -365,7 +366,7 @@ test('authorized user can access', function (): void {
 ```php
 test('page renders correctly', function (): void {
     /** @var User $user */
-    $user = User::factory()->createQuietly();
+    $user = User::factory()->create();
 
     $this->actingAs($user);
 
@@ -423,7 +424,7 @@ test('creates model name',
      */
     function (): void {
         /** @var ModelName $model */
-        $model = ModelName::factory()->createQuietly([
+        $model = ModelName::factory()->create([
             'some_field' => 'Some Value',
         ]);
 
@@ -441,10 +442,10 @@ test('belongs to parent model',
      */
     function (): void {
         /** @var ParentModel $parent */
-        $parent = ParentModel::factory()->createQuietly();
+        $parent = ParentModel::factory()->create();
 
         /** @var ChildModel $child */
-        $child = ChildModel::factory()->createQuietly([
+        $child = ChildModel::factory()->create([
             'parent_id' => $parent->id,
         ]);
 
@@ -461,7 +462,7 @@ test('casts attributes correctly',
      */
     function (): void {
         /** @var ModelName $model */
-        $model = ModelName::factory()->createQuietly();
+        $model = ModelName::factory()->create();
 
         expect($model->id)->toBeString()
             ->and($model->created_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class)
@@ -477,7 +478,7 @@ test('uses uuid for primary key',
      */
     function (): void {
         /** @var ModelName $model */
-        $model = ModelName::factory()->createQuietly();
+        $model = ModelName::factory()->create();
 
         expect($model->id)
             ->toBeString()
@@ -496,7 +497,7 @@ test('to array has all fields in correct order',
      */
     function (): void {
         /** @var ModelName $model */
-        $model = ModelName::factory()->createQuietly()->refresh();
+        $model = ModelName::factory()->create()->refresh();
 
         expect(array_keys($model->toArray()))
             ->toBe([
@@ -544,12 +545,12 @@ test('to array has all fields in correct order', function (): void { /* ... */ }
 
 **WRONG - No refresh() before toArray():**
 ```php
-$model = ModelName::factory()->createQuietly();
+$model = ModelName::factory()->create();
 expect(array_keys($model->toArray()))->toBe([...]); // Missing refresh()
 ```
 
 **CORRECT - Always refresh() before toArray():**
 ```php
-$model = ModelName::factory()->createQuietly()->refresh(); // Correct
+$model = ModelName::factory()->create()->refresh(); // Correct
 expect(array_keys($model->toArray()))->toBe([...]);
 ```

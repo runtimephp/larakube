@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\CreateUser;
+use App\Contracts\AuthClient;
 use App\Data\CreateUserData;
+use App\Exceptions\LarakubeApiException;
 use Illuminate\Console\Command;
 
 use function Laravel\Prompts\password;
@@ -23,7 +24,7 @@ final class RegisterUserCommand extends Command
      */
     protected $description = 'Register a new user';
 
-    public function handle(CreateUser $createUser): int
+    public function handle(AuthClient $authClient): int
     {
         $name = text(
             label: 'Name',
@@ -33,20 +34,24 @@ final class RegisterUserCommand extends Command
         $email = text(
             label: 'Email',
             required: true,
-            validate: ['email' => 'required|email|unique:users,email'],
         );
 
         $password = password(
             label: 'Password',
             required: true,
-            validate: ['password' => 'required|min:8'],
         );
 
-        $user = $createUser->handle(new CreateUserData(
-            name: $name,
-            email: $email,
-            password: $password,
-        ));
+        try {
+            $user = $authClient->register(new CreateUserData(
+                name: $name,
+                email: $email,
+                password: $password,
+            ));
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->components->info("User [{$user->name}] registered successfully with ID [{$user->id}].");
 

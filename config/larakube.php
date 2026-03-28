@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-$sessionPath = getenv('LARAKUBE_SESSION_PATH') ?: ($_ENV['LARAKUBE_SESSION_PATH'] ?? null);
+$sessionsPath = getenv('LARAKUBE_SESSIONS_PATH') ?: ($_ENV['LARAKUBE_SESSIONS_PATH'] ?? null);
 
-if (! $sessionPath) {
+if (! $sessionsPath) {
     $home = $_SERVER['HOME'] ?? $_SERVER['USERPROFILE'] ?? '/root';
-    $sessionPath = $home.'/.larakube/session.json';
+    $sessionsPath = $home.'/.larakube/sessions';
 }
 
 return [
-    'session_path' => $sessionPath,
+    'api_url' => env('LARAKUBE_API_URL', 'http://localhost:8000'),
+    'sessions_path' => $sessionsPath,
 ];

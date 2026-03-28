@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\LoginUser;
 use App\Console\Services\SessionManager;
+use App\Contracts\AuthClient;
+use App\Exceptions\LarakubeApiException;
 use Illuminate\Console\Command;
 
 use function Laravel\Prompts\password;
@@ -23,7 +24,7 @@ final class LoginUserCommand extends Command
      */
     protected $description = 'Log in to your account';
 
-    public function handle(LoginUser $loginUser, SessionManager $session): int
+    public function handle(AuthClient $authClient, SessionManager $session): int
     {
         $email = $this->option('email');
         $password = $this->option('password');
@@ -32,7 +33,6 @@ final class LoginUserCommand extends Command
             $email = text(
                 label: 'Email',
                 required: true,
-                validate: ['email' => 'required|email'],
             );
         }
 
@@ -43,16 +43,15 @@ final class LoginUserCommand extends Command
             );
         }
 
-        $userData = $loginUser->handle($email, $password);
-
-        if ($userData === null) {
-            $this->components->error('Invalid credentials.');
+        try {
+            $userData = $authClient->login($email, $password);
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
             return self::FAILURE;
         }
 
         $session->setUser($userData);
-
         $session->clearOrganization();
         $session->clearInfrastructure();
 
