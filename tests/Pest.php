@@ -148,3 +148,42 @@ function bindInMemoryDigitalOceanFactory(
 
     app()->instance(App\Services\CloudProviderFactory::class, $factory);
 }
+
+/**
+ * Use InMemory MultipassService for validation testing.
+ *
+ * @param  bool|null  $isValid  Set validation result (true=valid, false=invalid, null=no override)
+ */
+function useInMemoryMultipassService(?bool $isValid = null): App\Services\InMemory\InMemoryMultipassService
+{
+    $service = new App\Services\InMemory\InMemoryMultipassService();
+
+    if ($isValid !== null) {
+        $service->setValidationResult($isValid);
+    }
+
+    return $service;
+}
+
+/**
+ * Use InMemory MultipassServerService for server operations testing.
+ */
+function useInMemoryMultipassServerService(): App\Services\InMemory\InMemoryMultipassServerService
+{
+    return new App\Services\InMemory\InMemoryMultipassServerService();
+}
+
+/**
+ * Bind InMemory Multipass services to CloudProviderFactory.
+ *
+ * @param  App\Services\InMemory\InMemoryMultipassService|null  $validationService  Service for validation
+ * @param  App\Services\InMemory\InMemoryMultipassServerService|null  $serverService  Service for server operations
+ */
+function bindInMemoryMultipassFactory(
+    ?App\Services\InMemory\InMemoryMultipassService $validationService = null,
+    ?App\Services\InMemory\InMemoryMultipassServerService $serverService = null
+): void {
+    $factory = new App\Services\InMemory\InMemoryMultipassFactory($validationService, $serverService);
+
+    app()->instance(App\Services\CloudProviderFactory::class, $factory);
+}
