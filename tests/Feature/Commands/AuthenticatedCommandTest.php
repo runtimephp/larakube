@@ -3,12 +3,17 @@
 declare(strict_types=1);
 
 use App\Actions\LoginUser;
+use App\Client\InMemoryOrganizationClient;
 use App\Console\Services\SessionManager;
+use App\Contracts\OrganizationClient;
+use App\Data\OrganizationData;
 use App\Models\Organization;
 use App\Models\User;
 
 beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
+    $this->organizationClient = new InMemoryOrganizationClient();
+    $this->app->instance(OrganizationClient::class, $this->organizationClient);
 });
 
 test('authenticated command blocks unauthenticated users',
@@ -37,6 +42,10 @@ test('authenticated command allows authenticated users',
         $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
         $session = app(SessionManager::class);
         $session->setUser($userData);
+
+        $this->organizationClient->setListResponse([
+            new OrganizationData(id: $organization->id, name: $organization->name, slug: $organization->slug),
+        ]);
 
         $this->artisan('organization:select')
             ->expectsQuestion('Select an organization', $organization->id)

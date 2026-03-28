@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Actions\LoginUser;
+use App\Client\InMemoryOrganizationClient;
 use App\Console\Services\SessionManager;
+use App\Contracts\OrganizationClient;
 use App\Data\SessionInfrastructureData;
 use App\Data\SessionOrganizationData;
 use App\Models\CloudProvider;
@@ -15,6 +17,8 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
+    $this->organizationClient = new InMemoryOrganizationClient();
+    $this->app->instance(OrganizationClient::class, $this->organizationClient);
 });
 
 function setupAuthenticatedSession(object $test): array
@@ -171,14 +175,13 @@ test('server:delete shows message when no providers', function (): void {
 
 // CreateOrganizationCommand: error branch
 test('organization:create handles creation failure', function (): void {
-    [, $organization] = setupAuthenticatedSession($this);
+    setupAuthenticatedSession($this);
 
-    // Create org with same slug to trigger unique constraint
-    Organization::query()->create(['name' => 'Duplicate', 'slug' => 'duplicate']);
+    $this->organizationClient->shouldFailCreate();
 
     $this->artisan('organization:create')
         ->expectsQuestion('Organization name', 'Duplicate')
         ->expectsQuestion('Description', '')
-        ->expectsOutputToContain('Failed to create organization')
+        ->expectsOutputToContain('Validation failed.')
         ->assertFailed();
 });

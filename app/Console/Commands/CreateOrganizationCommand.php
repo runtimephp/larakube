@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\CreateOrganization;
 use App\Console\Services\SessionManager;
+use App\Contracts\OrganizationClient;
 use App\Data\CreateOrganizationData;
 use App\Data\SessionOrganizationData;
-use App\Models\User;
-use Throwable;
+use App\Exceptions\LarakubeApiException;
 
 use function Laravel\Prompts\text;
 
@@ -25,7 +24,7 @@ final class CreateOrganizationCommand extends AuthenticatedCommand
      */
     protected $description = 'Create a new organization';
 
-    public function handleCommand(SessionManager $session, CreateOrganization $createOrganization): int
+    public function handleCommand(SessionManager $session, OrganizationClient $organizationClient): int
     {
         $name = $this->option('name') ?: text(
             label: 'Organization name',
@@ -36,18 +35,15 @@ final class CreateOrganizationCommand extends AuthenticatedCommand
             label: 'Description',
         );
 
-        $owner = User::query()->find($this->user->id);
-
         try {
-            $organization = $createOrganization->handle(
+            $organization = $organizationClient->create(
                 new CreateOrganizationData(
                     name: $name,
                     description: $description ?: null,
                 ),
-                $owner,
             );
-        } catch (Throwable $e) {
-            $this->components->error("Failed to create organization: {$e->getMessage()}");
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
             return self::FAILURE;
         }

@@ -8,6 +8,7 @@ enum ApiErrorCode: string
 {
     case InvalidCredentials = 'invalid_credentials';
     case Unauthenticated = 'unauthenticated';
+    case Forbidden = 'forbidden';
     case ValidationFailed = 'validation_failed';
     case NotFound = 'not_found';
 
@@ -15,6 +16,7 @@ enum ApiErrorCode: string
     {
         return match ($this) {
             self::InvalidCredentials, self::Unauthenticated => 401,
+            self::Forbidden => 403,
             self::ValidationFailed => 422,
             self::NotFound => 404,
         };

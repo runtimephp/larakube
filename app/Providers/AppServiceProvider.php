@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Client\HttpAuthClient;
+use App\Client\HttpOrganizationClient;
 use App\Client\LarakubeClient;
 use App\Console\Services\SessionManager;
 use App\Contracts\AuthClient;
+use App\Contracts\OrganizationClient;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
@@ -42,6 +44,7 @@ final class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(AuthClient::class, HttpAuthClient::class);
+        $this->app->bind(OrganizationClient::class, HttpOrganizationClient::class);
     }
 
     /**

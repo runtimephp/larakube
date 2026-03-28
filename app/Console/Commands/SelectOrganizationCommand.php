@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Console\Services\SessionManager;
+use App\Contracts\OrganizationClient;
 use App\Data\SessionOrganizationData;
-use App\Queries\OrganizationQuery;
-use App\Queries\UserQuery;
+use App\Exceptions\LarakubeApiException;
 
 use function Laravel\Prompts\select;
 
@@ -23,25 +23,39 @@ final class SelectOrganizationCommand extends AuthenticatedCommand
      */
     protected $description = 'Select an organization to work with';
 
-    public function handleCommand(SessionManager $session, UserQuery $userQuery, OrganizationQuery $organizationQuery): int
+    public function handleCommand(SessionManager $session, OrganizationClient $organizationClient): int
     {
-        $user = ($userQuery)()->byEmail($this->user->email)->first();
-        $organizations = ($organizationQuery)()->byUser($user)->get();
+        try {
+            $organizations = $organizationClient->list();
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
-        if ($organizations->isEmpty()) {
+            return self::FAILURE;
+        }
+
+        if ($organizations === []) {
             $this->components->error('You do not belong to any organizations. Run [organization:create] first.');
 
             return self::FAILURE;
         }
 
-        $choices = $organizations->pluck('name', 'id')->toArray();
+        $choices = [];
+        foreach ($organizations as $org) {
+            $choices[$org->id] = $org->name;
+        }
 
         $selectedId = select(
             label: 'Select an organization',
             options: $choices,
         );
 
-        $selected = $organizations->firstWhere('id', $selectedId);
+        $selected = null;
+        foreach ($organizations as $org) {
+            if ($org->id === $selectedId) {
+                $selected = $org;
+                break;
+            }
+        }
 
         $session->setOrganization(new SessionOrganizationData(
             id: $selected->id,

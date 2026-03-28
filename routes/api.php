@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\AuthTokenController;
+use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\RegisterController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,5 +15,11 @@ Route::prefix('v1')->as('api.v1.')->group(function (): void {
         Route::delete('token', [AuthTokenController::class, 'destroy'])
             ->middleware('auth:sanctum')
             ->name('token.destroy');
+    });
+
+    Route::middleware('auth:sanctum')->group(function (): void {
+        Route::apiResource('organizations', OrganizationController::class)
+            ->only(['index', 'store'])
+            ->names('organizations');
     });
 });
