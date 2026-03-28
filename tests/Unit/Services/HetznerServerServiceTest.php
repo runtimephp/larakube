@@ -70,6 +70,39 @@ test('create returns server data', function (): void {
         ->and($server->status)->toBe(ServerStatus::Starting);
 });
 
+test('create throws on api error', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/servers' => Http::response([
+            'error' => [
+                'message' => 'server type 104 is deprecated',
+                'code' => 'invalid_input',
+            ],
+        ], 422),
+    ]);
+
+    $service = new HetznerServerService('token');
+
+    $service->create(new CreateServerData(
+        name: 'web-1',
+        type: 'cx22',
+        image: 'ubuntu-22.04',
+        region: 'fsn1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+    ));
+})->throws(RuntimeException::class, 'server type 104 is deprecated');
+
+test('get all throws on api error', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/servers' => Http::response([
+            'error' => ['message' => 'unauthorized', 'code' => 'unauthorized'],
+        ], 401),
+    ]);
+
+    $service = new HetznerServerService('token');
+
+    $service->getAll();
+})->throws(RuntimeException::class, 'unauthorized');
+
 test('find returns server data', function (): void {
     Http::fake([
         'api.hetzner.cloud/v1/servers*' => Http::response([
@@ -92,6 +125,18 @@ test('find returns server data', function (): void {
     expect($server)->not->toBeNull()
         ->and($server->name)->toBe('web-1');
 });
+
+test('find throws on api error', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/servers*' => Http::response([
+            'error' => ['message' => 'forbidden', 'code' => 'forbidden'],
+        ], 403),
+    ]);
+
+    $service = new HetznerServerService('token');
+
+    $service->find('web-1');
+})->throws(RuntimeException::class, 'forbidden');
 
 test('find returns null when not found', function (): void {
     Http::fake([

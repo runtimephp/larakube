@@ -69,6 +69,38 @@ test('create returns server data', function (): void {
         ->and($server->ipv4)->toBeNull();
 });
 
+test('create throws on api error', function (): void {
+    Http::fake([
+        'api.digitalocean.com/v2/droplets' => Http::response([
+            'id' => 'bad_request',
+            'message' => 'Name is required',
+        ], 422),
+    ]);
+
+    $service = new DigitalOceanServerService('token');
+
+    $service->create(new CreateServerData(
+        name: '',
+        type: 's-1vcpu-1gb',
+        image: 'ubuntu-22.04',
+        region: 'nyc1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+    ));
+})->throws(RuntimeException::class, 'Name is required');
+
+test('get all throws on api error', function (): void {
+    Http::fake([
+        'api.digitalocean.com/v2/droplets' => Http::response([
+            'id' => 'unauthorized',
+            'message' => 'Unable to authenticate you',
+        ], 401),
+    ]);
+
+    $service = new DigitalOceanServerService('token');
+
+    $service->getAll();
+})->throws(RuntimeException::class, 'Unable to authenticate you');
+
 test('find returns server data', function (): void {
     Http::fake([
         'api.digitalocean.com/v2/droplets*' => Http::response([
@@ -91,6 +123,19 @@ test('find returns server data', function (): void {
     expect($server)->not->toBeNull()
         ->and($server->name)->toBe('web-1');
 });
+
+test('find throws on api error', function (): void {
+    Http::fake([
+        'api.digitalocean.com/v2/droplets*' => Http::response([
+            'id' => 'forbidden',
+            'message' => 'You do not have access for the attempted action.',
+        ], 403),
+    ]);
+
+    $service = new DigitalOceanServerService('token');
+
+    $service->find('web-1');
+})->throws(RuntimeException::class, 'You do not have access for the attempted action.');
 
 test('find returns null when not found', function (): void {
     Http::fake([

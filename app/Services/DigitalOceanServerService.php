@@ -11,6 +11,7 @@ use App\Enums\ServerStatus;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 final readonly class DigitalOceanServerService implements ServerService
 {
@@ -18,11 +19,16 @@ final readonly class DigitalOceanServerService implements ServerService
 
     /**
      * @throws ConnectionException
+     * @throws RuntimeException
      */
     public function getAll(): Collection
     {
         $response = Http::withToken($this->token)
             ->get('https://api.digitalocean.com/v2/droplets');
+
+        if (! $response->successful()) {
+            throw new RuntimeException($response->json('message', 'Failed to fetch droplets from DigitalOcean.'));
+        }
 
         return collect($response->json('droplets', []))
             ->map($this->mapServerData(...));
@@ -30,6 +36,7 @@ final readonly class DigitalOceanServerService implements ServerService
 
     /**
      * @throws ConnectionException
+     * @throws RuntimeException
      */
     public function create(CreateServerData $data): ServerData
     {
@@ -41,16 +48,25 @@ final readonly class DigitalOceanServerService implements ServerService
                 'region' => $data->region,
             ]);
 
+        if (! $response->successful()) {
+            throw new RuntimeException($response->json('message', 'Failed to create droplet on DigitalOcean.'));
+        }
+
         return $this->mapServerData($response->json('droplet'));
     }
 
     /**
      * @throws ConnectionException
+     * @throws RuntimeException
      */
     public function find(string $name): ?ServerData
     {
         $response = Http::withToken($this->token)
             ->get('https://api.digitalocean.com/v2/droplets', ['name' => $name]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException($response->json('message', 'Failed to search droplets on DigitalOcean.'));
+        }
 
         $droplets = $response->json('droplets', []);
 

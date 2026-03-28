@@ -11,6 +11,7 @@ use App\Enums\ServerStatus;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 final readonly class HetznerServerService implements ServerService
 {
@@ -18,11 +19,16 @@ final readonly class HetznerServerService implements ServerService
 
     /**
      * @throws ConnectionException
+     * @throws RuntimeException
      */
     public function getAll(): Collection
     {
         $response = Http::withToken($this->token)
             ->get('https://api.hetzner.cloud/v1/servers');
+
+        if (! $response->successful()) {
+            throw new RuntimeException($response->json('error.message', 'Failed to fetch servers from Hetzner.'));
+        }
 
         return collect($response->json('servers', []))
             ->map($this->mapServerData(...));
@@ -30,6 +36,7 @@ final readonly class HetznerServerService implements ServerService
 
     /**
      * @throws ConnectionException
+     * @throws RuntimeException
      */
     public function create(CreateServerData $data): ServerData
     {
@@ -41,16 +48,25 @@ final readonly class HetznerServerService implements ServerService
                 'location' => $data->region,
             ]);
 
+        if (! $response->successful()) {
+            throw new RuntimeException($response->json('error.message', 'Failed to create server on Hetzner.'));
+        }
+
         return $this->mapServerData($response->json('server'));
     }
 
     /**
      * @throws ConnectionException
+     * @throws RuntimeException
      */
     public function find(string $name): ?ServerData
     {
         $response = Http::withToken($this->token)
             ->get('https://api.hetzner.cloud/v1/servers', ['name' => $name]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException($response->json('error.message', 'Failed to search servers on Hetzner.'));
+        }
 
         $servers = $response->json('servers', []);
 
