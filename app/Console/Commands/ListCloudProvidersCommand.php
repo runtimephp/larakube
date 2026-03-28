@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\CloudProvider;
-use App\Models\Organization;
-use App\Queries\CloudProviderQuery;
+use App\Contracts\CloudProviderClient;
+use App\Data\CloudProviderData;
+use App\Enums\CloudProviderType;
+use App\Exceptions\LarakubeApiException;
 
 final class ListCloudProvidersCommand extends AuthenticatedCommand
 {
@@ -22,25 +23,29 @@ final class ListCloudProvidersCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(CloudProviderQuery $cloudProviderQuery): int
+    public function handleCommand(CloudProviderClient $cloudProviderClient): int
     {
-        $organization = Organization::query()->find($this->organization->id);
-        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
+        try {
+            $providers = $cloudProviderClient->list();
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
-        if ($providers->isEmpty()) {
+            return self::FAILURE;
+        }
+
+        if ($providers === []) {
             $this->components->info('No cloud providers configured. Run [cloud-provider:add] to add one.');
 
             return self::SUCCESS;
         }
 
         $this->table(
-            ['Name', 'Type', 'Verified', 'Created'],
-            $providers->map(fn (CloudProvider $provider) => [
+            ['Name', 'Type', 'Verified'],
+            array_map(fn (CloudProviderData $provider): array => [
                 $provider->name,
-                $provider->type->label(),
-                $provider->is_verified ? 'Yes' : 'No',
-                $provider->created_at->format('Y-m-d H:i'),
-            ]),
+                CloudProviderType::from($provider->type)->label(),
+                $provider->isVerified ? 'Yes' : 'No',
+            ], $providers),
         );
 
         return self::SUCCESS;
