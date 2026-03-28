@@ -91,3 +91,22 @@ test('delete sends delete request',
         Http::assertSent(fn ($request): bool => $request->method() === 'DELETE'
             && str_contains((string) $request->url(), '/api/v1/servers/srv-1'));
     });
+
+test('sync returns sync summary data',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Http::fake([
+            '*/api/v1/servers/sync' => Http::response([
+                'data' => ['created' => 3, 'updated' => 1, 'deleted' => 2],
+            ]),
+        ]);
+
+        $result = $this->client->sync('cp-1');
+
+        expect($result)
+            ->created->toBe(3)
+            ->updated->toBe(1)
+            ->deleted->toBe(2);
+    });
