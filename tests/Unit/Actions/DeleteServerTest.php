@@ -3,42 +3,53 @@
 declare(strict_types=1);
 
 use App\Actions\DeleteServer;
-use App\Contracts\ServerService;
+use App\Models\CloudProvider;
 use App\Models\Server;
-use App\Services\CloudProviderFactory;
+use App\Services\InMemory\InMemoryHetznerFactory;
+use App\Services\InMemory\InMemoryHetznerServerService;
 
-test('delete server removes from api and locally', function (): void {
-    $server = Server::factory()->create();
+test('delete server removes from api and locally',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $provider = CloudProvider::factory()->hetzner()->create();
+        $server = Server::factory()->create([
+            'cloud_provider_id' => $provider->id,
+            'organization_id' => $provider->organization_id,
+        ]);
 
-    $mockServerService = Mockery::mock(ServerService::class);
-    $mockServerService->shouldReceive('destroy')
-        ->once()
-        ->andReturnTrue();
+        $serverService = new InMemoryHetznerServerService();
+        $serverService->addServer(new App\Data\ServerData(
+            externalId: (string) $server->external_id,
+            name: $server->name,
+            status: $server->status,
+            type: $server->type,
+            region: $server->region,
+            ipv4: $server->ipv4,
+        ));
 
-    $mockFactory = Mockery::mock(CloudProviderFactory::class);
-    $mockFactory->shouldReceive('makeServerService')
-        ->once()
-        ->andReturn($mockServerService);
+        $action = new DeleteServer(new InMemoryHetznerFactory(serverService: $serverService));
+        $action->handle($server);
 
-    $action = new DeleteServer($mockFactory);
-    $action->handle($server);
+        $this->assertDatabaseMissing('servers', ['id' => $server->id]);
+    });
 
-    $this->assertDatabaseMissing('servers', ['id' => $server->id]);
-});
+test('delete server throws when api deletion fails',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $provider = CloudProvider::factory()->hetzner()->create();
+        $server = Server::factory()->create([
+            'cloud_provider_id' => $provider->id,
+            'organization_id' => $provider->organization_id,
+            'name' => 'web-1',
+        ]);
 
-test('delete server throws when api deletion fails', function (): void {
-    $server = Server::factory()->create(['name' => 'web-1']);
+        $serverService = new InMemoryHetznerServerService();
+        $serverService->shouldFailDelete(true);
 
-    $mockServerService = Mockery::mock(ServerService::class);
-    $mockServerService->shouldReceive('destroy')
-        ->once()
-        ->andReturnFalse();
-
-    $mockFactory = Mockery::mock(CloudProviderFactory::class);
-    $mockFactory->shouldReceive('makeServerService')
-        ->once()
-        ->andReturn($mockServerService);
-
-    $action = new DeleteServer($mockFactory);
-    $action->handle($server);
-})->throws(RuntimeException::class, 'Failed to delete server [web-1] from the provider.');
+        $action = new DeleteServer(new InMemoryHetznerFactory(serverService: $serverService));
+        $action->handle($server);
+    })->throws(RuntimeException::class, 'Failed to delete server [web-1] from the provider.');

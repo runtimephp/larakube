@@ -42,8 +42,12 @@ test('create organization command creates org and auto-selects it',
             ->and($session->getOrganization()->name)->toBe('Acme Corp');
     });
 
-test('create organization command fails when not authenticated', function (): void {
-    $this->artisan('organization:create')
-        ->expectsOutputToContain('You are not logged in')
-        ->assertFailed();
-});
+test('create organization command fails when not authenticated',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $this->artisan('organization:create')
+            ->expectsOutputToContain('You are not logged in')
+            ->assertFailed();
+    });

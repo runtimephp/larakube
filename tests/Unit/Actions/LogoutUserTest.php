@@ -23,30 +23,38 @@ afterEach(function (): void {
     }
 });
 
-test('logout clears session and revokes tokens', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('logout clears session and revokes tokens',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
 
-    $session = new SessionManager($this->tempPath);
-    $session->setUser($userData);
+        $session = new SessionManager($this->tempPath);
+        $session->setUser($userData);
 
-    expect($session->isAuthenticated())->toBeTrue();
+        expect($session->isAuthenticated())->toBeTrue();
 
-    app(LogoutUser::class)->handle($session);
+        app(LogoutUser::class)->handle($session);
 
-    expect($session->isAuthenticated())->toBeFalse()
-        ->and($session->getUser())->toBeNull()
-        ->and($user->tokens()->count())->toBe(0);
-});
+        expect($session->isAuthenticated())->toBeFalse()
+            ->and($session->getUser())->toBeNull()
+            ->and($user->tokens()->count())->toBe(0);
+    });
 
-test('logout handles missing user gracefully', function (): void {
-    $session = new SessionManager($this->tempPath);
+test('logout handles missing user gracefully',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $session = new SessionManager($this->tempPath);
 
-    app(LogoutUser::class)->handle($session);
+        app(LogoutUser::class)->handle($session);
 
-    expect($session->isAuthenticated())->toBeFalse();
-});
+        expect($session->isAuthenticated())->toBeFalse();
+    });

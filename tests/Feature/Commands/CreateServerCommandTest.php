@@ -4,201 +4,215 @@ declare(strict_types=1);
 
 use App\Actions\LoginUser;
 use App\Console\Services\SessionManager;
-use App\Contracts\ServerService;
-use App\Data\ServerData;
 use App\Data\SessionInfrastructureData;
 use App\Data\SessionOrganizationData;
-use App\Enums\ServerStatus;
 use App\Models\CloudProvider;
 use App\Models\Infrastructure;
 use App\Models\Organization;
 use App\Models\User;
-use App\Services\CloudProviderFactory;
+use App\Services\InMemory\InMemoryHetznerServerService;
 
 beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
+
+    /** @var LoginUser $this->loginUser */
+    $this->loginUser = app(LoginUser::class);
 });
 
-test('create server command creates server successfully', function (): void {
-    $mockServerService = Mockery::mock(ServerService::class);
-    $mockServerService->shouldReceive('create')
-        ->once()
-        ->andReturn(new ServerData(
-            externalId: 456,
-            name: 'web-1',
-            status: ServerStatus::Starting,
-            type: 'cx11',
-            region: 'fsn1',
-            ipv4: null,
+test('create server command creates server successfully',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var InMemoryHetznerServerService $serverService */
+        $serverService = useInMemoryHetznerServerService();
+
+        bindInMemoryHetznerFactory(serverService: $serverService);
+
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
+
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
+
+        /** @var CloudProvider $provider */
+        $provider = CloudProvider::factory()->hetzner()->create([
+            'organization_id' => $organization->id,
+            'name' => 'Hetzner Prod',
+        ]);
+
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->create([
+            'organization_id' => $organization->id,
+            'cloud_provider_id' => $provider->id,
+        ]);
+
+        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
+        $session->setInfrastructure(new SessionInfrastructureData(
+            id: $infrastructure->id,
+            name: $infrastructure->name,
         ));
 
-    $mockFactory = Mockery::mock(CloudProviderFactory::class);
-    $mockFactory->shouldReceive('makeServerService')
-        ->once()
-        ->andReturn($mockServerService);
-    $this->app->instance(CloudProviderFactory::class, $mockFactory);
+        $this->artisan('server:create')
+            ->expectsQuestion('Select a cloud provider', $provider->id)
+            ->expectsQuestion('Server name', 'web-1')
+            ->expectsQuestion('Server type', 'cx11')
+            ->expectsQuestion('Image', 'ubuntu-22.04')
+            ->expectsQuestion('Region', 'fsn1')
+            ->expectsOutputToContain('Server [web-1] created successfully')
+            ->assertSuccessful();
 
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+        $this->assertDatabaseHas('servers', [
+            'name' => 'web-1',
+            'cloud_provider_id' => $provider->id,
+        ]);
+    });
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
+test('create server command fails when not authenticated',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $this->artisan('server:create')
+            ->expectsOutputToContain('You are not logged in')
+            ->assertFailed();
+    });
 
-    $provider = CloudProvider::factory()->hetzner()->create([
-        'organization_id' => $organization->id,
-        'name' => 'Hetzner Prod',
-    ]);
+test('create server command shows message when no providers',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $infrastructure = Infrastructure::factory()->create([
-        'organization_id' => $organization->id,
-        'cloud_provider_id' => $provider->id,
-    ]);
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
-    $session->setInfrastructure(new SessionInfrastructureData(
-        id: $infrastructure->id,
-        name: $infrastructure->name,
-    ));
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->create([
+            'organization_id' => $organization->id,
+        ]);
 
-    $this->artisan('server:create')
-        ->expectsQuestion('Select a cloud provider', $provider->id)
-        ->expectsQuestion('Server name', 'web-1')
-        ->expectsQuestion('Server type', 'cx11')
-        ->expectsQuestion('Image', 'ubuntu-22.04')
-        ->expectsQuestion('Region', 'fsn1')
-        ->expectsOutputToContain('Server [web-1] created successfully')
-        ->assertSuccessful();
+        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
+        $session->setInfrastructure(new SessionInfrastructureData(
+            id: $infrastructure->id,
+            name: $infrastructure->name,
+        ));
 
-    $this->assertDatabaseHas('servers', [
-        'name' => 'web-1',
-        'external_id' => '456',
-        'cloud_provider_id' => $provider->id,
-    ]);
-});
+        $this->artisan('server:create')
+            ->expectsOutputToContain('No cloud providers configured')
+            ->assertSuccessful();
+    });
 
-test('create server command fails when not authenticated', function (): void {
-    $this->artisan('server:create')
-        ->expectsOutputToContain('You are not logged in')
-        ->assertFailed();
-});
+test('create server command fails when no infrastructure selected',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-test('create server command shows message when no providers', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
+        CloudProvider::factory()->hetzner()->create([
+            'organization_id' => $organization->id,
+            'name' => 'Hetzner Prod',
+        ]);
 
-    $infrastructure = Infrastructure::factory()->create([
-        'organization_id' => $organization->id,
-    ]);
+        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
-    $session->setInfrastructure(new SessionInfrastructureData(
-        id: $infrastructure->id,
-        name: $infrastructure->name,
-    ));
+        $this->artisan('server:create')
+            ->expectsOutputToContain('No infrastructure selected')
+            ->assertFailed();
+    });
 
-    $this->artisan('server:create')
-        ->expectsOutputToContain('No cloud providers configured')
-        ->assertSuccessful();
-});
+test('create server command fails when api throws exception',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var InMemoryHetznerServerService $serverService */
+        $serverService = useInMemoryHetznerServerService();
+        $serverService->shouldFailCreate(true);
 
-test('create server command fails when no infrastructure selected', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+        bindInMemoryHetznerFactory(serverService: $serverService);
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    CloudProvider::factory()->hetzner()->create([
-        'organization_id' => $organization->id,
-        'name' => 'Hetzner Prod',
-    ]);
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
+        /** @var CloudProvider $provider */
+        $provider = CloudProvider::factory()->hetzner()->create([
+            'organization_id' => $organization->id,
+            'name' => 'Hetzner Prod',
+        ]);
 
-    $this->artisan('server:create')
-        ->expectsOutputToContain('No infrastructure selected')
-        ->assertFailed();
-});
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->create([
+            'organization_id' => $organization->id,
+            'cloud_provider_id' => $provider->id,
+        ]);
 
-test('create server command fails when api throws exception', function (): void {
-    $mockServerService = Mockery::mock(ServerService::class);
-    $mockServerService->shouldReceive('create')
-        ->once()
-        ->andThrow(new RuntimeException('API error'));
+        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
+        $session->setInfrastructure(new SessionInfrastructureData(
+            id: $infrastructure->id,
+            name: $infrastructure->name,
+        ));
 
-    $mockFactory = Mockery::mock(CloudProviderFactory::class);
-    $mockFactory->shouldReceive('makeServerService')
-        ->once()
-        ->andReturn($mockServerService);
-    $this->app->instance(CloudProviderFactory::class, $mockFactory);
-
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
-
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
-
-    $provider = CloudProvider::factory()->hetzner()->create([
-        'organization_id' => $organization->id,
-        'name' => 'Hetzner Prod',
-    ]);
-
-    $infrastructure = Infrastructure::factory()->create([
-        'organization_id' => $organization->id,
-        'cloud_provider_id' => $provider->id,
-    ]);
-
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
-    $session->setInfrastructure(new SessionInfrastructureData(
-        id: $infrastructure->id,
-        name: $infrastructure->name,
-    ));
-
-    $this->artisan('server:create')
-        ->expectsQuestion('Select a cloud provider', $provider->id)
-        ->expectsQuestion('Server name', 'web-1')
-        ->expectsQuestion('Server type', 'cx11')
-        ->expectsQuestion('Image', 'ubuntu-22.04')
-        ->expectsQuestion('Region', 'fsn1')
-        ->expectsOutputToContain('API error')
-        ->assertFailed();
-});
+        $this->artisan('server:create')
+            ->expectsQuestion('Select a cloud provider', $provider->id)
+            ->expectsQuestion('Server name', 'web-1')
+            ->expectsQuestion('Server type', 'cx11')
+            ->expectsQuestion('Image', 'ubuntu-22.04')
+            ->expectsQuestion('Region', 'fsn1')
+            ->expectsOutputToContain('Simulated API failure on create')
+            ->assertFailed();
+    });

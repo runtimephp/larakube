@@ -15,89 +15,101 @@ beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
 });
 
-test('remove cloud provider deletes the selected provider', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('remove cloud provider deletes the selected provider',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
 
-    $cloudProvider = CloudProvider::factory()->hetzner()->create([
-        'organization_id' => $organization->id,
-        'name' => 'Hetzner Production',
-    ]);
+        $cloudProvider = CloudProvider::factory()->hetzner()->create([
+            'organization_id' => $organization->id,
+            'name' => 'Hetzner Production',
+        ]);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
 
-    $this->artisan('cloud-provider:remove')
-        ->expectsQuestion('Select a cloud provider to remove', $cloudProvider->id)
-        ->expectsConfirmation("Are you sure you want to remove [{$cloudProvider->name}]?", 'yes')
-        ->expectsOutputToContain('Cloud provider [Hetzner Production] removed')
-        ->assertSuccessful();
+        $this->artisan('cloud-provider:remove')
+            ->expectsQuestion('Select a cloud provider to remove', $cloudProvider->id)
+            ->expectsConfirmation("Are you sure you want to remove [{$cloudProvider->name}]?", 'yes')
+            ->expectsOutputToContain('Cloud provider [Hetzner Production] removed')
+            ->assertSuccessful();
 
-    $this->assertDatabaseMissing('cloud_providers', ['id' => $cloudProvider->id]);
-});
+        $this->assertDatabaseMissing('cloud_providers', ['id' => $cloudProvider->id]);
+    });
 
-test('remove cloud provider shows message when none exist', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('remove cloud provider shows message when none exist',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
 
-    $this->artisan('cloud-provider:remove')
-        ->expectsOutputToContain('No cloud providers to remove')
-        ->assertSuccessful();
-});
+        $this->artisan('cloud-provider:remove')
+            ->expectsOutputToContain('No cloud providers to remove')
+            ->assertSuccessful();
+    });
 
-test('remove cloud provider cancels when user declines confirmation', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('remove cloud provider cancels when user declines confirmation',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
 
-    $cloudProvider = CloudProvider::factory()->hetzner()->create([
-        'organization_id' => $organization->id,
-        'name' => 'Hetzner Production',
-    ]);
+        $cloudProvider = CloudProvider::factory()->hetzner()->create([
+            'organization_id' => $organization->id,
+            'name' => 'Hetzner Production',
+        ]);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
 
-    $this->artisan('cloud-provider:remove')
-        ->expectsQuestion('Select a cloud provider to remove', $cloudProvider->id)
-        ->expectsConfirmation("Are you sure you want to remove [{$cloudProvider->name}]?", 'no')
-        ->expectsOutputToContain('Cancelled')
-        ->assertSuccessful();
+        $this->artisan('cloud-provider:remove')
+            ->expectsQuestion('Select a cloud provider to remove', $cloudProvider->id)
+            ->expectsConfirmation("Are you sure you want to remove [{$cloudProvider->name}]?", 'no')
+            ->expectsOutputToContain('Cancelled')
+            ->assertSuccessful();
 
-    $this->assertDatabaseHas('cloud_providers', ['id' => $cloudProvider->id]);
-});
+        $this->assertDatabaseHas('cloud_providers', ['id' => $cloudProvider->id]);
+    });

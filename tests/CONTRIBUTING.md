@@ -227,6 +227,118 @@ expect(fn() => CreateUserData::validateAndCreate([]))
     ->toThrow(ValidationException::class); // Wrong
 ```
 
+## InMemory Services (No Mocking)
+
+**NEVER use Mockery** - Use InMemory implementations of services instead.
+
+### Why InMemory Services?
+
+1. **Real implementations** - Test with actual code, not mocks
+2. **Controllable behavior** - Set up specific scenarios without complex mock expectations
+3. **Stateful testing** - InMemory services maintain state like real services
+4. **No mock syntax** - Cleaner, more readable tests
+5. **Refactoring safe** - Changes to service interfaces break tests immediately
+
+### Available InMemory Services
+
+Located in `App\Services\InMemory\`:
+
+| Service | Contract | Purpose |
+|---------|----------|---------|
+| `InMemoryHetznerService` | `CloudProviderService` | Token validation |
+| `InMemoryHetznerServerService` | `ServerService` | Server CRUD operations |
+| `InMemoryDigitalOceanService` | `CloudProviderService` | Token validation |
+| `InMemoryDigitalOceanServerService` | `ServerService` | Server CRUD operations |
+
+### Helper Functions
+
+Use these helper functions from `tests/Pest.php`:
+
+```php
+// Create InMemory services
+$hetznerService = useInMemoryHetznerService(isValid: true);  // or false
+$serverService = useInMemoryHetznerServerService();
+
+// Bind to container
+bindInMemoryHetznerFactory(
+    validationService: $hetznerService,
+    serverService: $serverService
+);
+```
+
+### Configuring InMemory Services
+
+**Set validation result:**
+```php
+$service = useInMemoryHetznerService(true);   // Token is valid
+$service = useInMemoryHetznerService(false);  // Token is invalid
+```
+
+**Set up server data:**
+```php
+$serverService = useInMemoryHetznerServerService();
+$serverService->addServer(new ServerData(
+    externalId: 123,
+    name: 'web-1',
+    status: ServerStatus::Running,
+    type: 'cx11',
+    region: 'fsn1',
+    ipv4: '1.2.3.4',
+));
+```
+
+**Simulate failures:**
+```php
+$serverService->shouldFailCreate(true);  // Create will throw exception
+$serverService->shouldFailDelete(true);  // Delete will return false
+```
+
+### Example: Testing Command with InMemory Service
+
+```php
+test('list servers syncs and displays table', function (): void {
+    // Arrange: Create and configure InMemory service
+    $serverService = useInMemoryHetznerServerService();
+    $serverService->addServer(new ServerData(
+        externalId: 123,
+        name: 'web-1',
+        status: ServerStatus::Running,
+        type: 'cx11',
+        region: 'fsn1',
+        ipv4: '1.2.3.4',
+    ));
+
+    // Bind to container
+    bindInMemoryHetznerFactory(serverService: $serverService);
+
+    // Act & Assert
+    $this->artisan('server:list')
+        ->expectsOutputToContain('web-1')
+        ->assertSuccessful();
+});
+```
+
+### WRONG - Don't Use Mockery
+
+```php
+// WRONG - Never do this:
+$mockServerService = Mockery::mock(ServerService::class);
+$mockServerService->shouldReceive('getAll')->andReturn(collect([...']));
+
+$mockFactory = Mockery::mock(CloudProviderFactory::class);
+$mockFactory->shouldReceive('makeServerService')->andReturn($mockServerService);
+```
+
+### CORRECT - Use InMemory Services
+
+```php
+// CORRECT - Use InMemory implementations:
+$serverService = useInMemoryHetznerServerService();
+$serverService->addServer(new ServerData(...));
+
+bindInMemoryHetznerFactory(serverService: $serverService);
+```
+
 ## Authentication in Tests
 
 **Use `$this->actingAs()`** for authentication:

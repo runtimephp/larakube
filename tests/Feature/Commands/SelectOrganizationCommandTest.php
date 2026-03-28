@@ -11,45 +11,57 @@ beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
 });
 
-test('select organization command lists and persists selection', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('select organization command lists and persists selection',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $organization = Organization::factory()->create(['name' => 'Acme Corp']);
-    $user->organizations()->attach($organization, ['role' => 'member']);
+        $organization = Organization::factory()->create(['name' => 'Acme Corp']);
+        $user->organizations()->attach($organization, ['role' => 'member']);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
 
-    $this->artisan('organization:select')
-        ->expectsQuestion('Select an organization', $organization->id)
-        ->expectsOutputToContain('Selected organization [Acme Corp]')
-        ->assertSuccessful();
+        $this->artisan('organization:select')
+            ->expectsQuestion('Select an organization', $organization->id)
+            ->expectsOutputToContain('Selected organization [Acme Corp]')
+            ->assertSuccessful();
 
-    expect($session->hasOrganization())->toBeTrue()
-        ->and($session->getOrganization()->id)->toBe($organization->id);
-});
+        expect($session->hasOrganization())->toBeTrue()
+            ->and($session->getOrganization()->id)->toBe($organization->id);
+    });
 
-test('select organization command fails when user has no orgs', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('select organization command fails when user has no orgs',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
 
-    $this->artisan('organization:select')
-        ->expectsOutputToContain('You do not belong to any organizations')
-        ->assertFailed();
-});
+        $this->artisan('organization:select')
+            ->expectsOutputToContain('You do not belong to any organizations')
+            ->assertFailed();
+    });
 
-test('select organization command fails when not authenticated', function (): void {
-    $this->artisan('organization:select')
-        ->expectsOutputToContain('You are not logged in')
-        ->assertFailed();
-});
+test('select organization command fails when not authenticated',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $this->artisan('organization:select')
+            ->expectsOutputToContain('You are not logged in')
+            ->assertFailed();
+    });

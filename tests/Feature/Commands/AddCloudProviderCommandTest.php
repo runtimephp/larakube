@@ -5,113 +5,130 @@ declare(strict_types=1);
 use App\Actions\LoginUser;
 use App\Console\Services\SessionManager;
 use App\Data\SessionOrganizationData;
-use App\Enums\CloudProviderType;
 use App\Models\Organization;
 use App\Models\User;
-use App\Services\CloudProviderFactory;
 
 beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
+
+    /** @var LoginUser $this->loginUser */
+    $this->loginUser = app(LoginUser::class);
 });
 
-test('add cloud provider command creates provider with valid token', function (): void {
-    $mockService = Mockery::mock(CloudProviderService::class);
-    $mockService->shouldReceive('validateToken')->once()->andReturnTrue();
+test('add cloud provider command creates provider with valid token',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $hetznerService = useInMemoryHetznerService(true);
 
-    $mockFactory = Mockery::mock(CloudProviderFactory::class);
-    $mockFactory->shouldReceive('makeForValidation')->with(CloudProviderType::Hetzner, 'valid-token')->once()->andReturn($mockService);
-    $this->app->instance(CloudProviderFactory::class, $mockFactory);
+        bindInMemoryHetznerFactory($hetznerService);
 
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
+        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
 
-    $this->artisan('cloud-provider:add')
-        ->expectsQuestion('Select a cloud provider', 'hetzner')
-        ->expectsQuestion('Name for this provider', 'Hetzner Production')
-        ->expectsQuestion('API token', 'valid-token')
-        ->expectsOutputToContain('Cloud provider [Hetzner Production] added successfully')
-        ->assertSuccessful();
+        $this->artisan('cloud-provider:add')
+            ->expectsQuestion('Select a cloud provider', 'hetzner')
+            ->expectsQuestion('Name for this provider', 'Hetzner Production')
+            ->expectsQuestion('API token', 'valid-token')
+            ->expectsOutputToContain('Cloud provider [Hetzner Production] added successfully')
+            ->assertSuccessful();
 
-    $this->assertDatabaseHas('cloud_providers', [
-        'organization_id' => $organization->id,
-        'name' => 'Hetzner Production',
-        'type' => 'hetzner',
-        'is_verified' => true,
-    ]);
-});
+        $this->assertDatabaseHas('cloud_providers', [
+            'organization_id' => $organization->id,
+            'name' => 'Hetzner Production',
+            'type' => 'hetzner',
+            'is_verified' => true,
+        ]);
+    });
 
-test('add cloud provider command fails with invalid token', function (): void {
-    $mockService = Mockery::mock(CloudProviderService::class);
-    $mockService->shouldReceive('validateToken')->once()->andReturnFalse();
+test('add cloud provider command fails with invalid token',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $hetznerService = useInMemoryHetznerService(false);
 
-    $mockFactory = Mockery::mock(CloudProviderFactory::class);
-    $mockFactory->shouldReceive('makeForValidation')->with(CloudProviderType::Hetzner, 'invalid-token')->once()->andReturn($mockService);
-    $this->app->instance(CloudProviderFactory::class, $mockFactory);
+        bindInMemoryHetznerFactory($hetznerService);
 
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
+        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
 
-    $this->artisan('cloud-provider:add')
-        ->expectsQuestion('Select a cloud provider', 'hetzner')
-        ->expectsQuestion('Name for this provider', 'Hetzner Staging')
-        ->expectsQuestion('API token', 'invalid-token')
-        ->expectsOutputToContain('The API token for Hetzner is invalid')
-        ->assertFailed();
-});
+        $this->artisan('cloud-provider:add')
+            ->expectsQuestion('Select a cloud provider', 'hetzner')
+            ->expectsQuestion('Name for this provider', 'Hetzner Staging')
+            ->expectsQuestion('API token', 'invalid-token')
+            ->expectsOutputToContain('The API token for Hetzner is invalid')
+            ->assertFailed();
+    });
 
-test('add cloud provider command fails when not authenticated', function (): void {
-    $this->artisan('cloud-provider:add')
-        ->expectsOutputToContain('You are not logged in')
-        ->assertFailed();
-});
+test('add cloud provider command fails when not authenticated',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $this->artisan('cloud-provider:add')
+            ->expectsOutputToContain('You are not logged in')
+            ->assertFailed();
+    });
 
-test('add cloud provider command fails with invalid provider type from CLI option', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('add cloud provider command fails with invalid provider type from CLI option',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $organization = Organization::factory()->create();
-    $organization->users()->attach($user, ['role' => 'owner']);
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
-    $session->setOrganization(new SessionOrganizationData(
-        id: $organization->id,
-        name: $organization->name,
-        slug: $organization->slug,
-    ));
+        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
 
-    $this->artisan('cloud-provider:add --type=invalid-type --name="Test" --token="token"')
-        ->expectsOutputToContain('Invalid provider type. Use: hetzner, digitalocean')
-        ->assertFailed();
-});
+        $this->artisan('cloud-provider:add --type=invalid-type --name="Test" --token="token"')
+            ->expectsOutputToContain('Invalid provider type. Use: hetzner, digitalocean')
+            ->assertFailed();
+    });

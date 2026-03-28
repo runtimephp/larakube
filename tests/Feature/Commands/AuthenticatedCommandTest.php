@@ -11,68 +11,88 @@ beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
 });
 
-test('authenticated command blocks unauthenticated users', function (): void {
-    $this->artisan('organization:select')
-        ->expectsOutputToContain('You are not logged in')
-        ->assertFailed();
-});
+test('authenticated command blocks unauthenticated users',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $this->artisan('organization:select')
+            ->expectsOutputToContain('You are not logged in')
+            ->assertFailed();
+    });
 
-test('authenticated command allows authenticated users', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('authenticated command allows authenticated users',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $organization = Organization::factory()->create();
-    $user->organizations()->attach($organization, ['role' => 'owner']);
+        $organization = Organization::factory()->create();
+        $user->organizations()->attach($organization, ['role' => 'owner']);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
 
-    $this->artisan('organization:select')
-        ->expectsQuestion('Select an organization', $organization->id)
-        ->assertSuccessful();
-});
+        $this->artisan('organization:select')
+            ->expectsQuestion('Select an organization', $organization->id)
+            ->assertSuccessful();
+    });
 
-test('authenticated command detects corrupted session', function (): void {
-    $session = app(SessionManager::class);
-    $session->set('token', 'some-token');
+test('authenticated command detects corrupted session',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $session = app(SessionManager::class);
+        $session->set('token', 'some-token');
 
-    $this->artisan('organization:select')
-        ->expectsOutputToContain('Session is corrupted')
-        ->assertFailed();
-});
+        $this->artisan('organization:select')
+            ->expectsOutputToContain('Session is corrupted')
+            ->assertFailed();
+    });
 
-test('authenticated command fails when no organization selected', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('authenticated command fails when no organization selected',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
 
-    $this->artisan('cloud-provider:list')
-        ->expectsOutputToContain('No organization selected')
-        ->assertFailed();
-});
+        $this->artisan('cloud-provider:list')
+            ->expectsOutputToContain('No organization selected')
+            ->assertFailed();
+    });
 
-test('authenticated command detects expired token', function (): void {
-    $user = User::factory()->create([
-        'email' => 'john@example.com',
-        'password' => 'password123',
-    ]);
+test('authenticated command detects expired token',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
 
-    $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-    $session = app(SessionManager::class);
-    $session->setUser($userData);
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
 
-    // Revoke all tokens to simulate expiry
-    $user->tokens()->delete();
+        // Revoke all tokens to simulate expiry
+        $user->tokens()->delete();
 
-    $this->artisan('organization:select')
-        ->expectsOutputToContain('Your session has expired')
-        ->assertFailed();
-});
+        $this->artisan('organization:select')
+            ->expectsOutputToContain('Your session has expired')
+            ->assertFailed();
+    });
