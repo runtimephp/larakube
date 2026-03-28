@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\CloudProvider;
-use App\Models\Organization;
-use App\Queries\CloudProviderQuery;
-use App\Services\CloudProviderFactory;
+use App\Contracts\ServerClient;
+use App\Enums\ServerStatus;
+use App\Exceptions\LarakubeApiException;
 
-use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
 final class ShowServerCommand extends AuthenticatedCommand
@@ -17,47 +15,26 @@ final class ShowServerCommand extends AuthenticatedCommand
     /**
      * @var string
      */
-    protected $signature = 'server:show';
+    protected $signature = 'server:show {--id= : Server ID}';
 
     /**
      * @var string
      */
-    protected $description = 'Show details of a server by name';
+    protected $description = 'Show details of a server';
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(CloudProviderFactory $factory, CloudProviderQuery $cloudProviderQuery): int
+    public function handleCommand(ServerClient $serverClient): int
     {
-        $organization = Organization::query()->find($this->organization->id);
-        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
-
-        if ($providers->isEmpty()) {
-            $this->components->info('No cloud providers configured. Run [cloud-provider:add] first.');
-
-            return self::SUCCESS;
-        }
-
-        $choices = $providers->mapWithKeys(fn (CloudProvider $provider) => [
-            $provider->id => "{$provider->name} ({$provider->type->label()})",
-        ])->toArray();
-
-        $providerId = select(
-            label: 'Select a cloud provider',
-            options: $choices,
-        );
-
-        $provider = $providers->firstWhere('id', $providerId);
-
-        $name = text(
-            label: 'Server name',
+        $serverId = $this->option('id') ?: text(
+            label: 'Server ID',
             required: true,
         );
 
-        $serverService = $factory->makeServerService($provider->type, $provider->api_token);
-        $serverData = $serverService->find($name);
-
-        if ($serverData === null) {
-            $this->components->error("Server [{$name}] not found.");
+        try {
+            $server = $serverClient->show($serverId);
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
             return self::FAILURE;
         }
@@ -65,13 +42,14 @@ final class ShowServerCommand extends AuthenticatedCommand
         $this->table(
             ['Field', 'Value'],
             [
-                ['External ID', (string) $serverData->externalId],
-                ['Name', $serverData->name],
-                ['Status', $serverData->status->label()],
-                ['Type', $serverData->type],
-                ['Region', $serverData->region],
-                ['IPv4', $serverData->ipv4 ?? '-'],
-                ['IPv6', $serverData->ipv6 ?? '-'],
+                ['ID', $server->id],
+                ['Name', $server->name],
+                ['Status', ServerStatus::from($server->status)->label()],
+                ['Type', $server->type],
+                ['Region', $server->region],
+                ['IPv4', $server->ipv4 ?? '-'],
+                ['IPv6', $server->ipv6 ?? '-'],
+                ['External ID', $server->externalId],
             ],
         );
 

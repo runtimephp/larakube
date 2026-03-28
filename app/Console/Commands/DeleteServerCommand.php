@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\DeleteServer;
-use App\Actions\SyncServers;
-use App\Models\CloudProvider;
-use App\Models\Organization;
-use App\Models\Server;
-use App\Queries\CloudProviderQuery;
-use App\Queries\ServerQuery;
-use Throwable;
+use App\Contracts\ServerClient;
+use App\Enums\ServerStatus;
+use App\Exceptions\LarakubeApiException;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\select;
@@ -26,69 +21,59 @@ final class DeleteServerCommand extends AuthenticatedCommand
     /**
      * @var string
      */
-    protected $description = 'Delete a server from a cloud provider';
+    protected $description = 'Delete a server';
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(SyncServers $syncServers, DeleteServer $deleteServer, CloudProviderQuery $cloudProviderQuery, ServerQuery $serverQuery): int
+    public function handleCommand(ServerClient $serverClient): int
     {
-        $organization = Organization::query()->find($this->organization->id);
-        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
+        try {
+            $servers = $serverClient->list();
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
-        if ($providers->isEmpty()) {
-            $this->components->info('No cloud providers configured. Run [cloud-provider:add] first.');
-
-            return self::SUCCESS;
+            return self::FAILURE;
         }
 
-        $providerChoices = $providers->mapWithKeys(fn (CloudProvider $provider) => [
-            $provider->id => "{$provider->name} ({$provider->type->label()})",
-        ])->toArray();
-
-        $providerId = select(
-            label: 'Select a cloud provider',
-            options: $providerChoices,
-        );
-
-        $provider = $providers->firstWhere('id', $providerId);
-
-        $this->components->info('Syncing servers...');
-        $syncServers->handle($provider);
-
-        $servers = ($serverQuery)()->byProvider($provider)->get();
-
-        if ($servers->isEmpty()) {
+        if ($servers === []) {
             $this->components->info('No servers to delete.');
 
             return self::SUCCESS;
         }
 
-        $serverChoices = $servers->mapWithKeys(fn (Server $server) => [
-            $server->id => "{$server->name} ({$server->status->label()})",
-        ])->toArray();
+        $choices = [];
+        foreach ($servers as $server) {
+            $choices[$server->id] = "{$server->name} (".ServerStatus::from($server->status)->label().')';
+        }
 
-        $serverId = select(
+        $selectedId = select(
             label: 'Select a server to delete',
-            options: $serverChoices,
+            options: $choices,
         );
 
-        $server = $servers->firstWhere('id', $serverId);
+        $selected = null;
+        foreach ($servers as $server) {
+            if ($server->id === $selectedId) {
+                $selected = $server;
+                break;
+            }
+        }
 
-        if (! confirm("Are you sure you want to delete [{$server->name}]?")) {
+        if (! confirm("Are you sure you want to delete [{$selected->name}]?")) {
             $this->components->info('Cancelled.');
 
             return self::SUCCESS;
         }
 
         try {
-            $deleteServer->handle($server);
-        } catch (Throwable $e) {
+            $serverClient->delete($selected->id);
+        } catch (LarakubeApiException $e) {
             $this->components->error($e->getMessage());
 
             return self::FAILURE;
         }
 
-        $this->components->info("Server [{$server->name}] deleted.");
+        $this->components->info("Server [{$selected->name}] deleted.");
 
         return self::SUCCESS;
     }

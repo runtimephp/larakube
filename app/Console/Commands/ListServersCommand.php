@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\SyncServers;
-use App\Models\CloudProvider;
-use App\Models\Organization;
-use App\Models\Server;
-use App\Queries\CloudProviderQuery;
-use App\Queries\ServerQuery;
-
-use function Laravel\Prompts\select;
+use App\Contracts\ServerClient;
+use App\Data\ServerResourceData;
+use App\Enums\ServerStatus;
+use App\Exceptions\LarakubeApiException;
 
 final class ListServersCommand extends AuthenticatedCommand
 {
@@ -23,38 +19,21 @@ final class ListServersCommand extends AuthenticatedCommand
     /**
      * @var string
      */
-    protected $description = 'List servers for a cloud provider';
+    protected $description = 'List servers for the current organization';
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(SyncServers $syncServers, CloudProviderQuery $cloudProviderQuery, ServerQuery $serverQuery): int
+    public function handleCommand(ServerClient $serverClient): int
     {
-        $organization = Organization::query()->find($this->organization->id);
-        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
+        try {
+            $servers = $serverClient->list();
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
-        if ($providers->isEmpty()) {
-            $this->components->info('No cloud providers configured. Run [cloud-provider:add] first.');
-
-            return self::SUCCESS;
+            return self::FAILURE;
         }
 
-        $choices = $providers->mapWithKeys(fn (CloudProvider $provider) => [
-            $provider->id => "{$provider->name} ({$provider->type->label()})",
-        ])->toArray();
-
-        $providerId = select(
-            label: 'Select a cloud provider',
-            options: $choices,
-        );
-
-        $provider = $providers->firstWhere('id', $providerId);
-
-        $this->components->info('Syncing servers...');
-        $syncServers->handle($provider);
-
-        $servers = ($serverQuery)()->byProvider($provider)->get();
-
-        if ($servers->isEmpty()) {
+        if ($servers === []) {
             $this->components->info('No servers found.');
 
             return self::SUCCESS;
@@ -62,13 +41,13 @@ final class ListServersCommand extends AuthenticatedCommand
 
         $this->table(
             ['Name', 'Status', 'Type', 'Region', 'IPv4'],
-            $servers->map(fn (Server $server) => [
+            array_map(fn (ServerResourceData $server): array => [
                 $server->name,
-                $server->status->label(),
+                ServerStatus::from($server->status)->label(),
                 $server->type,
                 $server->region,
                 $server->ipv4 ?? '-',
-            ]),
+            ], $servers),
         );
 
         return self::SUCCESS;
