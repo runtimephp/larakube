@@ -125,6 +125,43 @@ test('add cloud provider command fails with invalid provider type from CLI optio
         ));
 
         $this->artisan('cloud-provider:add --type=invalid-type --name="Test" --token="token"')
-            ->expectsOutputToContain('Invalid provider type. Use: hetzner, digitalocean')
+            ->expectsOutputToContain('Invalid provider type. Use: hetzner, digitalocean, multipass')
             ->assertFailed();
+    });
+
+test('add multipass provider skips token prompt',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
+        ]);
+
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
+
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
+
+        $this->cloudProviderClient->setCreateResponse(new CloudProviderData(
+            id: 'uuid-mp-1',
+            name: 'Local Multipass',
+            type: 'multipass',
+            isVerified: true,
+        ));
+
+        $this->artisan('cloud-provider:add --type=multipass --name="Local Multipass"')
+            ->expectsOutputToContain('Checking Multipass installation')
+            ->expectsOutputToContain('Cloud provider [Local Multipass] added successfully')
+            ->assertSuccessful();
     });

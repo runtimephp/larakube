@@ -19,7 +19,7 @@ final class AddCloudProviderCommand extends AuthenticatedCommand
     /**
      * @var string
      */
-    protected $signature = 'cloud-provider:add {--type= : Cloud provider type (hetzner, digitalocean)} {--name= : Provider name} {--token= : API token}';
+    protected $signature = 'cloud-provider:add {--type= : Cloud provider type (hetzner, digitalocean, multipass)} {--name= : Provider name} {--token= : API token}';
 
     /**
      * @var string
@@ -36,7 +36,7 @@ final class AddCloudProviderCommand extends AuthenticatedCommand
             try {
                 $type = CloudProviderType::from($typeOption);
             } catch (ValueError) {
-                $this->components->error('Invalid provider type. Use: hetzner, digitalocean');
+                $this->components->error('Invalid provider type. Use: hetzner, digitalocean, multipass');
 
                 return self::FAILURE;
             }
@@ -61,13 +61,19 @@ final class AddCloudProviderCommand extends AuthenticatedCommand
             required: true,
         );
 
-        $tokenOption = $this->option('token');
-        $apiToken = $tokenOption ?: password(
-            label: 'API token',
-            required: true,
-        );
+        $apiToken = null;
 
-        $this->components->info('Validating API token...');
+        if ($type !== CloudProviderType::Multipass) {
+            $tokenOption = $this->option('token');
+            $apiToken = $tokenOption ?: password(
+                label: 'API token',
+                required: true,
+            );
+
+            $this->components->info('Validating API token...');
+        } else {
+            $this->components->info('Checking Multipass installation...');
+        }
 
         try {
             $cloudProvider = $cloudProviderClient->create(

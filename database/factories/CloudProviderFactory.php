@@ -44,4 +44,12 @@ final class CloudProviderFactory extends Factory
     {
         return $this->state(['type' => CloudProviderType::DigitalOcean]);
     }
+
+    public function multipass(): static
+    {
+        return $this->state([
+            'type' => CloudProviderType::Multipass,
+            'api_token' => null,
+        ]);
+    }
 }

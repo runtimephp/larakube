@@ -13,6 +13,6 @@ final readonly class CreateCloudProviderData
         public string $name,
         public CloudProviderType $type,
         #[SensitiveParameter]
-        public string $apiToken,
+        public ?string $apiToken = null,
     ) {}
 }

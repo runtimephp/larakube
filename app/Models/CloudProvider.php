@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read string $organization_id
  * @property-read string $name
  * @property-read CloudProviderType $type
- * @property-read string $api_token
+ * @property-read string|null $api_token
  * @property-read bool $is_verified
  * @property-read Collection<int, Server> $servers
  * @property-read Collection<int, Region> $regions

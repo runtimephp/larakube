@@ -23,7 +23,7 @@ final class CreateCloudProviderRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'string', Rule::enum(CloudProviderType::class)],
-            'api_token' => ['required', 'string'],
+            'api_token' => ['nullable', 'string'],
         ];
     }
 }

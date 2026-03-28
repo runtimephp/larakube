@@ -40,6 +40,30 @@ test('from digital ocean maps unknown status', function (): void {
     expect(ServerStatus::fromDigitalOcean('archive'))->toBe(ServerStatus::Unknown);
 });
 
+test('from multipass maps Running', function (): void {
+    expect(ServerStatus::fromMultipass('Running'))->toBe(ServerStatus::Running);
+});
+
+test('from multipass maps Stopped to off', function (): void {
+    expect(ServerStatus::fromMultipass('Stopped'))->toBe(ServerStatus::Off);
+});
+
+test('from multipass maps Suspended to off', function (): void {
+    expect(ServerStatus::fromMultipass('Suspended'))->toBe(ServerStatus::Off);
+});
+
+test('from multipass maps Starting', function (): void {
+    expect(ServerStatus::fromMultipass('Starting'))->toBe(ServerStatus::Starting);
+});
+
+test('from multipass maps Restarting to starting', function (): void {
+    expect(ServerStatus::fromMultipass('Restarting'))->toBe(ServerStatus::Starting);
+});
+
+test('from multipass maps unknown status', function (): void {
+    expect(ServerStatus::fromMultipass('Delayed Shutdown'))->toBe(ServerStatus::Unknown);
+});
+
 test('label returns correct labels', function (): void {
     expect(ServerStatus::Running->label())->toBe('Running')
         ->and(ServerStatus::Off->label())->toBe('Off')
