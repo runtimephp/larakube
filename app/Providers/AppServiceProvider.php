@@ -6,11 +6,13 @@ namespace App\Providers;
 
 use App\Client\HttpAuthClient;
 use App\Client\HttpCloudProviderClient;
+use App\Client\HttpInfrastructureClient;
 use App\Client\HttpOrganizationClient;
 use App\Client\LarakubeClient;
 use App\Console\Services\SessionManager;
 use App\Contracts\AuthClient;
 use App\Contracts\CloudProviderClient;
+use App\Contracts\InfrastructureClient;
 use App\Contracts\OrganizationClient;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
@@ -48,6 +50,7 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->bind(AuthClient::class, HttpAuthClient::class);
         $this->app->bind(OrganizationClient::class, HttpOrganizationClient::class);
         $this->app->bind(CloudProviderClient::class, HttpCloudProviderClient::class);
+        $this->app->bind(InfrastructureClient::class, HttpInfrastructureClient::class);
     }
 
     /**
