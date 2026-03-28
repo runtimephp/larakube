@@ -3,17 +3,21 @@
 declare(strict_types=1);
 
 use App\Actions\LoginUser;
+use App\Client\InMemoryOrganizationClient;
 use App\Console\Services\SessionManager;
+use App\Contracts\OrganizationClient;
+use App\Data\OrganizationData;
 use App\Models\User;
 
 beforeEach(function (): void {
     $this->app->singleton(SessionManager::class);
-    $this->loginUser = app(LoginUser::class);
+    $this->organizationClient = new InMemoryOrganizationClient();
+    $this->app->instance(OrganizationClient::class, $this->organizationClient);
 });
 
 test('create organization command creates org and auto-selects it',
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     function (): void {
         /** @var User $user */
@@ -22,9 +26,16 @@ test('create organization command creates org and auto-selects it',
             'password' => 'password123',
         ]);
 
-        $userData = $this->loginUser->handle('john@example.com', 'password123');
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
         $session = app(SessionManager::class);
         $session->setUser($userData);
+
+        $this->organizationClient->setCreateResponse(new OrganizationData(
+            id: 'uuid-org-1',
+            name: 'Acme Corp',
+            slug: 'acme-corp',
+            description: 'A great company',
+        ));
 
         $this->artisan('organization:create')
             ->expectsQuestion('Organization name', 'Acme Corp')
@@ -32,14 +43,33 @@ test('create organization command creates org and auto-selects it',
             ->expectsOutputToContain('Organization [Acme Corp] created and selected')
             ->assertSuccessful();
 
-        $this->assertDatabaseHas('organizations', ['name' => 'Acme Corp']);
-        $this->assertDatabaseHas('organization_user', [
-            'user_id' => $user->id,
-            'role' => 'owner',
+        expect($session->hasOrganization())->toBeTrue()
+            ->and($session->getOrganization()->name)->toBe('Acme Corp')
+            ->and($session->getOrganization()->id)->toBe('uuid-org-1');
+    });
+
+test('create organization command displays error on failure',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'john@example.com',
+            'password' => 'password123',
         ]);
 
-        expect($session->hasOrganization())->toBeTrue()
-            ->and($session->getOrganization()->name)->toBe('Acme Corp');
+        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+
+        $this->organizationClient->shouldFailCreate();
+
+        $this->artisan('organization:create')
+            ->expectsQuestion('Organization name', 'Acme Corp')
+            ->expectsQuestion('Description', '')
+            ->expectsOutputToContain('Validation failed.')
+            ->assertFailed();
     });
 
 test('create organization command fails when not authenticated',
