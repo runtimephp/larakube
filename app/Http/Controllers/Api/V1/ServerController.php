@@ -60,7 +60,7 @@ final class ServerController
             ], ApiErrorCode::ValidationFailed->httpStatus());
         }
 
-        return (new ServerResource($server))
+        return new ServerResource($server)
             ->response()
             ->setStatusCode(201);
     }

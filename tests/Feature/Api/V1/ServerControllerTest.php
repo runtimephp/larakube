@@ -202,6 +202,60 @@ test('destroy fails when cloud provider api fails',
             ->assertJsonPath('code', 'validation_failed');
     });
 
+test('sync returns summary of changes',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $this->serverService->addServer(new ServerData(
+            externalId: '100',
+            name: 'web-1',
+            status: ServerStatus::Running,
+            type: 'cx11',
+            region: 'fsn1',
+            ipv4: '1.2.3.4',
+        ));
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->withHeaders([
+                'X-Organization-Id' => $this->organization->id,
+                'X-Infrastructure-Id' => $this->infrastructure->id,
+            ])
+            ->postJson(route('api.v1.servers.sync'), [
+                'cloud_provider_id' => $this->provider->id,
+            ]);
+
+        $response->assertOk()
+            ->assertJsonStructure(['data' => ['created', 'updated', 'deleted']])
+            ->assertJsonPath('data.created', 1)
+            ->assertJsonPath('data.updated', 0)
+            ->assertJsonPath('data.deleted', 0);
+    });
+
+test('sync validates cloud_provider_id',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->withHeaders([
+                'X-Organization-Id' => $this->organization->id,
+                'X-Infrastructure-Id' => $this->infrastructure->id,
+            ])
+            ->postJson(route('api.v1.servers.sync'), []);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['cloud_provider_id']);
+    });
+
+test('sync requires authentication and headers',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $this->postJson(route('api.v1.servers.sync'))->assertUnauthorized();
+    });
+
 test('all endpoints require authentication',
     /**
      * @throws Throwable

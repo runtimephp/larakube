@@ -6,6 +6,7 @@ namespace App\Contracts;
 
 use App\Data\CreateServerData;
 use App\Data\ServerResourceData;
+use App\Data\SyncSummaryData;
 use App\Exceptions\LarakubeApiException;
 
 interface ServerClient
@@ -31,4 +32,9 @@ interface ServerClient
      * @throws LarakubeApiException
      */
     public function delete(string $id): void;
+
+    /**
+     * @throws LarakubeApiException
+     */
+    public function sync(string $cloudProviderId): SyncSummaryData;
 }

@@ -7,6 +7,7 @@ namespace App\Client;
 use App\Contracts\ServerClient;
 use App\Data\CreateServerData;
 use App\Data\ServerResourceData;
+use App\Data\SyncSummaryData;
 
 final readonly class HttpServerClient implements ServerClient
 {
@@ -48,5 +49,14 @@ final readonly class HttpServerClient implements ServerClient
     public function delete(string $id): void
     {
         $this->client->delete("/api/v1/servers/{$id}");
+    }
+
+    public function sync(string $cloudProviderId): SyncSummaryData
+    {
+        $response = $this->client->post('/api/v1/servers/sync', [
+            'cloud_provider_id' => $cloudProviderId,
+        ]);
+
+        return SyncSummaryData::fromArray($response->json('data'));
     }
 }

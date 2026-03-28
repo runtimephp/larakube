@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\InfrastructureController;
 use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\RegisterController;
 use App\Http\Controllers\Api\V1\ServerController;
+use App\Http\Controllers\Api\V1\SyncServerController;
 use App\Http\Middleware\ResolveInfrastructure;
 use App\Http\Middleware\ResolveOrganization;
 use Illuminate\Support\Facades\Route;
@@ -40,9 +41,13 @@ Route::prefix('v1')->as('api.v1.')->group(function (): void {
                 ->only(['index', 'show', 'destroy'])
                 ->names('servers');
 
-            Route::post('servers', [ServerController::class, 'store'])
-                ->middleware(ResolveInfrastructure::class)
-                ->name('servers.store');
+            Route::middleware(ResolveInfrastructure::class)->group(function (): void {
+                Route::post('servers', [ServerController::class, 'store'])
+                    ->name('servers.store');
+
+                Route::post('servers/sync', [SyncServerController::class, 'store'])
+                    ->name('servers.sync');
+            });
         });
     });
 });

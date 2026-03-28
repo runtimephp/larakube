@@ -8,6 +8,7 @@ use App\Contracts\ServerClient;
 use App\Data\ApiErrorData;
 use App\Data\CreateServerData;
 use App\Data\ServerResourceData;
+use App\Data\SyncSummaryData;
 use App\Enums\ApiErrorCode;
 use App\Exceptions\LarakubeApiException;
 
@@ -31,6 +32,10 @@ final class InMemoryServerClient implements ServerClient
     private bool $failShow = false;
 
     private bool $failDelete = false;
+
+    private ?SyncSummaryData $syncResponse = null;
+
+    private bool $failSync = false;
 
     public function setCreateResponse(ServerResourceData $data): void
     {
@@ -142,5 +147,27 @@ final class InMemoryServerClient implements ServerClient
 
         $this->deleteCalled = true;
         $this->deletedId = $id;
+    }
+
+    public function setSyncResponse(SyncSummaryData $data): void
+    {
+        $this->syncResponse = $data;
+    }
+
+    public function shouldFailSync(): void
+    {
+        $this->failSync = true;
+    }
+
+    public function sync(string $cloudProviderId): SyncSummaryData
+    {
+        if ($this->failSync) {
+            throw new LarakubeApiException(new ApiErrorData(
+                message: 'Failed to sync servers.',
+                code: ApiErrorCode::ValidationFailed,
+            ));
+        }
+
+        return $this->syncResponse ?? new SyncSummaryData(created: 0, updated: 0, deleted: 0);
     }
 }

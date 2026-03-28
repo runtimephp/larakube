@@ -18,7 +18,6 @@
         </include>
         <exclude>
             <file>app/Providers/TelescopeServiceProvider.php</file>
-            <file>app/Actions/SyncServers.php</file>
         </exclude>
     </source>
     <php>
