@@ -7,7 +7,11 @@ use App\Data\CreateUserData;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-test('create user',
+beforeEach(function (): void {
+    $this->action = app(CreateUser::class);
+});
+
+test('creates user',
     /**
      * @throws Throwable
      */
@@ -18,7 +22,7 @@ test('create user',
             password: 'password123',
         );
 
-        $user = new CreateUser()->handle($createUserData);
+        $user = $this->action->handle($createUserData);
 
         expect($user)
             ->toBeInstanceOf(User::class)
@@ -28,7 +32,7 @@ test('create user',
             ->and(Hash::check('password123', $user->password))->toBeTrue();
     });
 
-test('create user persists to database',
+test('persists user to database',
     /**
      * @throws Throwable
      */
@@ -39,7 +43,7 @@ test('create user persists to database',
             password: 'password123',
         );
 
-        new CreateUser()->handle($createUserData);
+        $this->action->handle($createUserData);
 
         $this->assertDatabaseHas('users', [
             'name' => 'Jane Doe',

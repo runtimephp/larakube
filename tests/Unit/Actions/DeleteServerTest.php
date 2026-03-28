@@ -3,24 +3,26 @@
 declare(strict_types=1);
 
 use App\Actions\DeleteServer;
+use App\Data\ServerData;
 use App\Models\CloudProvider;
 use App\Models\Server;
-use App\Services\InMemory\InMemoryHetznerFactory;
-use App\Services\InMemory\InMemoryHetznerServerService;
 
-test('delete server removes from api and locally',
+test('deletes server from api and locally',
     /**
      * @throws Throwable
      */
     function (): void {
+        /** @var CloudProvider $provider */
         $provider = CloudProvider::factory()->hetzner()->create();
+
+        /** @var Server $server */
         $server = Server::factory()->create([
             'cloud_provider_id' => $provider->id,
             'organization_id' => $provider->organization_id,
         ]);
 
-        $serverService = new InMemoryHetznerServerService();
-        $serverService->addServer(new App\Data\ServerData(
+        $serverService = useInMemoryHetznerServerService();
+        $serverService->addServer(new ServerData(
             externalId: (string) $server->external_id,
             name: $server->name,
             status: $server->status,
@@ -29,27 +31,34 @@ test('delete server removes from api and locally',
             ipv4: $server->ipv4,
         ));
 
-        $action = new DeleteServer(new InMemoryHetznerFactory(serverService: $serverService));
+        bindInMemoryHetznerFactory(serverService: $serverService);
+
+        $action = app(DeleteServer::class);
         $action->handle($server);
 
         $this->assertDatabaseMissing('servers', ['id' => $server->id]);
     });
 
-test('delete server throws when api deletion fails',
+test('throws when api deletion fails',
     /**
      * @throws Throwable
      */
     function (): void {
+        /** @var CloudProvider $provider */
         $provider = CloudProvider::factory()->hetzner()->create();
+
+        /** @var Server $server */
         $server = Server::factory()->create([
             'cloud_provider_id' => $provider->id,
             'organization_id' => $provider->organization_id,
             'name' => 'web-1',
         ]);
 
-        $serverService = new InMemoryHetznerServerService();
+        $serverService = useInMemoryHetznerServerService();
         $serverService->shouldFailDelete(true);
 
-        $action = new DeleteServer(new InMemoryHetznerFactory(serverService: $serverService));
+        bindInMemoryHetznerFactory(serverService: $serverService);
+
+        $action = app(DeleteServer::class);
         $action->handle($server);
     })->throws(RuntimeException::class, 'Failed to delete server [web-1] from the provider.');

@@ -5,20 +5,18 @@ declare(strict_types=1);
 use App\Actions\CreateOrganization;
 use App\Data\CreateOrganizationData;
 
-test('create organization',
+test('creates organization',
     /**
      * @throws Throwable
      */
     function (): void {
+        $action = app(CreateOrganization::class);
 
-        $createOrganizationData = new CreateOrganizationData(
+        $organization = $action->handle(new CreateOrganizationData(
             name: 'Test Organization',
             description: 'This is a test organization',
-        );
-
-        $organization = new CreateOrganization()->handle($createOrganizationData);
+        ));
 
         expect($organization->name)
             ->toBe('Test Organization');
-
     });

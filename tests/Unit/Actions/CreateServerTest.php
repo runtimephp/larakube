@@ -6,23 +6,25 @@ use App\Actions\CreateServer;
 use App\Data\CreateServerData;
 use App\Models\CloudProvider;
 use App\Models\Infrastructure;
-use App\Services\InMemory\InMemoryHetznerFactory;
-use App\Services\InMemory\InMemoryHetznerServerService;
 
-test('create server persists locally after api call',
+test('creates server and persists locally after api call',
     /**
      * @throws Throwable
      */
     function (): void {
+        /** @var CloudProvider $provider */
         $provider = CloudProvider::factory()->hetzner()->create();
+
+        /** @var Infrastructure $infrastructure */
         $infrastructure = Infrastructure::factory()->create([
             'organization_id' => $provider->organization_id,
             'cloud_provider_id' => $provider->id,
         ]);
 
-        $serverService = new InMemoryHetznerServerService();
+        $serverService = useInMemoryHetznerServerService();
+        bindInMemoryHetznerFactory(serverService: $serverService);
 
-        $action = new CreateServer(new InMemoryHetznerFactory(serverService: $serverService));
+        $action = app(CreateServer::class);
         $server = $action->handle(
             $provider,
             new CreateServerData(
