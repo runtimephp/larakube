@@ -31,6 +31,16 @@ enum ServerStatus: string
         };
     }
 
+    public static function fromMultipass(string $status): self
+    {
+        return match ($status) {
+            'Running' => self::Running,
+            'Stopped', 'Suspended' => self::Off,
+            'Starting', 'Restarting' => self::Starting,
+            default => self::Unknown,
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {

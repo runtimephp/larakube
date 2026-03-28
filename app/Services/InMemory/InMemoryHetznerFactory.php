@@ -21,7 +21,7 @@ final class InMemoryHetznerFactory extends CloudProviderFactory
         private readonly ?InMemoryHetznerServerService $serverService = null,
     ) {}
 
-    public function makeServerService(CloudProviderType $type, string $token): ServerService
+    public function makeServerService(CloudProviderType $type, ?string $token = null): ServerService
     {
         if ($type === CloudProviderType::Hetzner && $this->serverService) {
             return $this->serverService;
@@ -30,7 +30,7 @@ final class InMemoryHetznerFactory extends CloudProviderFactory
         return parent::makeServerService($type, $token);
     }
 
-    public function makeForValidation(CloudProviderType $type, string $token): CloudProviderService
+    public function makeForValidation(CloudProviderType $type, ?string $token = null): CloudProviderService
     {
         if ($type === CloudProviderType::Hetzner && $this->validationService) {
             return $this->validationService;

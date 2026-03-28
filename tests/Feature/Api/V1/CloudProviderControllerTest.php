@@ -73,7 +73,7 @@ test('store validates required fields',
             ->postJson(route('api.v1.cloud-providers.store'), []);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['name', 'type', 'api_token']);
+            ->assertJsonValidationErrors(['name', 'type']);
     });
 
 test('index returns cloud providers for organization',

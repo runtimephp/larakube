@@ -21,7 +21,7 @@ final class InMemoryDigitalOceanFactory extends CloudProviderFactory
         private readonly ?InMemoryDigitalOceanServerService $serverService = null,
     ) {}
 
-    public function makeServerService(CloudProviderType $type, string $token): ServerService
+    public function makeServerService(CloudProviderType $type, ?string $token = null): ServerService
     {
         if ($type === CloudProviderType::DigitalOcean && $this->serverService) {
             return $this->serverService;
@@ -30,7 +30,7 @@ final class InMemoryDigitalOceanFactory extends CloudProviderFactory
         return parent::makeServerService($type, $token);
     }
 
-    public function makeForValidation(CloudProviderType $type, string $token): CloudProviderService
+    public function makeForValidation(CloudProviderType $type, ?string $token = null): CloudProviderService
     {
         if ($type === CloudProviderType::DigitalOcean && $this->validationService) {
             return $this->validationService;
