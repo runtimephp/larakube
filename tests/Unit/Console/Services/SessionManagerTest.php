@@ -7,23 +7,23 @@ use App\Data\SessionOrganizationData;
 use App\Data\SessionUserData;
 
 beforeEach(function (): void {
-    $this->tempDir = sys_get_temp_dir().'/session-manager-test-'.uniqid();
-    mkdir($this->tempDir, 0700, true);
-    $this->tempPath = $this->tempDir.'/session.json';
+    $this->sessionsPath = sys_get_temp_dir().'/larakube-sessions-test-'.uniqid();
+    $this->apiUrl = 'http://localhost:8000';
 });
 
 afterEach(function (): void {
-    if (file_exists($this->tempPath)) {
-        unlink($this->tempPath);
+    $files = glob($this->sessionsPath.'/*.json');
+    if (is_array($files)) {
+        array_map(unlink(...), $files);
     }
 
-    if (is_dir($this->tempDir)) {
-        rmdir($this->tempDir);
+    if (is_dir($this->sessionsPath)) {
+        rmdir($this->sessionsPath);
     }
 });
 
 test('set and get a value', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     $manager->set('token', 'abc123');
 
@@ -31,23 +31,23 @@ test('set and get a value', function (): void {
 });
 
 test('get returns default when key does not exist', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     expect($manager->get('missing'))->toBeNull()
         ->and($manager->get('missing', 'fallback'))->toBe('fallback');
 });
 
 test('persists data to disk', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
     $manager->set('cluster', 'production');
 
-    $freshManager = new SessionManager($this->tempPath);
+    $freshManager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     expect($freshManager->get('cluster'))->toBe('production');
 });
 
 test('clear removes all data', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
     $manager->set('token', 'abc123');
     $manager->set('cluster', 'production');
 
@@ -58,7 +58,7 @@ test('clear removes all data', function (): void {
 });
 
 test('isAuthenticated returns true when token is set', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     expect($manager->isAuthenticated())->toBeFalse();
 
@@ -68,7 +68,7 @@ test('isAuthenticated returns true when token is set', function (): void {
 });
 
 test('isAuthenticated returns false after clear', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
     $manager->set('token', 'abc123');
 
     $manager->clear();
@@ -77,21 +77,21 @@ test('isAuthenticated returns false after clear', function (): void {
 });
 
 test('save creates directory if it does not exist', function (): void {
-    $nestedPath = $this->tempDir.'/nested/deep/session.json';
+    $nestedPath = $this->sessionsPath.'/nested/deep';
 
-    $manager = new SessionManager($nestedPath);
+    $manager = new SessionManager($nestedPath, $this->apiUrl);
     $manager->set('key', 'value');
 
-    expect(file_exists($nestedPath))->toBeTrue();
+    expect(is_dir($nestedPath))->toBeTrue();
 
     // cleanup nested dirs
-    unlink($nestedPath);
+    array_map(unlink(...), glob($nestedPath.'/*.json'));
+    rmdir($nestedPath);
     rmdir(dirname($nestedPath));
-    rmdir(dirname($nestedPath, 2));
 });
 
 test('setUser and getUser round-trip', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     $userData = new SessionUserData(
         id: 'uuid-123',
@@ -113,13 +113,13 @@ test('setUser and getUser round-trip', function (): void {
 });
 
 test('getUser returns null when empty', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     expect($manager->getUser())->toBeNull();
 });
 
 test('setOrganization and getOrganization round-trip', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     $orgData = new SessionOrganizationData(
         id: 'uuid-456',
@@ -139,7 +139,7 @@ test('setOrganization and getOrganization round-trip', function (): void {
 });
 
 test('hasOrganization returns correct state', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     expect($manager->hasOrganization())->toBeFalse();
 
@@ -153,7 +153,7 @@ test('hasOrganization returns correct state', function (): void {
 });
 
 test('setUser sets token for isAuthenticated', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     expect($manager->isAuthenticated())->toBeFalse();
 
@@ -168,7 +168,7 @@ test('setUser sets token for isAuthenticated', function (): void {
 });
 
 test('clearOrganization removes organization from session', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     $manager->setOrganization(new SessionOrganizationData(
         id: 'uuid-456',
@@ -184,7 +184,7 @@ test('clearOrganization removes organization from session', function (): void {
 });
 
 test('clearInfrastructure removes infrastructure from session', function (): void {
-    $manager = new SessionManager($this->tempPath);
+    $manager = new SessionManager($this->sessionsPath, $this->apiUrl);
 
     $manager->setInfrastructure(new App\Data\SessionInfrastructureData(
         id: 'uuid-789',
@@ -196,4 +196,65 @@ test('clearInfrastructure removes infrastructure from session', function (): voi
     $manager->clearInfrastructure();
 
     expect($manager->getInfrastructure())->toBeNull();
+});
+
+// --- Per-URL session scoping tests ---
+
+test('session file is scoped per api url', function (): void {
+    $manager1 = new SessionManager($this->sessionsPath, 'http://localhost:8000');
+    $manager2 = new SessionManager($this->sessionsPath, 'https://production.example.com');
+
+    $manager1->setUser(new SessionUserData(
+        id: 'user-1',
+        name: 'Local User',
+        email: 'local@example.com',
+        token: 'local-token',
+    ));
+
+    $manager2->setUser(new SessionUserData(
+        id: 'user-2',
+        name: 'Production User',
+        email: 'prod@example.com',
+        token: 'prod-token',
+    ));
+
+    expect($manager1->getUser())
+        ->name->toBe('Local User')
+        ->and($manager2->getUser())
+        ->name->toBe('Production User');
+});
+
+test('different urls produce different session files', function (): void {
+    $manager1 = new SessionManager($this->sessionsPath, 'http://localhost:8000');
+    $manager1->setUser(new SessionUserData(
+        id: 'user-1',
+        name: 'User 1',
+        email: 'user1@example.com',
+        token: 'token-1',
+    ));
+
+    $manager2 = new SessionManager($this->sessionsPath, 'http://localhost:9000');
+
+    expect($manager2->getUser())->toBeNull()
+        ->and($manager2->isAuthenticated())->toBeFalse();
+});
+
+test('clearing one session does not affect another', function (): void {
+    $manager1 = new SessionManager($this->sessionsPath, 'http://localhost:8000');
+    $manager2 = new SessionManager($this->sessionsPath, 'https://staging.example.com');
+
+    $userData = new SessionUserData(
+        id: 'user-1',
+        name: 'User',
+        email: 'user@example.com',
+        token: 'token-1',
+    );
+
+    $manager1->setUser($userData);
+    $manager2->setUser($userData);
+
+    $manager1->clear();
+
+    expect($manager1->isAuthenticated())->toBeFalse()
+        ->and($manager2->isAuthenticated())->toBeTrue();
 });

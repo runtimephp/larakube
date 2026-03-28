@@ -10,15 +10,20 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        config()->set('larakube.session_path', sys_get_temp_dir().'/larakube-'.getmypid().'-'.uniqid().'.json');
+        $sessionsPath = sys_get_temp_dir().'/larakube-sessions-'.getmypid().'-'.uniqid();
+        config()->set('larakube.sessions_path', $sessionsPath);
     }
 
     protected function tearDown(): void
     {
-        $path = config('larakube.session_path');
+        $sessionsPath = config('larakube.sessions_path');
 
-        if (file_exists($path)) {
-            unlink($path);
+        if (is_dir($sessionsPath)) {
+            $files = glob($sessionsPath.'/*.json');
+            if (is_array($files)) {
+                array_map(unlink(...), $files);
+            }
+            rmdir($sessionsPath);
         }
 
         parent::tearDown();

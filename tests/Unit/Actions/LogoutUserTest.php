@@ -8,18 +8,18 @@ use App\Console\Services\SessionManager;
 use App\Models\User;
 
 beforeEach(function (): void {
-    $this->tempDir = sys_get_temp_dir().'/logout-test-'.uniqid();
-    mkdir($this->tempDir, 0700, true);
-    $this->tempPath = $this->tempDir.'/session.json';
+    $this->sessionsPath = sys_get_temp_dir().'/logout-test-'.uniqid();
+    $this->apiUrl = 'http://localhost:8000';
 });
 
 afterEach(function (): void {
-    if (file_exists($this->tempPath)) {
-        unlink($this->tempPath);
+    $files = glob($this->sessionsPath.'/*.json');
+    if (is_array($files)) {
+        array_map(unlink(...), $files);
     }
 
-    if (is_dir($this->tempDir)) {
-        rmdir($this->tempDir);
+    if (is_dir($this->sessionsPath)) {
+        rmdir($this->sessionsPath);
     }
 });
 
@@ -35,7 +35,7 @@ test('logout clears session and revokes tokens',
 
         $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
 
-        $session = new SessionManager($this->tempPath);
+        $session = new SessionManager($this->sessionsPath, $this->apiUrl);
         $session->setUser($userData);
 
         expect($session->isAuthenticated())->toBeTrue();
@@ -52,7 +52,7 @@ test('logout handles missing user gracefully',
      * @throws Throwable
      */
     function (): void {
-        $session = new SessionManager($this->tempPath);
+        $session = new SessionManager($this->sessionsPath, $this->apiUrl);
 
         app(LogoutUser::class)->handle($session);
 

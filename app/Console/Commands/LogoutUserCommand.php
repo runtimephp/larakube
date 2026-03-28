@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\LogoutUser;
 use App\Console\Services\SessionManager;
+use App\Contracts\AuthClient;
+use App\Exceptions\LarakubeApiException;
 use Illuminate\Console\Command;
 
 final class LogoutUserCommand extends Command
@@ -20,9 +21,17 @@ final class LogoutUserCommand extends Command
      */
     protected $description = 'Log out and clear session';
 
-    public function handle(LogoutUser $logoutUser, SessionManager $session): int
+    public function handle(AuthClient $authClient, SessionManager $session): int
     {
-        $logoutUser->handle($session);
+        try {
+            $authClient->logout();
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
+
+            return self::FAILURE;
+        }
+
+        $session->clear();
 
         $this->components->info('Logged out successfully.');
 

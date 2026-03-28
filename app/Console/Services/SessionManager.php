@@ -13,9 +13,13 @@ final class SessionManager
 {
     private array $config = [];
 
+    private readonly string $path;
+
     public function __construct(
-        #[Config('larakube.session_path')] private readonly string $path,
+        #[Config('larakube.sessions_path')] string $sessionsPath,
+        #[Config('larakube.api_url')] string $apiUrl,
     ) {
+        $this->path = $sessionsPath.'/'.md5($apiUrl).'.json';
         $this->load();
     }
 

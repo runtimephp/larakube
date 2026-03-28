@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Actions\LoginUser;
+use App\Client\InMemoryAuthClient;
 use App\Console\Services\SessionManager;
-use App\Models\User;
+use App\Contracts\AuthClient;
+use App\Data\SessionUserData;
 
 beforeEach(function (): void {
+    $this->authClient = new InMemoryAuthClient();
+    $this->app->instance(AuthClient::class, $this->authClient);
     $this->app->singleton(SessionManager::class);
 });
 
@@ -15,19 +18,30 @@ test('logout command clears session',
      * @throws Throwable
      */
     function (): void {
-        $user = User::factory()->create([
-            'email' => 'john@example.com',
-            'password' => 'password123',
-        ]);
-
-        $userData = app(LoginUser::class)->handle('john@example.com', 'password123');
-
         $session = app(SessionManager::class);
-        $session->setUser($userData);
+        $session->setUser(new SessionUserData(
+            id: 'uuid-123',
+            name: 'John Doe',
+            email: 'john@example.com',
+            token: '1|abc123',
+        ));
 
         $this->artisan('user:logout')
             ->expectsOutputToContain('Logged out successfully')
             ->assertSuccessful();
 
-        expect($user->tokens()->count())->toBe(0);
+        expect($session->isAuthenticated())->toBeFalse()
+            ->and($this->authClient->logoutCalled)->toBeTrue();
+    });
+
+test('logout command displays error on failure',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $this->authClient->shouldFailLogout();
+
+        $this->artisan('user:logout')
+            ->expectsOutputToContain('Unauthenticated.')
+            ->assertFailed();
     });
