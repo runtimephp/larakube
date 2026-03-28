@@ -50,6 +50,9 @@ final class ServerController
                     image: $request->validated('image'),
                     region: $request->validated('region'),
                     infrastructure_id: $request->infrastructure->id,
+                    cpus: $request->validated('cpus') ? (int) $request->validated('cpus') : null,
+                    memory: $request->validated('memory'),
+                    disk: $request->validated('disk'),
                 ),
             );
         } catch (RuntimeException $e) {

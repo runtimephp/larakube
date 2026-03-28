@@ -24,6 +24,9 @@ final class CreateServerRequest extends FormRequest
             'image' => ['required', 'string'],
             'region' => ['required', 'string'],
             'cloud_provider_id' => ['required', 'string', 'exists:cloud_providers,id'],
+            'cpus' => ['nullable', 'integer', 'min:1'],
+            'memory' => ['nullable', 'string'],
+            'disk' => ['nullable', 'string'],
         ];
     }
 }
