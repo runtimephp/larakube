@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\CreateInfrastructure;
+use App\Contracts\CloudProviderClient;
+use App\Contracts\InfrastructureClient;
 use App\Data\CreateInfrastructureData;
-use App\Models\CloudProvider;
-use App\Models\Organization;
-use App\Queries\CloudProviderQuery;
+use App\Enums\CloudProviderType;
+use App\Exceptions\LarakubeApiException;
 
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -27,12 +27,17 @@ final class CreateInfrastructureCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(CreateInfrastructure $createInfrastructure, CloudProviderQuery $cloudProviderQuery): int
+    public function handleCommand(InfrastructureClient $infrastructureClient, CloudProviderClient $cloudProviderClient): int
     {
-        $organization = Organization::query()->find($this->organization->id);
-        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
+        try {
+            $providers = $cloudProviderClient->list();
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
-        if ($providers->isEmpty()) {
+            return self::FAILURE;
+        }
+
+        if ($providers === []) {
             $this->components->info('No cloud providers configured. Run [cloud-provider:add] first.');
 
             return self::SUCCESS;
@@ -41,23 +46,36 @@ final class CreateInfrastructureCommand extends AuthenticatedCommand
         $providerOption = $this->option('provider');
 
         if ($providerOption) {
-            $provider = $providers->firstWhere('id', $providerOption);
-            if (! $provider) {
+            $provider = null;
+            foreach ($providers as $p) {
+                if ($p->id === $providerOption) {
+                    $provider = $p;
+                    break;
+                }
+            }
+            if ($provider === null) {
                 $this->components->error('Provider not found.');
 
                 return self::FAILURE;
             }
         } else {
-            $choices = $providers->mapWithKeys(fn (CloudProvider $provider) => [
-                $provider->id => "{$provider->name} ({$provider->type->label()})",
-            ])->toArray();
+            $choices = [];
+            foreach ($providers as $p) {
+                $choices[$p->id] = "{$p->name} (".CloudProviderType::from($p->type)->label().')';
+            }
 
             $providerId = select(
                 label: 'Select a cloud provider',
                 options: $choices,
             );
 
-            $provider = $providers->firstWhere('id', $providerId);
+            $provider = null;
+            foreach ($providers as $p) {
+                if ($p->id === $providerId) {
+                    $provider = $p;
+                    break;
+                }
+            }
         }
 
         $nameOption = $this->option('name');
@@ -71,13 +89,19 @@ final class CreateInfrastructureCommand extends AuthenticatedCommand
             label: 'Description (optional)',
         );
 
-        $infrastructure = $createInfrastructure->handle(
-            $provider,
-            new CreateInfrastructureData(
-                name: $name,
-                description: $description ?: null,
-            ),
-        );
+        try {
+            $infrastructure = $infrastructureClient->create(
+                new CreateInfrastructureData(
+                    name: $name,
+                    description: $description ?: null,
+                ),
+                $provider->id,
+            );
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->components->info("Infrastructure [{$infrastructure->name}] created successfully.");
 

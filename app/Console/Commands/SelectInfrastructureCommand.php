@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Console\Services\SessionManager;
+use App\Contracts\CloudProviderClient;
+use App\Contracts\InfrastructureClient;
+use App\Data\InfrastructureData;
 use App\Data\SessionInfrastructureData;
-use App\Models\CloudProvider;
-use App\Models\Organization;
-use App\Queries\CloudProviderQuery;
-use App\Queries\InfrastructureQuery;
+use App\Enums\CloudProviderType;
+use App\Exceptions\LarakubeApiException;
 
 use function Laravel\Prompts\select;
 
@@ -27,43 +28,72 @@ final class SelectInfrastructureCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(SessionManager $session, CloudProviderQuery $cloudProviderQuery, InfrastructureQuery $infrastructureQuery): int
-    {
-        $organization = Organization::query()->find($this->organization->id);
-        $providers = ($cloudProviderQuery)()->byOrganization($organization)->get();
+    public function handleCommand(
+        SessionManager $session,
+        CloudProviderClient $cloudProviderClient,
+        InfrastructureClient $infrastructureClient,
+    ): int {
+        try {
+            $providers = $cloudProviderClient->list();
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
-        if ($providers->isEmpty()) {
+            return self::FAILURE;
+        }
+
+        if ($providers === []) {
             $this->components->error('No cloud providers configured. Run [cloud-provider:add] first.');
 
             return self::FAILURE;
         }
 
-        $choices = $providers->mapWithKeys(fn (CloudProvider $provider) => [
-            $provider->id => "{$provider->name} ({$provider->type->label()})",
-        ])->toArray();
+        $choices = [];
+        foreach ($providers as $provider) {
+            $choices[$provider->id] = "{$provider->name} (".CloudProviderType::from($provider->type)->label().')';
+        }
 
         $providerId = select(
             label: 'Select a cloud provider',
             options: $choices,
         );
 
-        $provider = $providers->firstWhere('id', $providerId);
-        $infrastructures = ($infrastructureQuery)()->byProvider($provider)->get();
+        try {
+            $infrastructures = $infrastructureClient->list();
+        } catch (LarakubeApiException $e) {
+            $this->components->error($e->getMessage());
 
-        if ($infrastructures->isEmpty()) {
+            return self::FAILURE;
+        }
+
+        // Filter to selected provider
+        $filtered = array_values(array_filter(
+            $infrastructures,
+            fn (InfrastructureData $infra): bool => $infra->cloudProviderId === $providerId,
+        ));
+
+        if ($filtered === []) {
             $this->components->error('No infrastructures configured. Run [infrastructure:create] first.');
 
             return self::FAILURE;
         }
 
-        $infraChoices = $infrastructures->pluck('name', 'id')->toArray();
+        $infraChoices = [];
+        foreach ($filtered as $infra) {
+            $infraChoices[$infra->id] = $infra->name;
+        }
 
         $selectedId = select(
             label: 'Select an infrastructure',
             options: $infraChoices,
         );
 
-        $selected = $infrastructures->firstWhere('id', $selectedId);
+        $selected = null;
+        foreach ($filtered as $infra) {
+            if ($infra->id === $selectedId) {
+                $selected = $infra;
+                break;
+            }
+        }
 
         $session->setInfrastructure(new SessionInfrastructureData(
             id: $selected->id,
