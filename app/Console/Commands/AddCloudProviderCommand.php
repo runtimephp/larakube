@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\CreateCloudProvider;
+use App\Contracts\CloudProviderClient;
 use App\Data\CreateCloudProviderData;
 use App\Enums\CloudProviderType;
-use App\Models\Organization;
-use Throwable;
+use App\Exceptions\LarakubeApiException;
 use ValueError;
 
 use function Laravel\Prompts\password;
@@ -29,7 +28,7 @@ final class AddCloudProviderCommand extends AuthenticatedCommand
 
     protected bool $requiresOrganization = true;
 
-    public function handleCommand(CreateCloudProvider $createCloudProvider): int
+    public function handleCommand(CloudProviderClient $cloudProviderClient): int
     {
         $typeOption = $this->option('type');
 
@@ -68,20 +67,17 @@ final class AddCloudProviderCommand extends AuthenticatedCommand
             required: true,
         );
 
-        $organization = Organization::query()->find($this->organization->id);
-
         $this->components->info('Validating API token...');
 
         try {
-            $cloudProvider = $createCloudProvider->handle(
+            $cloudProvider = $cloudProviderClient->create(
                 new CreateCloudProviderData(
                     name: $name,
                     type: $type,
                     apiToken: $apiToken,
                 ),
-                $organization,
             );
-        } catch (Throwable $e) {
+        } catch (LarakubeApiException $e) {
             $this->components->error($e->getMessage());
 
             return self::FAILURE;

@@ -30,7 +30,7 @@ final readonly class HttpOrganizationClient implements OrganizationClient
         $response = $this->client->get('/api/v1/organizations');
 
         return array_map(
-            fn (array $item): OrganizationData => OrganizationData::fromArray($item),
+            OrganizationData::fromArray(...),
             $response->json('data'),
         );
     }
