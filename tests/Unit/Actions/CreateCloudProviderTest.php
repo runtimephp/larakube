@@ -6,19 +6,25 @@ use App\Actions\CreateCloudProvider;
 use App\Data\CreateCloudProviderData;
 use App\Enums\CloudProviderType;
 use App\Models\Organization;
-use App\Services\InMemory\InMemoryHetznerFactory;
 
-test('create cloud provider with valid token',
+beforeEach(function (): void {
+    $this->action = app(CreateCloudProvider::class);
+});
+
+test('creates cloud provider with valid token',
     /**
      * @throws Throwable
      */
     function (): void {
         $hetznerService = useInMemoryHetznerService(true);
+        bindInMemoryHetznerFactory(validationService: $hetznerService);
 
+        $this->action = app(CreateCloudProvider::class);
+
+        /** @var Organization $organization */
         $organization = Organization::factory()->create();
 
-        $action = new CreateCloudProvider(new InMemoryHetznerFactory($hetznerService));
-        $cloudProvider = $action->handle(
+        $cloudProvider = $this->action->handle(
             new CreateCloudProviderData(
                 name: 'Hetzner Production',
                 type: CloudProviderType::Hetzner,
@@ -33,17 +39,20 @@ test('create cloud provider with valid token',
             ->and($cloudProvider->organization_id)->toBe($organization->id);
     });
 
-test('create cloud provider with invalid token throws exception',
+test('throws exception with invalid token',
     /**
      * @throws Throwable
      */
     function (): void {
         $hetznerService = useInMemoryHetznerService(false);
+        bindInMemoryHetznerFactory(validationService: $hetznerService);
 
+        $this->action = app(CreateCloudProvider::class);
+
+        /** @var Organization $organization */
         $organization = Organization::factory()->create();
 
-        $action = new CreateCloudProvider(new InMemoryHetznerFactory($hetznerService));
-        $action->handle(
+        $this->action->handle(
             new CreateCloudProviderData(
                 name: 'Hetzner Staging',
                 type: CloudProviderType::Hetzner,

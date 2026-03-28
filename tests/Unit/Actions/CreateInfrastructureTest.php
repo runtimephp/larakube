@@ -6,15 +6,19 @@ use App\Actions\CreateInfrastructure;
 use App\Data\CreateInfrastructureData;
 use App\Models\CloudProvider;
 
-test('create infrastructure creates infrastructure for cloud provider',
+beforeEach(function (): void {
+    $this->action = app(CreateInfrastructure::class);
+});
+
+test('creates infrastructure for cloud provider',
     /**
      * @throws Throwable
      */
     function (): void {
+        /** @var CloudProvider $provider */
         $provider = CloudProvider::factory()->hetzner()->create();
 
-        $action = new CreateInfrastructure;
-        $infrastructure = $action->handle(
+        $infrastructure = $this->action->handle(
             $provider,
             new CreateInfrastructureData(
                 name: 'Production',
@@ -34,15 +38,15 @@ test('create infrastructure creates infrastructure for cloud provider',
         ]);
     });
 
-test('create infrastructure with null description',
+test('creates infrastructure with null description',
     /**
      * @throws Throwable
      */
     function (): void {
+        /** @var CloudProvider $provider */
         $provider = CloudProvider::factory()->hetzner()->create();
 
-        $action = new CreateInfrastructure;
-        $infrastructure = $action->handle(
+        $infrastructure = $this->action->handle(
             $provider,
             new CreateInfrastructureData(
                 name: 'Staging',

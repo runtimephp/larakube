@@ -28,6 +28,7 @@ test('logout clears session and revokes tokens',
      * @throws Throwable
      */
     function (): void {
+        /** @var User $user */
         $user = User::factory()->create([
             'email' => 'john@example.com',
             'password' => 'password123',

@@ -16,7 +16,7 @@ test('successful login returns session user data with token',
      */
     function (): void {
         /** @var User $user */
-        $user = User::factory()->createQuietly([
+        $user = User::factory()->create([
             'email' => 'john@example.com',
             'password' => 'password123',
         ]);
@@ -37,7 +37,7 @@ test('wrong password returns null',
      * @throws Throwable
      */
     function (): void {
-        User::factory()->createQuietly([
+        User::factory()->create([
             'email' => 'john@example.com',
             'password' => 'password123',
         ]);
@@ -48,9 +48,6 @@ test('wrong password returns null',
     });
 
 test('non-existent email returns null',
-    /**
-     * @throws Throwable
-     */
     function (): void {
         $result = $this->loginUser->handle('nobody@example.com', 'password123');
 
@@ -63,7 +60,7 @@ test('login creates a sanctum token in the database',
      */
     function (): void {
         /** @var User $user */
-        $user = User::factory()->createQuietly([
+        $user = User::factory()->create([
             'email' => 'john@example.com',
             'password' => 'password123',
         ]);
