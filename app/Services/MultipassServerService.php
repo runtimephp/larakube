@@ -71,16 +71,18 @@ final readonly class MultipassServerService implements ServerService
             $command[] = $cloudInitFile;
         }
 
-        $process = ($this->processFactory)($command);
-        $process->setTimeout(300);
-        $process->run();
+        try {
+            $process = ($this->processFactory)($command);
+            $process->setTimeout(300);
+            $process->run();
 
-        if ($cloudInitFile !== null) {
-            @unlink($cloudInitFile);
-        }
-
-        if (! $process->isSuccessful()) {
-            throw new RuntimeException('Failed to create Multipass VM: '.$process->getErrorOutput());
+            if (! $process->isSuccessful()) {
+                throw new RuntimeException('Failed to create Multipass VM: '.$process->getErrorOutput());
+            }
+        } finally {
+            if ($cloudInitFile !== null) {
+                @unlink($cloudInitFile);
+            }
         }
 
         $info = $this->getInstanceInfo($name);

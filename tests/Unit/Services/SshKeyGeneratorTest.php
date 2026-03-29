@@ -17,11 +17,14 @@ test('generates ed25519 keypair', function (): void {
         // ssh-keygen writes files — the generator reads them after
         // We simulate by checking which command was called
         if ($command[0] === 'ssh-keygen') {
-            // Extract the file path from -f argument
-            $fileIndex = array_search('-f', $command);
+            $fileIndex = array_search('-f', $command, true);
+
+            if ($fileIndex === false || ! isset($command[$fileIndex + 1])) {
+                throw new RuntimeException('Test double: ssh-keygen command missing -f argument');
+            }
+
             $filePath = $command[$fileIndex + 1];
 
-            // Write fake key files so the generator can read them
             file_put_contents($filePath, $privateKey);
             file_put_contents($filePath.'.pub', $publicKey);
         }

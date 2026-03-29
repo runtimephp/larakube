@@ -26,6 +26,10 @@ final readonly class SshKeyGenerator
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'kuven_ssh_');
 
+        if ($tempFile === false) {
+            throw new RuntimeException('Failed to create temporary file for SSH keypair generation.');
+        }
+
         // Remove the temp file so ssh-keygen can create it
         unlink($tempFile);
 
