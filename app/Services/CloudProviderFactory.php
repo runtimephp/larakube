@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\CloudProviderService;
+use App\Contracts\FirewallService;
 use App\Contracts\NetworkService;
 use App\Contracts\ServerService;
 use App\Enums\CloudProviderType;
@@ -27,6 +28,15 @@ class CloudProviderFactory
             CloudProviderType::Hetzner => new HetznerNetworkService($token ?? ''),
             CloudProviderType::DigitalOcean => throw new RuntimeException('Network service for DigitalOcean is not yet implemented.'),
             CloudProviderType::Multipass => new MultipassNetworkService(),
+        };
+    }
+
+    public function makeFirewallService(CloudProviderType $type, ?string $token = null): FirewallService
+    {
+        return match ($type) {
+            CloudProviderType::Hetzner => new HetznerFirewallService($token ?? ''),
+            CloudProviderType::DigitalOcean => throw new RuntimeException('Firewall service for DigitalOcean is not yet implemented.'),
+            CloudProviderType::Multipass => new MultipassFirewallService(),
         };
     }
 

@@ -7,10 +7,12 @@ namespace App\Models;
 use App\Enums\InfrastructureStatus;
 use Carbon\CarbonImmutable;
 use Database\Factories\FirewallFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property-read string $id
@@ -21,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read string|null $external_firewall_id
  * @property-read InfrastructureStatus $status
  * @property-read Infrastructure $infrastructure
+ * @property-read Collection<int, FirewallRule> $rules
  */
 final class Firewall extends Model
 {
@@ -49,5 +52,11 @@ final class Firewall extends Model
     public function infrastructure(): BelongsTo
     {
         return $this->belongsTo(Infrastructure::class);
+    }
+
+    /** @return HasMany<FirewallRule, $this> */
+    public function rules(): HasMany
+    {
+        return $this->hasMany(FirewallRule::class);
     }
 }
