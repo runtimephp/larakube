@@ -4,8 +4,24 @@ declare(strict_types=1);
 
 use App\Enums\InfrastructureStatus;
 use App\Models\Firewall;
+use App\Models\FirewallRule;
 use App\Models\Infrastructure;
 use Carbon\CarbonImmutable;
+
+test('has many rules',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Firewall $firewall */
+        $firewall = Firewall::factory()->createQuietly();
+
+        FirewallRule::factory()->createQuietly(['firewall_id' => $firewall->id]);
+        FirewallRule::factory()->createQuietly(['firewall_id' => $firewall->id]);
+
+        expect($firewall->rules)->toHaveCount(2)
+            ->and($firewall->rules->first())->toBeInstanceOf(FirewallRule::class);
+    });
 
 test('creates firewall',
     /**

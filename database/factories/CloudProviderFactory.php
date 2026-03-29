@@ -30,22 +30,22 @@ final class CloudProviderFactory extends Factory
         ];
     }
 
-    public function unverified(): static
+    public function unverified(): self
     {
         return $this->state(['is_verified' => false]);
     }
 
-    public function hetzner(): static
+    public function hetzner(): self
     {
         return $this->state(['type' => CloudProviderType::Hetzner]);
     }
 
-    public function digitalOcean(): static
+    public function digitalOcean(): self
     {
         return $this->state(['type' => CloudProviderType::DigitalOcean]);
     }
 
-    public function multipass(): static
+    public function multipass(): self
     {
         return $this->state([
             'type' => CloudProviderType::Multipass,

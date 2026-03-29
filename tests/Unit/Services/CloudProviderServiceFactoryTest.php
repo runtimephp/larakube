@@ -6,9 +6,11 @@ use App\Enums\CloudProviderType;
 use App\Services\CloudProviderFactory;
 use App\Services\DigitalOceanServerService;
 use App\Services\DigitalOceanService;
+use App\Services\HetznerFirewallService;
 use App\Services\HetznerNetworkService;
 use App\Services\HetznerServerService;
 use App\Services\HetznerService;
+use App\Services\MultipassFirewallService;
 use App\Services\MultipassNetworkService;
 
 test('make network service returns hetzner network service', function (): void {
@@ -30,6 +32,26 @@ test('make network service throws for digital ocean', function (): void {
 
     $factory->makeNetworkService(CloudProviderType::DigitalOcean, 'token');
 })->throws(RuntimeException::class, 'Network service for DigitalOcean is not yet implemented.');
+
+test('make firewall service returns hetzner firewall service', function (): void {
+    $factory = new CloudProviderFactory;
+    $service = $factory->makeFirewallService(CloudProviderType::Hetzner, 'token');
+
+    expect($service)->toBeInstanceOf(HetznerFirewallService::class);
+});
+
+test('make firewall service returns multipass firewall service', function (): void {
+    $factory = new CloudProviderFactory;
+    $service = $factory->makeFirewallService(CloudProviderType::Multipass);
+
+    expect($service)->toBeInstanceOf(MultipassFirewallService::class);
+});
+
+test('make firewall service throws for digital ocean', function (): void {
+    $factory = new CloudProviderFactory;
+
+    $factory->makeFirewallService(CloudProviderType::DigitalOcean, 'token');
+})->throws(RuntimeException::class, 'Firewall service for DigitalOcean is not yet implemented.');
 
 test('make server service returns digital ocean server service', function (): void {
     $factory = new CloudProviderFactory;

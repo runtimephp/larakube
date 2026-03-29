@@ -30,7 +30,7 @@ final class SshKeyFactory extends Factory
         ];
     }
 
-    public function bastion(): static
+    public function bastion(): self
     {
         return $this->state(fn (): array => [
             'purpose' => SshKeyPurpose::Bastion,
@@ -38,7 +38,7 @@ final class SshKeyFactory extends Factory
         ]);
     }
 
-    public function node(): static
+    public function node(): self
     {
         return $this->state(fn (): array => [
             'purpose' => SshKeyPurpose::Node,
