@@ -6,6 +6,9 @@ namespace App\Data;
 
 final readonly class CreateServerData
 {
+    /**
+     * @param  list<int|string>  $sshKeyIds
+     */
     public function __construct(
         public string $name,
         public string $type,
@@ -15,5 +18,7 @@ final readonly class CreateServerData
         public ?int $cpus = null,
         public ?string $memory = null,
         public ?string $disk = null,
+        public array $sshKeyIds = [],
+        public ?string $cloudInit = null,
     ) {}
 }

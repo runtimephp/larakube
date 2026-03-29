@@ -40,13 +40,23 @@ final readonly class HetznerServerService implements ServerService
      */
     public function create(CreateServerData $data): ServerData
     {
+        $payload = [
+            'name' => $data->name,
+            'server_type' => $data->type,
+            'image' => $data->image,
+            'location' => $data->region,
+        ];
+
+        if ($data->sshKeyIds !== []) {
+            $payload['ssh_keys'] = $data->sshKeyIds;
+        }
+
+        if ($data->cloudInit !== null) {
+            $payload['user_data'] = $data->cloudInit;
+        }
+
         $response = Http::withToken($this->token)
-            ->post('https://api.hetzner.cloud/v1/servers', [
-                'name' => $data->name,
-                'server_type' => $data->type,
-                'image' => $data->image,
-                'location' => $data->region,
-            ]);
+            ->post('https://api.hetzner.cloud/v1/servers', $payload);
 
         if (! $response->successful()) {
             throw new RuntimeException($response->json('error.message', 'Failed to create server on Hetzner.'));

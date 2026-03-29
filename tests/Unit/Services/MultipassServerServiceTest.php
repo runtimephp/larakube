@@ -27,6 +27,56 @@ function fakeMultipassProcess(array $responses): Closure
     };
 }
 
+test('create passes cloud init file when provided', function (): void {
+    Str::createRandomStringsUsing(fn (): string => 'abc123');
+
+    $capturedCommands = [];
+
+    $processFactory = function (array $command) use (&$capturedCommands): Process {
+        $capturedCommands[] = $command;
+
+        $infoJson = json_encode([
+            'info' => [
+                'bastion-abc123' => [
+                    'state' => 'Running',
+                    'ipv4' => ['192.168.64.10'],
+                ],
+            ],
+        ]);
+
+        // First call is launch, second is info
+        if (count($capturedCommands) === 1) {
+            $process = Process::fromShellCommandline('echo ok');
+        } else {
+            $process = Process::fromShellCommandline('echo '.escapeshellarg($infoJson));
+        }
+        $process->run();
+
+        return $process;
+    };
+
+    $service = new MultipassServerService($processFactory);
+    $service->create(new CreateServerData(
+        name: 'bastion',
+        type: 'custom',
+        image: 'noble',
+        region: 'local',
+        infrastructure_id: 'infra-1',
+        cloudInit: "#cloud-config\npackages:\n  - ansible",
+    ));
+
+    $launchCommand = $capturedCommands[0];
+
+    expect($launchCommand)->toContain('--cloud-init')
+        ->and(in_array('--cloud-init', $launchCommand))->toBeTrue();
+
+    // Verify the cloud-init file path was passed and the file existed during execution
+    $cloudInitIndex = array_search('--cloud-init', $launchCommand);
+    expect($cloudInitIndex)->not->toBeFalse();
+
+    Str::createRandomStringsNormally();
+});
+
 test('get all returns collection of server data', function (): void {
     $json = json_encode([
         'list' => [

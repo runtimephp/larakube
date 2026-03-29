@@ -39,6 +39,71 @@ test('get all returns collection of server data', function (): void {
         ->and($servers[0]->ipv6)->toBe('2001:db8::1');
 });
 
+test('create sends ssh key ids when provided', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/servers' => Http::response([
+            'server' => [
+                'id' => 789,
+                'name' => 'bastion-1',
+                'status' => 'initializing',
+                'server_type' => ['name' => 'cx22'],
+                'datacenter' => ['name' => 'hel1-dc2'],
+                'public_net' => [
+                    'ipv4' => ['ip' => '1.2.3.4'],
+                    'ipv6' => ['ip' => null],
+                ],
+            ],
+        ]),
+    ]);
+
+    $service = new HetznerServerService('token');
+    $service->create(new CreateServerData(
+        name: 'bastion-1',
+        type: 'cx22',
+        image: 'ubuntu-24.04',
+        region: 'hel1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+        sshKeyIds: [123, 456],
+    ));
+
+    Http::assertSent(function ($request) {
+        $data = $request->data();
+
+        return $data['ssh_keys'] === [123, 456];
+    });
+});
+
+test('create does not send ssh keys when not provided', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/servers' => Http::response([
+            'server' => [
+                'id' => 789,
+                'name' => 'web-1',
+                'status' => 'initializing',
+                'server_type' => ['name' => 'cx22'],
+                'datacenter' => ['name' => 'hel1-dc2'],
+                'public_net' => [
+                    'ipv4' => ['ip' => '1.2.3.4'],
+                    'ipv6' => ['ip' => null],
+                ],
+            ],
+        ]),
+    ]);
+
+    $service = new HetznerServerService('token');
+    $service->create(new CreateServerData(
+        name: 'web-1',
+        type: 'cx22',
+        image: 'ubuntu-24.04',
+        region: 'hel1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+    ));
+
+    Http::assertSent(function ($request) {
+        return ! array_key_exists('ssh_keys', $request->data());
+    });
+});
+
 test('create returns server data', function (): void {
     Http::fake([
         'api.hetzner.cloud/v1/servers' => Http::response([
