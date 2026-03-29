@@ -32,10 +32,23 @@ final class GenerateSshKeypairCommand extends Command
         if ($saveTo !== null) {
             $expandedPath = str_replace('~', getenv('HOME') ?: '', $saveTo);
 
-            file_put_contents($expandedPath, $keypair->privateKey);
-            chmod($expandedPath, 0600);
+            if (file_put_contents($expandedPath, $keypair->privateKey) === false) {
+                $this->error("Failed to write private key to: {$expandedPath}");
 
-            file_put_contents($expandedPath.'.pub', $keypair->publicKey);
+                return self::FAILURE;
+            }
+
+            if (! chmod($expandedPath, 0600)) {
+                $this->error("Failed to set permissions on: {$expandedPath}");
+
+                return self::FAILURE;
+            }
+
+            if (file_put_contents($expandedPath.'.pub', $keypair->publicKey) === false) {
+                $this->error("Failed to write public key to: {$expandedPath}.pub");
+
+                return self::FAILURE;
+            }
 
             $this->info("Private key saved to: {$expandedPath}");
             $this->info("Public key saved to: {$expandedPath}.pub");
