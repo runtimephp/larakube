@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Enums\InfrastructureStatus;
+use App\Enums\ProvisioningPhase;
+use App\Enums\ProvisioningStep;
 use App\Models\Backup;
 use App\Models\CloudProvider;
 use App\Models\Firewall;
@@ -15,6 +17,45 @@ use App\Models\Region;
 use App\Models\SshKey;
 use App\Models\Storage;
 use Carbon\CarbonImmutable;
+
+test('casts provisioning step as enum',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->createQuietly([
+            'provisioning_step' => ProvisioningStep::CreateBastion,
+        ]);
+
+        expect($infrastructure->provisioning_step)->toBe(ProvisioningStep::CreateBastion);
+    });
+
+test('casts provisioning phase as enum',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->createQuietly([
+            'provisioning_phase' => ProvisioningPhase::Configuration,
+        ]);
+
+        expect($infrastructure->provisioning_phase)->toBe(ProvisioningPhase::Configuration);
+    });
+
+test('provisioning factory state sets step and phase',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->provisioning()->createQuietly();
+
+        expect($infrastructure->status)->toBe(InfrastructureStatus::Provisioning)
+            ->and($infrastructure->provisioning_step)->toBe(ProvisioningStep::GenerateSshKeypairs)
+            ->and($infrastructure->provisioning_phase)->toBe(ProvisioningPhase::Infrastructure);
+    });
 
 test('creates infrastructure',
     /**
@@ -258,5 +299,7 @@ test('to array has all fields in correct order',
                 'name',
                 'description',
                 'status',
+                'provisioning_step',
+                'provisioning_phase',
             ]);
     });

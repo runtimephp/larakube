@@ -10,14 +10,17 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::table('infrastructures', function (Blueprint $table) {
+            $table->string('provisioning_step')->nullable()->after('status');
+            $table->string('provisioning_phase')->nullable()->after('provisioning_step');
+        });
+
         Schema::table('kubernetes_clusters', function (Blueprint $table) {
             $table->text('kubeconfig')->nullable()->after('status');
             $table->string('api_endpoint')->nullable()->after('kubeconfig');
             $table->string('pod_cidr')->nullable()->after('api_endpoint');
             $table->string('service_cidr')->nullable()->after('pod_cidr');
-            $table->string('provisioning_step')->nullable()->after('service_cidr');
-            $table->string('provisioning_phase')->nullable()->after('provisioning_step');
-            $table->string('topology')->nullable()->after('provisioning_phase');
+            $table->string('topology')->nullable()->after('service_cidr');
         });
     }
 };

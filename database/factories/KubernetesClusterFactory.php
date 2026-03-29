@@ -6,7 +6,6 @@ namespace Database\Factories;
 
 use App\Enums\ClusterTopology;
 use App\Enums\InfrastructureStatus;
-use App\Enums\ProvisioningPhase;
 use App\Models\Infrastructure;
 use App\Models\KubernetesCluster;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -46,15 +45,6 @@ final class KubernetesClusterFactory extends Factory
     {
         return $this->state(fn (): array => [
             'topology' => ClusterTopology::Ha,
-        ]);
-    }
-
-    public function provisioning(): static
-    {
-        return $this->state(fn (): array => [
-            'status' => InfrastructureStatus::Provisioning,
-            'provisioning_phase' => ProvisioningPhase::Infrastructure,
-            'provisioning_step' => 'generate_ssh_keypairs',
         ]);
     }
 }

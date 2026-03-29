@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\InfrastructureStatus;
+use App\Enums\ProvisioningPhase;
+use App\Enums\ProvisioningStep;
 use App\Models\CloudProvider;
 use App\Models\Infrastructure;
 use App\Models\Organization;
@@ -34,7 +36,11 @@ final class InfrastructureFactory extends Factory
 
     public function provisioning(): self
     {
-        return $this->state(['status' => InfrastructureStatus::Provisioning]);
+        return $this->state([
+            'status' => InfrastructureStatus::Provisioning,
+            'provisioning_step' => ProvisioningStep::GenerateSshKeypairs,
+            'provisioning_phase' => ProvisioningPhase::Infrastructure,
+        ]);
     }
 
     public function degraded(): self
