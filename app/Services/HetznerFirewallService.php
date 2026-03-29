@@ -118,6 +118,7 @@ final readonly class HetznerFirewallService implements FirewallService
                 protocol: $rule['protocol'],
                 port: $rule['port'],
                 sourceIps: $rule['source_ips'] ?? [],
+                destinationIps: $rule['destination_ips'] ?? [],
             ),
             $firewall['rules'] ?? [],
         );
@@ -134,11 +135,18 @@ final readonly class HetznerFirewallService implements FirewallService
      */
     private function ruleToArray(FirewallRuleData $rule): array
     {
-        return [
+        $data = [
             'direction' => $rule->direction,
             'protocol' => $rule->protocol,
             'port' => $rule->toPortString(),
-            'source_ips' => $rule->sourceIps,
         ];
+
+        if ($rule->direction === 'in') {
+            $data['source_ips'] = $rule->sourceIps;
+        } else {
+            $data['destination_ips'] = $rule->destinationIps;
+        }
+
+        return $data;
     }
 }

@@ -22,9 +22,13 @@ final readonly class MultipassFirewallService implements FirewallService
 
     public function addRule(string $id, FirewallRuleData $rule): FirewallData
     {
+        $name = str_starts_with($id, 'multipass-')
+            ? substr($id, strlen('multipass-'))
+            : $id;
+
         return new FirewallData(
             externalId: $id,
-            name: 'multipass-firewall',
+            name: $name,
         );
     }
 

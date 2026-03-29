@@ -18,7 +18,7 @@ test('create returns firewall data with provided values', function (): void {
         ->and($firewall->rules)->toBeEmpty();
 });
 
-test('add rule returns firewall data unchanged', function (): void {
+test('add rule returns firewall data with matching external id', function (): void {
     $service = new MultipassFirewallService();
     $firewall = $service->addRule('any-id', new FirewallRuleData(
         direction: 'in',
