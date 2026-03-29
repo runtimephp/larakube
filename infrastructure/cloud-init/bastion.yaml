@@ -1,0 +1,31 @@
+package_update: true
+package_upgrade: true
+
+packages:
+  - python3
+  - python3-pip
+  - software-properties-common
+  - curl
+  - git
+  - unzip
+  - gnupg
+
+runcmd:
+  # Install Ansible
+  - ["apt-add-repository", "--yes", "--update", "ppa:ansible/ansible"]
+  - ["apt-get", "install", "-y", "ansible"]
+
+  # Install kubectl
+  - ["mkdir", "-p", "/etc/apt/keyrings"]
+  - ["curl", "-fsSL", "https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key", "-o", "/tmp/kubernetes-apt-keyring.gpg"]
+  - ["gpg", "--dearmor", "-o", "/etc/apt/keyrings/kubernetes-apt-keyring.gpg", "/tmp/kubernetes-apt-keyring.gpg"]
+  - ["bash", "-c", "echo \"deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /\" > /etc/apt/sources.list.d/kubernetes.list"]
+  - ["apt-get", "update"]
+  - ["apt-get", "install", "-y", "kubectl"]
+
+  # Install Helm (pinned version)
+  - ["bash", "-c", "curl https://raw.githubusercontent.com/helm/helm/v3.17.3/scripts/get-helm-3 | bash"]
+
+  # Generate node SSH keypair (stays on bastion, never leaves)
+  - ["ssh-keygen", "-t", "ed25519", "-f", "/home/ubuntu/.ssh/node_key", "-N", "", "-C", "kuven@node"]
+  - ["chown", "ubuntu:ubuntu", "/home/ubuntu/.ssh/node_key", "/home/ubuntu/.ssh/node_key.pub"]
