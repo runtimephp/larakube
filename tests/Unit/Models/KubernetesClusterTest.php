@@ -2,11 +2,110 @@
 
 declare(strict_types=1);
 
+use App\Enums\ClusterTopology;
 use App\Enums\InfrastructureStatus;
+use App\Enums\ProvisioningPhase;
 use App\Models\Infrastructure;
 use App\Models\KubernetesCluster;
 use App\Models\Server;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+
+test('stores and retrieves encrypted kubeconfig',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var KubernetesCluster $cluster */
+        $cluster = KubernetesCluster::factory()->createQuietly([
+            'kubeconfig' => 'apiVersion: v1\nclusters:\n- cluster: {}',
+        ]);
+
+        $raw = DB::table('kubernetes_clusters')
+            ->where('id', $cluster->id)
+            ->value('kubeconfig');
+
+        expect($raw)->not->toBe('apiVersion: v1\nclusters:\n- cluster: {}')
+            ->and($cluster->kubeconfig)->toBe('apiVersion: v1\nclusters:\n- cluster: {}');
+    });
+
+test('casts topology as enum',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var KubernetesCluster $cluster */
+        $cluster = KubernetesCluster::factory()->createQuietly([
+            'topology' => ClusterTopology::Ha,
+        ]);
+
+        expect($cluster->topology)->toBe(ClusterTopology::Ha);
+    });
+
+test('casts provisioning phase as enum',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var KubernetesCluster $cluster */
+        $cluster = KubernetesCluster::factory()->createQuietly([
+            'provisioning_phase' => ProvisioningPhase::Configuration,
+        ]);
+
+        expect($cluster->provisioning_phase)->toBe(ProvisioningPhase::Configuration);
+    });
+
+test('stores network configuration fields',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var KubernetesCluster $cluster */
+        $cluster = KubernetesCluster::factory()->createQuietly([
+            'api_endpoint' => 'https://10.0.1.10:6443',
+            'pod_cidr' => '10.244.0.0/16',
+            'service_cidr' => '10.96.0.0/12',
+        ]);
+
+        expect($cluster->api_endpoint)->toBe('https://10.0.1.10:6443')
+            ->and($cluster->pod_cidr)->toBe('10.244.0.0/16')
+            ->and($cluster->service_cidr)->toBe('10.96.0.0/12');
+    });
+
+test('single cp factory state',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var KubernetesCluster $cluster */
+        $cluster = KubernetesCluster::factory()->singleCp()->createQuietly();
+
+        expect($cluster->topology)->toBe(ClusterTopology::SingleCp);
+    });
+
+test('ha factory state',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var KubernetesCluster $cluster */
+        $cluster = KubernetesCluster::factory()->ha()->createQuietly();
+
+        expect($cluster->topology)->toBe(ClusterTopology::Ha);
+    });
+
+test('provisioning factory state',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var KubernetesCluster $cluster */
+        $cluster = KubernetesCluster::factory()->provisioning()->createQuietly();
+
+        expect($cluster->status)->toBe(InfrastructureStatus::Provisioning)
+            ->and($cluster->provisioning_phase)->toBe(ProvisioningPhase::Infrastructure)
+            ->and($cluster->provisioning_step)->toBe('generate_ssh_keypairs');
+    });
 
 test('creates kubernetes cluster',
     /**
@@ -107,5 +206,12 @@ test('to array has all fields in correct order',
                 'version',
                 'external_cluster_id',
                 'status',
+                'kubeconfig',
+                'api_endpoint',
+                'pod_cidr',
+                'service_cidr',
+                'provisioning_step',
+                'provisioning_phase',
+                'topology',
             ]);
     });
