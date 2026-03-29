@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\InfrastructureStatus;
+use App\Enums\ProvisioningPhase;
+use App\Enums\ProvisioningStep;
 use Carbon\CarbonImmutable;
 use Database\Factories\InfrastructureFactory;
 use Illuminate\Database\Eloquent\Collection;
@@ -24,6 +26,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read string $name
  * @property-read string|null $description
  * @property-read InfrastructureStatus $status
+ * @property-read ProvisioningStep|null $provisioning_step
+ * @property-read ProvisioningPhase|null $provisioning_phase
  * @property-read Organization $organization
  * @property-read CloudProvider $cloudProvider
  * @property-read Region|null $region
@@ -57,6 +61,8 @@ final class Infrastructure extends Model
             'name' => 'string',
             'description' => 'string',
             'status' => InfrastructureStatus::class,
+            'provisioning_step' => ProvisioningStep::class,
+            'provisioning_phase' => ProvisioningPhase::class,
         ];
     }
 

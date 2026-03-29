@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Enums\ClusterTopology;
 use App\Enums\InfrastructureStatus;
-use App\Enums\ProvisioningPhase;
 use App\Models\Infrastructure;
 use App\Models\KubernetesCluster;
 use App\Models\Server;
@@ -40,19 +39,6 @@ test('casts topology as enum',
         ]);
 
         expect($cluster->topology)->toBe(ClusterTopology::Ha);
-    });
-
-test('casts provisioning phase as enum',
-    /**
-     * @throws Throwable
-     */
-    function (): void {
-        /** @var KubernetesCluster $cluster */
-        $cluster = KubernetesCluster::factory()->createQuietly([
-            'provisioning_phase' => ProvisioningPhase::Configuration,
-        ]);
-
-        expect($cluster->provisioning_phase)->toBe(ProvisioningPhase::Configuration);
     });
 
 test('stores network configuration fields',
@@ -92,19 +78,6 @@ test('ha factory state',
         $cluster = KubernetesCluster::factory()->ha()->createQuietly();
 
         expect($cluster->topology)->toBe(ClusterTopology::Ha);
-    });
-
-test('provisioning factory state',
-    /**
-     * @throws Throwable
-     */
-    function (): void {
-        /** @var KubernetesCluster $cluster */
-        $cluster = KubernetesCluster::factory()->provisioning()->createQuietly();
-
-        expect($cluster->status)->toBe(InfrastructureStatus::Provisioning)
-            ->and($cluster->provisioning_phase)->toBe(ProvisioningPhase::Infrastructure)
-            ->and($cluster->provisioning_step)->toBe('generate_ssh_keypairs');
     });
 
 test('creates kubernetes cluster',
@@ -210,8 +183,6 @@ test('to array has all fields in correct order',
                 'api_endpoint',
                 'pod_cidr',
                 'service_cidr',
-                'provisioning_step',
-                'provisioning_phase',
                 'topology',
             ]);
     });
