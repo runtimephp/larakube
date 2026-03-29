@@ -8,6 +8,7 @@ use App\Contracts\CloudProviderService;
 use App\Contracts\NetworkService;
 use App\Contracts\ServerService;
 use App\Enums\CloudProviderType;
+use RuntimeException;
 
 class CloudProviderFactory
 {
@@ -24,7 +25,7 @@ class CloudProviderFactory
     {
         return match ($type) {
             CloudProviderType::Hetzner => new HetznerNetworkService($token ?? ''),
-            CloudProviderType::DigitalOcean => throw new \RuntimeException('Network service for DigitalOcean is not yet implemented.'),
+            CloudProviderType::DigitalOcean => throw new RuntimeException('Network service for DigitalOcean is not yet implemented.'),
             CloudProviderType::Multipass => new MultipassNetworkService(),
         };
     }

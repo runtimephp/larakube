@@ -30,6 +30,12 @@ final class InMemoryNetworkService implements NetworkService
     {
         $this->networks->push($network);
 
+        $externalId = (string) $network->externalId;
+
+        if (ctype_digit($externalId) && (int) $externalId >= $this->nextId) {
+            $this->nextId = (int) $externalId + 1;
+        }
+
         return $this;
     }
 
@@ -66,7 +72,7 @@ final class InMemoryNetworkService implements NetworkService
 
     public function list(): Collection
     {
-        return $this->networks;
+        return $this->networks->values();
     }
 
     public function find(string $id): ?NetworkData
