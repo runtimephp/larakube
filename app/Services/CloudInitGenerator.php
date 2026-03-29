@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -15,10 +16,16 @@ final readonly class CloudInitGenerator
 
     public function bastion(string $bastionPublicKey): string
     {
+        $trimmed = trim($bastionPublicKey);
+
+        if ($trimmed === '') {
+            throw new InvalidArgumentException('Bastion public key must not be empty.');
+        }
+
         $base = $this->loadTemplate('bastion.yaml');
 
         $base['ssh_authorized_keys'] = [
-            $bastionPublicKey,
+            $trimmed,
         ];
 
         return "#cloud-config\n".Yaml::dump($base, 4, 2);
@@ -41,7 +48,13 @@ final readonly class CloudInitGenerator
             throw new RuntimeException("Failed to read cloud-init template: {$path}");
         }
 
-        return Yaml::parse($content);
+        $parsed = Yaml::parse($content);
+
+        if (! is_array($parsed)) {
+            throw new RuntimeException("Invalid cloud-init template format: expected mapping in {$path}");
+        }
+
+        return $parsed;
     }
 
     private function resolvePath(string $filename): string

@@ -5,6 +5,16 @@ declare(strict_types=1);
 use App\Services\CloudInitGenerator;
 use Symfony\Component\Yaml\Yaml;
 
+test('throws on empty bastion public key', function (): void {
+    $generator = new CloudInitGenerator();
+    $generator->bastion(bastionPublicKey: '');
+})->throws(InvalidArgumentException::class, 'Bastion public key must not be empty.');
+
+test('throws on whitespace-only bastion public key', function (): void {
+    $generator = new CloudInitGenerator();
+    $generator->bastion(bastionPublicKey: '   ');
+})->throws(InvalidArgumentException::class, 'Bastion public key must not be empty.');
+
 test('generates cloud-init yaml with cloud-config header', function (): void {
     $generator = new CloudInitGenerator();
     $yaml = $generator->bastion(bastionPublicKey: 'ssh-ed25519 AAAA... kuven@bastion');
