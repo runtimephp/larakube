@@ -19,6 +19,8 @@ final class InMemoryNetworkService implements NetworkService
 
     private bool $failDelete = false;
 
+    private int $nextId = 1;
+
     public function __construct()
     {
         $this->networks = collect();
@@ -52,7 +54,7 @@ final class InMemoryNetworkService implements NetworkService
         }
 
         $network = new NetworkData(
-            externalId: (string) random_int(1000, 9999),
+            externalId: (string) $this->nextId++,
             name: $data->name,
             cidr: $data->cidr,
         );

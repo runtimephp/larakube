@@ -54,14 +54,19 @@ final readonly class HetznerNetworkService implements NetworkService
 
     /**
      * @throws ConnectionException
+     * @throws RuntimeException
      */
     public function find(string $id): ?NetworkData
     {
         $response = Http::withToken($this->token)
             ->get("https://api.hetzner.cloud/v1/networks/{$id}");
 
-        if (! $response->successful()) {
+        if ($response->status() === 404) {
             return null;
+        }
+
+        if (! $response->successful()) {
+            throw new RuntimeException($response->json('error.message', 'Failed to find network on Hetzner.'));
         }
 
         return $this->mapNetworkData($response->json('network'));

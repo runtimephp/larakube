@@ -24,7 +24,7 @@ class CloudProviderFactory
     {
         return match ($type) {
             CloudProviderType::Hetzner => new HetznerNetworkService($token ?? ''),
-            CloudProviderType::DigitalOcean => new HetznerNetworkService($token ?? ''),
+            CloudProviderType::DigitalOcean => throw new \RuntimeException('Network service for DigitalOcean is not yet implemented.'),
             CloudProviderType::Multipass => new MultipassNetworkService(),
         };
     }

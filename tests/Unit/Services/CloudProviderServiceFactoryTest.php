@@ -25,6 +25,12 @@ test('make network service returns multipass network service', function (): void
     expect($service)->toBeInstanceOf(MultipassNetworkService::class);
 });
 
+test('make network service throws for digital ocean', function (): void {
+    $factory = new CloudProviderFactory;
+
+    $factory->makeNetworkService(CloudProviderType::DigitalOcean, 'token');
+})->throws(RuntimeException::class, 'Network service for DigitalOcean is not yet implemented.');
+
 test('make server service returns digital ocean server service', function (): void {
     $factory = new CloudProviderFactory;
     $service = $factory->makeServerService(CloudProviderType::DigitalOcean, 'token');

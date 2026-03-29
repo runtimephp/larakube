@@ -80,6 +80,18 @@ test('find returns network data', function (): void {
         ->and($network->name)->toBe('k8s-vpc');
 });
 
+test('find throws on non-404 api error', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/networks/123' => Http::response([
+            'error' => ['message' => 'unauthorized', 'code' => 'unauthorized'],
+        ], 401),
+    ]);
+
+    $service = new HetznerNetworkService('token');
+
+    $service->find('123');
+})->throws(RuntimeException::class, 'unauthorized');
+
 test('find returns null when not found', function (): void {
     Http::fake([
         'api.hetzner.cloud/v1/networks/999' => Http::response([
