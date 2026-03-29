@@ -1,13 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/react-starter-kit",
+    "name": "runtimephp/larakube",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Provision Kubernetes clusters, deploy apps, and govern infrastructure from a Laravel-powered Internal Developer Portal.",
     "keywords": [
         "laravel",
-        "framework"
+        "kubernetes",
+        "infrastructure",
+        "cloud"
     ],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Francisco Barrento",
+            "email": "francisco.barrento@gmail.com"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "inertiajs/inertia-laravel": "^2.0",
