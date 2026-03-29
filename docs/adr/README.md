@@ -44,6 +44,8 @@ ADRs are immutable—once created, they are never edited. If a decision changes,
 |-----|-------|--------|------|
 | [ADR-0001](0001-adr-process.md) | Establish ADR Process | proposed | 2026-03-28 |
 | [ADR-0002](0002-architecture-overview.md) | Architecture Overview | proposed | 2026-03-28 |
+| [ADR-0003](0003-multipass-local-cloud-provider.md) | Multipass as Local Cloud Provider | proposed | 2026-03-28 |
+| [ADR-0004](0004-kubernetes-architecture-and-roadmap.md) | Kubernetes Architecture, Provisioning Pipeline, and Roadmap | proposed | 2026-03-29 |
 
 ## Related Documentation
 
