@@ -14,9 +14,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 final class FirewallRuleFactory extends Factory
 {
     /**
-     * @return array<string, mixed>
-     */
-    /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
@@ -24,14 +21,16 @@ final class FirewallRuleFactory extends Factory
     public function definition(): array
     {
         $portStart = $this->faker->numberBetween(1, 65535);
+        $direction = $this->faker->randomElement(['in', 'out']);
 
         return [
             'firewall_id' => Firewall::factory(),
-            'direction' => $this->faker->randomElement(['in', 'out']),
+            'direction' => $direction,
             'protocol' => $this->faker->randomElement(['tcp', 'udp']),
             'port_start' => $portStart,
             'port_end' => $this->faker->numberBetween($portStart, 65535),
-            'source_ips' => ['0.0.0.0/0'],
+            'source_ips' => $direction === 'in' ? ['0.0.0.0/0'] : null,
+            'destination_ips' => $direction === 'out' ? ['0.0.0.0/0'] : null,
         ];
     }
 }

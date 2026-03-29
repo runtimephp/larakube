@@ -40,17 +40,17 @@ final class ServerFactory extends Factory
         ];
     }
 
-    public function running(): static
+    public function running(): self
     {
         return $this->state(['status' => ServerStatus::Running]);
     }
 
-    public function off(): static
+    public function off(): self
     {
         return $this->state(['status' => ServerStatus::Off]);
     }
 
-    public function starting(): static
+    public function starting(): self
     {
         return $this->state(['status' => ServerStatus::Starting]);
     }

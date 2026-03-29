@@ -32,17 +32,17 @@ final class InfrastructureFactory extends Factory
         ];
     }
 
-    public function provisioning(): static
+    public function provisioning(): self
     {
         return $this->state(['status' => InfrastructureStatus::Provisioning]);
     }
 
-    public function degraded(): static
+    public function degraded(): self
     {
         return $this->state(['status' => InfrastructureStatus::Degraded]);
     }
 
-    public function failed(): static
+    public function failed(): self
     {
         return $this->state(['status' => InfrastructureStatus::Failed]);
     }

@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read int $port_start
  * @property-read int $port_end
  * @property-read list<string>|null $source_ips
+ * @property-read list<string>|null $destination_ips
  * @property-read Firewall $firewall
  */
 final class FirewallRule extends Model
@@ -45,6 +46,7 @@ final class FirewallRule extends Model
             'port_start' => 'integer',
             'port_end' => 'integer',
             'source_ips' => 'array',
+            'destination_ips' => 'array',
         ];
     }
 

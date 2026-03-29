@@ -108,5 +108,6 @@ test('to array has all fields in correct order',
                 'port_start',
                 'port_end',
                 'source_ips',
+                'destination_ips',
             ]);
     });

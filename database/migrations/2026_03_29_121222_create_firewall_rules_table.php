@@ -20,6 +20,7 @@ return new class extends Migration
             $table->unsignedInteger('port_start');
             $table->unsignedInteger('port_end');
             $table->json('source_ips')->nullable();
+            $table->json('destination_ips')->nullable();
         });
     }
 };
