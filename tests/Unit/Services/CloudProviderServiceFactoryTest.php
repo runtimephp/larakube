@@ -10,8 +10,30 @@ use App\Services\HetznerFirewallService;
 use App\Services\HetznerNetworkService;
 use App\Services\HetznerServerService;
 use App\Services\HetznerService;
+use App\Services\HetznerSshKeyService;
 use App\Services\MultipassFirewallService;
 use App\Services\MultipassNetworkService;
+use App\Services\MultipassSshKeyService;
+
+test('make ssh key service returns hetzner ssh key service', function (): void {
+    $factory = new CloudProviderFactory;
+    $service = $factory->makeSshKeyService(CloudProviderType::Hetzner, 'token');
+
+    expect($service)->toBeInstanceOf(HetznerSshKeyService::class);
+});
+
+test('make ssh key service returns multipass ssh key service', function (): void {
+    $factory = new CloudProviderFactory;
+    $service = $factory->makeSshKeyService(CloudProviderType::Multipass);
+
+    expect($service)->toBeInstanceOf(MultipassSshKeyService::class);
+});
+
+test('make ssh key service throws for digital ocean', function (): void {
+    $factory = new CloudProviderFactory;
+
+    $factory->makeSshKeyService(CloudProviderType::DigitalOcean, 'token');
+})->throws(RuntimeException::class, 'SSH key service for DigitalOcean is not yet implemented.');
 
 test('make network service returns hetzner network service', function (): void {
     $factory = new CloudProviderFactory;

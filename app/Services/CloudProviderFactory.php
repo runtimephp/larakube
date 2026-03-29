@@ -8,6 +8,7 @@ use App\Contracts\CloudProviderService;
 use App\Contracts\FirewallService;
 use App\Contracts\NetworkService;
 use App\Contracts\ServerService;
+use App\Contracts\SshKeyService;
 use App\Enums\CloudProviderType;
 use RuntimeException;
 
@@ -37,6 +38,15 @@ class CloudProviderFactory
             CloudProviderType::Hetzner => new HetznerFirewallService($token ?? ''),
             CloudProviderType::DigitalOcean => throw new RuntimeException('Firewall service for DigitalOcean is not yet implemented.'),
             CloudProviderType::Multipass => new MultipassFirewallService(),
+        };
+    }
+
+    public function makeSshKeyService(CloudProviderType $type, ?string $token = null): SshKeyService
+    {
+        return match ($type) {
+            CloudProviderType::Hetzner => new HetznerSshKeyService($token ?? ''),
+            CloudProviderType::DigitalOcean => throw new RuntimeException('SSH key service for DigitalOcean is not yet implemented.'),
+            CloudProviderType::Multipass => new MultipassSshKeyService(),
         };
     }
 
