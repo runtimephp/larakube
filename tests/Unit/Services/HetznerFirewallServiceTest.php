@@ -7,6 +7,49 @@ use App\Data\FirewallRuleData;
 use App\Services\HetznerFirewallService;
 use Illuminate\Support\Facades\Http;
 
+test('create handles icmp rule without port', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/firewalls' => Http::response([
+            'firewall' => [
+                'id' => 101,
+                'name' => 'k8s-firewall',
+                'rules' => [
+                    [
+                        'direction' => 'in',
+                        'protocol' => 'icmp',
+                        'source_ips' => ['0.0.0.0/0'],
+                    ],
+                ],
+            ],
+        ]),
+    ]);
+
+    $service = new HetznerFirewallService('token');
+    $firewall = $service->create(new CreateFirewallData(
+        name: 'k8s-firewall',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+        rules: [
+            new FirewallRuleData(
+                direction: 'in',
+                protocol: 'icmp',
+                portStart: null,
+                portEnd: null,
+                sourceIps: ['0.0.0.0/0'],
+            ),
+        ],
+    ));
+
+    expect($firewall->rules[0]->protocol)->toBe('icmp')
+        ->and($firewall->rules[0]->portStart)->toBeNull()
+        ->and($firewall->rules[0]->portEnd)->toBeNull();
+
+    Http::assertSent(function ($request) {
+        $rules = $request->data()['rules'] ?? [];
+
+        return count($rules) === 1 && ! array_key_exists('port', $rules[0]);
+    });
+});
+
 test('create handles port range in rules', function (): void {
     Http::fake([
         'api.hetzner.cloud/v1/firewalls' => Http::response([

@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignIdFor(Firewall::class)->constrained();
             $table->string('direction');
             $table->string('protocol');
-            $table->unsignedInteger('port_start');
-            $table->unsignedInteger('port_end');
+            $table->unsignedInteger('port_start')->nullable();
+            $table->unsignedInteger('port_end')->nullable();
             $table->json('source_ips')->nullable();
             $table->json('destination_ips')->nullable();
         });

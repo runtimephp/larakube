@@ -18,8 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read string $firewall_id
  * @property-read string $direction
  * @property-read string $protocol
- * @property-read int $port_start
- * @property-read int $port_end
+ * @property-read int|null $port_start
+ * @property-read int|null $port_end
  * @property-read list<string>|null $source_ips
  * @property-read list<string>|null $destination_ips
  * @property-read Firewall $firewall
