@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\SshKeyPurpose;
 use Carbon\CarbonImmutable;
 use Database\Factories\SshKeyFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read string $name
  * @property-read string $fingerprint
  * @property-read string|null $public_key
+ * @property-read SshKeyPurpose $purpose
+ * @property-read string|null $private_key
  * @property-read Infrastructure $infrastructure
  */
 final class SshKey extends Model
@@ -41,6 +44,8 @@ final class SshKey extends Model
             'name' => 'string',
             'fingerprint' => 'string',
             'public_key' => 'string',
+            'purpose' => SshKeyPurpose::class,
+            'private_key' => 'encrypted',
         ];
     }
 
