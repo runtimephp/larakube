@@ -18,14 +18,4 @@ return new class extends Migration
             $table->text('private_key')->nullable()->after('purpose');
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('ssh_keys', function (Blueprint $table) {
-            $table->dropColumn(['purpose', 'private_key']);
-        });
-    }
 };
