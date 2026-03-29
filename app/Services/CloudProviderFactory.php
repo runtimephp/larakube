@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\CloudProviderService;
+use App\Contracts\NetworkService;
 use App\Contracts\ServerService;
 use App\Enums\CloudProviderType;
+use RuntimeException;
 
 class CloudProviderFactory
 {
@@ -16,6 +18,15 @@ class CloudProviderFactory
             CloudProviderType::Hetzner => new HetznerServerService($token ?? ''),
             CloudProviderType::DigitalOcean => new DigitalOceanServerService($token ?? ''),
             CloudProviderType::Multipass => new MultipassServerService(),
+        };
+    }
+
+    public function makeNetworkService(CloudProviderType $type, ?string $token = null): NetworkService
+    {
+        return match ($type) {
+            CloudProviderType::Hetzner => new HetznerNetworkService($token ?? ''),
+            CloudProviderType::DigitalOcean => throw new RuntimeException('Network service for DigitalOcean is not yet implemented.'),
+            CloudProviderType::Multipass => new MultipassNetworkService(),
         };
     }
 
