@@ -2,9 +2,84 @@
 
 declare(strict_types=1);
 
+use App\Enums\SshKeyPurpose;
 use App\Models\Infrastructure;
 use App\Models\SshKey;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+
+test('bastion factory state sets purpose and generates private key',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var SshKey $sshKey */
+        $sshKey = SshKey::factory()->bastion()->createQuietly();
+
+        expect($sshKey->purpose)->toBe(SshKeyPurpose::Bastion)
+            ->and($sshKey->private_key)->toBeString()
+            ->and($sshKey->private_key)->not->toBeEmpty();
+    });
+
+test('node factory state sets purpose and null private key',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var SshKey $sshKey */
+        $sshKey = SshKey::factory()->node()->createQuietly();
+
+        expect($sshKey->purpose)->toBe(SshKeyPurpose::Node)
+            ->and($sshKey->private_key)->toBeNull();
+    });
+
+test('creates bastion ssh key with private key',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var SshKey $sshKey */
+        $sshKey = SshKey::factory()->createQuietly([
+            'purpose' => SshKeyPurpose::Bastion,
+            'private_key' => 'secret-private-key-content',
+        ]);
+
+        expect($sshKey->purpose)->toBe(SshKeyPurpose::Bastion)
+            ->and($sshKey->private_key)->toBe('secret-private-key-content');
+    });
+
+test('creates node ssh key without private key',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var SshKey $sshKey */
+        $sshKey = SshKey::factory()->createQuietly([
+            'purpose' => SshKeyPurpose::Node,
+            'private_key' => null,
+        ]);
+
+        expect($sshKey->purpose)->toBe(SshKeyPurpose::Node)
+            ->and($sshKey->private_key)->toBeNull();
+    });
+
+test('encrypts private key at rest',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var SshKey $sshKey */
+        $sshKey = SshKey::factory()->createQuietly([
+            'private_key' => 'secret-private-key-content',
+        ]);
+
+        $raw = DB::table('ssh_keys')
+            ->where('id', $sshKey->id)
+            ->value('private_key');
+
+        expect($raw)->not->toBe('secret-private-key-content')
+            ->and($sshKey->private_key)->toBe('secret-private-key-content');
+    });
 
 test('creates ssh key',
     /**
@@ -83,5 +158,7 @@ test('to array has all fields in correct order',
                 'name',
                 'fingerprint',
                 'public_key',
+                'purpose',
+                'private_key',
             ]);
     });
