@@ -17,7 +17,7 @@ final readonly class RetrieveKubeconfig implements StepHandler
     {
         $kubeconfig = $this->ssh->execute(
             $infrastructure,
-            'cat /etc/kubernetes/admin.conf',
+            'cat /root/.kube/config',
         );
 
         Storage::disk('local')->put("kubeconfigs/{$infrastructure->id}.conf", $kubeconfig);
