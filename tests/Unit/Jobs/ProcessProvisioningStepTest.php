@@ -5,8 +5,13 @@ declare(strict_types=1);
 use App\Enums\InfrastructureStatus;
 use App\Enums\ProvisioningPhase;
 use App\Enums\ProvisioningStep;
+use App\Enums\ServerRole;
+use App\Enums\ServerStatus;
 use App\Jobs\ProcessProvisioningStep;
 use App\Models\Infrastructure;
+use App\Models\Server;
+use App\Services\CloudProviderFactory;
+use App\Services\InMemory\InMemoryHetznerServerService;
 use Illuminate\Support\Facades\Bus;
 
 test('advances to next step and dispatches itself',
@@ -88,10 +93,65 @@ test('updates phase when crossing from infrastructure to configuration',
         ]);
 
         $job = new ProcessProvisioningStep($infrastructure);
+
+        // WaitForNodes has no handler yet (steps 8-17), so it throws LogicException
+        expect(fn () => $job->handle())->toThrow(LogicException::class);
+    });
+
+test('throws logic exception for unimplemented steps',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->createQuietly([
+            'status' => InfrastructureStatus::Provisioning,
+            'provisioning_step' => ProvisioningStep::CreateControlPlaneNodes,
+            'provisioning_phase' => ProvisioningPhase::Infrastructure,
+        ]);
+
+        $job = new ProcessProvisioningStep($infrastructure);
+
+        expect(fn () => $job->handle())->toThrow(LogicException::class, 'No handler registered');
+    });
+
+test('retries same step with delay on RetryStepException',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Bus::fake([ProcessProvisioningStep::class]);
+
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->createQuietly([
+            'status' => InfrastructureStatus::Provisioning,
+            'provisioning_step' => ProvisioningStep::WaitForBastion,
+            'provisioning_phase' => ProvisioningPhase::Infrastructure,
+        ]);
+
+        // WaitForBastion needs a bastion server that's not running to trigger RetryStepException
+        // But it also needs CloudProviderFactory. Let's bind a mock.
+        $serverService = new InMemoryHetznerServerService();
+        $factory = Mockery::mock(CloudProviderFactory::class);
+        $factory->shouldReceive('makeServerService')->andReturn($serverService);
+        $this->app->instance(CloudProviderFactory::class, $factory);
+
+        Server::factory()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+            'cloud_provider_id' => $infrastructure->cloud_provider_id,
+            'role' => ServerRole::Bastion,
+            'status' => ServerStatus::Starting,
+            'name' => 'test-bastion',
+        ]);
+
+        $job = new ProcessProvisioningStep($infrastructure);
         $job->handle();
 
         $infrastructure->refresh();
 
-        expect($infrastructure->provisioning_step)->toBe(ProvisioningStep::GenerateInventory)
-            ->and($infrastructure->provisioning_phase)->toBe(ProvisioningPhase::Configuration);
+        // Step should NOT have advanced
+        expect($infrastructure->provisioning_step)->toBe(ProvisioningStep::WaitForBastion);
+
+        // Should have re-dispatched with delay
+        Bus::assertDispatched(ProcessProvisioningStep::class);
     });

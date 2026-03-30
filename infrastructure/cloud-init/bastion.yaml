@@ -25,7 +25,3 @@ runcmd:
 
   # Install Helm (pinned version)
   - ["bash", "-c", "curl https://raw.githubusercontent.com/helm/helm/v3.17.3/scripts/get-helm-3 | bash"]
-
-  # Generate node SSH keypair (stays on bastion, never leaves)
-  - ["ssh-keygen", "-t", "ed25519", "-f", "/home/ubuntu/.ssh/node_key", "-N", "", "-C", "kuven@node"]
-  - ["chown", "ubuntu:ubuntu", "/home/ubuntu/.ssh/node_key", "/home/ubuntu/.ssh/node_key.pub"]

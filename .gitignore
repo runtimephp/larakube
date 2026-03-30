@@ -25,3 +25,4 @@ npm-debug.log
 yarn-error.log
 agents
 .claude/settings.local.json
+.agents/

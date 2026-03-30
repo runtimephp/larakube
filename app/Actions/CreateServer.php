@@ -18,6 +18,7 @@ final readonly class CreateServer
         $serverService = $this->factory->makeServerService($provider->type, $provider->api_token);
         $serverData = $serverService->create($data);
 
+        /** @var Server */
         return $provider->servers()->create([
             'organization_id' => $provider->organization_id,
             'infrastructure_id' => $data->infrastructure_id,
@@ -28,6 +29,7 @@ final readonly class CreateServer
             'region' => $serverData->region,
             'ipv4' => $serverData->ipv4,
             'ipv6' => $serverData->ipv6,
+            'role' => $data->role,
         ]);
     }
 }
