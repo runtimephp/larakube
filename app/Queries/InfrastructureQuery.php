@@ -33,7 +33,12 @@ final class InfrastructureQuery
 
     public function byOrganization(Organization $organization): self
     {
-        $this->builder->where('organization_id', $organization->id);
+        return $this->byOrganizationId($organization->id);
+    }
+
+    public function byOrganizationId(string $organizationId): self
+    {
+        $this->builder->where('organization_id', $organizationId);
 
         return $this;
     }

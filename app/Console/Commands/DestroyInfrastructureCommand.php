@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\DestroyInfrastructure;
-use App\Models\Organization;
+use App\Models\Infrastructure;
 use App\Queries\InfrastructureQuery;
 
 final class DestroyInfrastructureCommand extends AuthenticatedCommand
@@ -20,15 +20,12 @@ final class DestroyInfrastructureCommand extends AuthenticatedCommand
 
     public function handleCommand(InfrastructureQuery $query, DestroyInfrastructure $action): int
     {
-        /** @var Organization $organization */
-        $organization = Organization::query()->findOrFail($this->organization->id);
-
         $infrastructure = ($query)()
             ->byId($this->infrastructure->id)
-            ->byOrganization($organization)
+            ->byOrganizationId($this->organization->id)
             ->first();
 
-        if ($infrastructure === null) {
+        if (! $infrastructure instanceof Infrastructure) {
             $this->components->error('Infrastructure not found.');
 
             return self::FAILURE;

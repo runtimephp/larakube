@@ -17,16 +17,11 @@ use Throwable;
 
 final readonly class DestroyInfrastructure
 {
-    /** @var list<string> */
-    private array $failures;
-
     public function __construct(
         private CloudProviderFactory $factory,
         private ServerQuery $serverQuery,
         private SshKeyQuery $sshKeyQuery,
-    ) {
-        $this->failures = [];
-    }
+    ) {}
 
     /**
      * @return list<string> List of cloud API failure messages

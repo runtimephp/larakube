@@ -8,7 +8,7 @@ use App\Enums\InfrastructureStatus;
 use App\Enums\ProvisioningPhase;
 use App\Enums\ProvisioningStep;
 use App\Jobs\ProcessProvisioningStep;
-use App\Models\Organization;
+use App\Models\Infrastructure;
 use App\Queries\InfrastructureQuery;
 
 final class ProvisionInfrastructureCommand extends AuthenticatedCommand
@@ -23,15 +23,12 @@ final class ProvisionInfrastructureCommand extends AuthenticatedCommand
 
     public function handleCommand(InfrastructureQuery $query): int
     {
-        /** @var Organization $organization */
-        $organization = Organization::query()->findOrFail($this->organization->id);
-
         $infrastructure = ($query)()
             ->byId($this->infrastructure->id)
-            ->byOrganization($organization)
+            ->byOrganizationId($this->organization->id)
             ->first();
 
-        if ($infrastructure === null) {
+        if (! $infrastructure instanceof Infrastructure) {
             $this->components->error('Infrastructure not found.');
 
             return self::FAILURE;
