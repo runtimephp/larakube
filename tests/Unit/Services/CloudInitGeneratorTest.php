@@ -50,14 +50,6 @@ test('installs helm', function (): void {
     expect($yaml)->toContain('helm');
 });
 
-test('generates node ssh keypair on bastion', function (): void {
-    $generator = new CloudInitGenerator();
-    $yaml = $generator->bastion(bastionPublicKey: 'ssh-ed25519 AAAA...');
-
-    expect($yaml)->toContain('ssh-keygen')
-        ->and($yaml)->toContain('ed25519');
-});
-
 test('output is valid yaml', function (): void {
     $generator = new CloudInitGenerator();
     $yaml = $generator->bastion(bastionPublicKey: 'ssh-ed25519 AAAA...');

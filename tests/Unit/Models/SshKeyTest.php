@@ -160,5 +160,6 @@ test('to array has all fields in correct order',
                 'public_key',
                 'purpose',
                 'private_key',
+                'external_ssh_key_id',
             ]);
     });

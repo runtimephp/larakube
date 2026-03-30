@@ -37,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<int, LoadBalancer> $loadBalancers
  * @property-read Collection<int, Storage> $storages
  * @property-read Collection<int, Backup> $backups
+ * @property-read Collection<int, Server> $servers
  * @property-read Collection<int, SshKey> $sshKeys
  */
 final class Infrastructure extends Model
@@ -118,6 +119,12 @@ final class Infrastructure extends Model
     public function backups(): HasMany
     {
         return $this->hasMany(Backup::class);
+    }
+
+    /** @return HasMany<Server, $this> */
+    public function servers(): HasMany
+    {
+        return $this->hasMany(Server::class);
     }
 
     /** @return HasMany<SshKey, $this> */

@@ -102,10 +102,21 @@ final class ServerQuery
         return $this->builder;
     }
 
+    public function exists(): bool
+    {
+        return $this->builder->exists();
+    }
+
     public function first(): ?Server
     {
         /** @var Server|null */
         return $this->builder->first();
+    }
+
+    public function firstOrFail(): Server
+    {
+        /** @var Server */
+        return $this->builder->firstOrFail();
     }
 
     /** @return Collection<int, Server> */
