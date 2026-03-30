@@ -23,5 +23,7 @@ final readonly class CreateServerData
         public ?string $disk = null,
         public array $sshKeyIds = [],
         public ?string $cloudInit = null,
+        public bool $publicIp = true,
+        public ?string $networkId = null,
     ) {}
 }
