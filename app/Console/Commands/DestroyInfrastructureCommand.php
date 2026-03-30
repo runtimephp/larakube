@@ -49,9 +49,11 @@ final class DestroyInfrastructureCommand extends AuthenticatedCommand
             foreach ($failures as $failure) {
                 $this->line("  - {$failure}");
             }
-        } else {
-            $this->components->info("Infrastructure \"{$infrastructure->name}\" destroyed successfully.");
+
+            return self::FAILURE;
         }
+
+        $this->components->info("Infrastructure \"{$infrastructure->name}\" destroyed successfully.");
 
         return self::SUCCESS;
     }

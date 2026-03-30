@@ -115,7 +115,7 @@ test('outputs failures when destroy has cloud api errors',
         $this->artisan('infrastructure:destroy')
             ->expectsConfirmation('This will destroy ALL resources for infrastructure "'.$infrastructure->name.'". Continue?', 'yes')
             ->expectsOutputToContain('cloud API failure')
-            ->assertSuccessful();
+            ->assertFailed();
     });
 
 test('destroys all infrastructure resources and resets status',
