@@ -32,6 +32,15 @@ final class ProcessProvisioningStep implements ShouldQueue
 
     public function __construct(public Infrastructure $infrastructure) {}
 
+    public function displayName(): string
+    {
+        $step = $this->infrastructure->provisioning_step;
+
+        return $step !== null
+            ? "ProcessProvisioningStep [{$step->label()}]"
+            : 'ProcessProvisioningStep [Complete]';
+    }
+
     public function handle(): void
     {
         $currentStep = $this->infrastructure->provisioning_step;
