@@ -31,6 +31,23 @@ final readonly class CloudInitGenerator
         return "#cloud-config\n".Yaml::dump($base, 4, 2);
     }
 
+    public function node(string $nodePublicKey): string
+    {
+        $trimmed = trim($nodePublicKey);
+
+        if ($trimmed === '') {
+            throw new InvalidArgumentException('Node public key must not be empty.');
+        }
+
+        $config = [
+            'ssh_authorized_keys' => [
+                $trimmed,
+            ],
+        ];
+
+        return "#cloud-config\n".Yaml::dump($config, 4, 2);
+    }
+
     /**
      * @return array<string, mixed>
      */

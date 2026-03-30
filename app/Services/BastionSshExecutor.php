@@ -50,13 +50,15 @@ final readonly class BastionSshExecutor
             $process->run();
 
             if (! $process->isSuccessful()) {
-                $error = $process->getErrorOutput();
+                $stderr = $process->getErrorOutput();
+                $stdout = $process->getOutput();
+                $fullOutput = trim($stdout."\n".$stderr);
 
-                if (str_contains($error, 'Connection refused') || str_contains($error, 'Connection timed out')) {
-                    throw new RetryStepException("SSH connection failed: {$error}");
+                if (str_contains($stderr, 'Connection refused') || str_contains($stderr, 'Connection timed out')) {
+                    throw new RetryStepException("SSH connection failed: {$stderr}");
                 }
 
-                throw new RuntimeException("SSH command failed: {$error}");
+                throw new RuntimeException("SSH command failed (exit code {$process->getExitCode()}): {$fullOutput}");
             }
 
             return $process->getOutput();

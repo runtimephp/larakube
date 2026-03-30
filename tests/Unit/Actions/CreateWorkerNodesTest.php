@@ -11,6 +11,7 @@ use App\Models\Server;
 use App\Models\SshKey;
 use App\Queries\ServerQuery;
 use App\Queries\SshKeyQuery;
+use App\Services\CloudInitGenerator;
 use App\Services\CloudProviderFactory;
 use App\Services\InMemory\InMemoryHetznerServerService;
 
@@ -43,7 +44,7 @@ test('creates two worker nodes by default',
 
         $createServer = new CreateServer($factory);
 
-        $action = new CreateWorkerNodes($createServer, new ServerQuery(), new SshKeyQuery());
+        $action = new CreateWorkerNodes($createServer, new CloudInitGenerator(), new ServerQuery(), new SshKeyQuery());
         $action->handle($infrastructure);
 
         $workers = Server::where('infrastructure_id', $infrastructure->id)
@@ -73,7 +74,7 @@ test('skips if worker nodes already exist',
 
         $createServer = new CreateServer($factory);
 
-        $action = new CreateWorkerNodes($createServer, new ServerQuery(), new SshKeyQuery());
+        $action = new CreateWorkerNodes($createServer, new CloudInitGenerator(), new ServerQuery(), new SshKeyQuery());
         $action->handle($infrastructure);
 
         $workers = Server::where('infrastructure_id', $infrastructure->id)

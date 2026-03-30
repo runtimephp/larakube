@@ -9,14 +9,17 @@ use App\Data\CreateServerData;
 use App\Enums\CloudProviderType;
 use App\Enums\ClusterTopology;
 use App\Enums\ServerRole;
+use App\Enums\SshKeyPurpose;
 use App\Models\Infrastructure;
 use App\Queries\ServerQuery;
 use App\Queries\SshKeyQuery;
+use App\Services\CloudInitGenerator;
 
 final readonly class CreateControlPlaneNodes implements StepHandler
 {
     public function __construct(
         private CreateServer $createServer,
+        private CloudInitGenerator $cloudInit,
         private ServerQuery $serverQuery,
         private SshKeyQuery $sshKeyQuery,
     ) {}
@@ -41,6 +44,13 @@ final readonly class CreateControlPlaneNodes implements StepHandler
 
         $networkId = $infrastructure->networks()->first()?->external_network_id;
 
+        $nodeKey = ($this->sshKeyQuery)()
+            ->byInfrastructure($infrastructure)
+            ->byPurpose(SshKeyPurpose::Node)
+            ->firstOrFail();
+
+        $nodeCloudInit = $this->cloudInit->node($nodeKey->public_key);
+
         $nodeCount = $topology === ClusterTopology::Ha ? 3 : 1;
 
         for ($i = 1; $i <= $nodeCount; $i++) {
@@ -55,6 +65,7 @@ final readonly class CreateControlPlaneNodes implements StepHandler
                 memory: $spec->memory,
                 disk: $spec->disk,
                 sshKeyIds: $sshKeyIds,
+                cloudInit: $nodeCloudInit,
                 publicIp: false,
                 networkId: $networkId,
             ));

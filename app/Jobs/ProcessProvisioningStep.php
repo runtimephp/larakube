@@ -45,7 +45,9 @@ final class ProcessProvisioningStep implements ShouldQueue
     public function __construct(
         public Infrastructure $infrastructure,
         public int $stepRetries = 0,
-    ) {}
+    ) {
+        $this->onQueue($this->resolveQueue());
+    }
 
     public function displayName(): string
     {
@@ -130,6 +132,23 @@ final class ProcessProvisioningStep implements ShouldQueue
             ProvisioningStep::StoreKubeconfig => app(StoreKubeconfig::class),
             ProvisioningStep::HealthCheck => app(HealthCheck::class),
             ProvisioningStep::MarkHealthy => app(MarkHealthy::class),
+        };
+    }
+
+    private function resolveQueue(): string
+    {
+        $step = $this->infrastructure->provisioning_step;
+
+        if ($step === null) {
+            return 'infrastructure';
+        }
+
+        return match ($step) {
+            ProvisioningStep::CreateBastion,
+            ProvisioningStep::CreateControlPlaneNodes,
+            ProvisioningStep::CreateWorkerNodes,
+            ProvisioningStep::RunAnsible => 'infrastructure-long',
+            default => 'infrastructure',
         };
     }
 }

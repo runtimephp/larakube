@@ -12,6 +12,7 @@ use App\Models\Server;
 use App\Models\SshKey;
 use App\Queries\ServerQuery;
 use App\Queries\SshKeyQuery;
+use App\Services\CloudInitGenerator;
 use App\Services\CloudProviderFactory;
 use App\Services\InMemory\InMemoryHetznerServerService;
 
@@ -46,7 +47,7 @@ test('creates single control plane node for multipass',
 
         $createServer = new CreateServer($factory);
 
-        $action = new CreateControlPlaneNodes($createServer, new ServerQuery(), new SshKeyQuery());
+        $action = new CreateControlPlaneNodes($createServer, new CloudInitGenerator(), new ServerQuery(), new SshKeyQuery());
         $action->handle($infrastructure);
 
         $cpNodes = Server::where('infrastructure_id', $infrastructure->id)
@@ -88,7 +89,7 @@ test('creates three control plane nodes for hetzner',
 
         $createServer = new CreateServer($factory);
 
-        $action = new CreateControlPlaneNodes($createServer, new ServerQuery(), new SshKeyQuery());
+        $action = new CreateControlPlaneNodes($createServer, new CloudInitGenerator(), new ServerQuery(), new SshKeyQuery());
         $action->handle($infrastructure);
 
         $cpNodes = Server::where('infrastructure_id', $infrastructure->id)
@@ -116,7 +117,7 @@ test('skips if control plane nodes already exist',
 
         $createServer = new CreateServer($factory);
 
-        $action = new CreateControlPlaneNodes($createServer, new ServerQuery(), new SshKeyQuery());
+        $action = new CreateControlPlaneNodes($createServer, new CloudInitGenerator(), new ServerQuery(), new SshKeyQuery());
         $action->handle($infrastructure);
 
         $cpNodes = Server::where('infrastructure_id', $infrastructure->id)
