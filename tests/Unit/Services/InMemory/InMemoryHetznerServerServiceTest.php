@@ -12,6 +12,21 @@ beforeEach(function (): void {
     $this->service = new InMemoryHetznerServerService();
 });
 
+test('destroy throws when configured to throw on delete', function (): void {
+    $this->service->addServer(new ServerData(
+        externalId: 123,
+        name: 'web-1',
+        status: ServerStatus::Running,
+        type: 'cx11',
+        region: 'fsn1',
+        ipv4: '1.2.3.4',
+        ipv6: null,
+    ));
+    $this->service->shouldThrowOnDelete();
+
+    $this->service->destroy(123);
+})->throws(RuntimeException::class, 'Simulated API failure on destroy');
+
 test('returns empty collection when no servers', function (): void {
     expect($this->service->getAll())->toHaveCount(0);
 });

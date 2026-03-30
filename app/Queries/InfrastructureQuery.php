@@ -24,9 +24,21 @@ final class InfrastructureQuery
         return clone $this;
     }
 
+    public function byId(string $id): self
+    {
+        $this->builder->where('id', $id);
+
+        return $this;
+    }
+
     public function byOrganization(Organization $organization): self
     {
-        $this->builder->where('organization_id', $organization->id);
+        return $this->byOrganizationId($organization->id);
+    }
+
+    public function byOrganizationId(string $organizationId): self
+    {
+        $this->builder->where('organization_id', $organizationId);
 
         return $this;
     }
@@ -86,6 +98,12 @@ final class InfrastructureQuery
     {
         /** @var Infrastructure|null */
         return $this->builder->first();
+    }
+
+    public function firstOrFail(): Infrastructure
+    {
+        /** @var Infrastructure */
+        return $this->builder->firstOrFail();
     }
 
     /** @return Collection<int, Infrastructure> */

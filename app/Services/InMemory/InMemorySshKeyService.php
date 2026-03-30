@@ -18,6 +18,8 @@ final class InMemorySshKeyService implements SshKeyService
 
     private bool $failDelete = false;
 
+    private bool $throwOnDelete = false;
+
     private int $nextId = 1;
 
     public function __construct()
@@ -52,6 +54,13 @@ final class InMemorySshKeyService implements SshKeyService
         return $this;
     }
 
+    public function shouldThrowOnDelete(bool $throw = true): self
+    {
+        $this->throwOnDelete = $throw;
+
+        return $this;
+    }
+
     public function register(string $name, string $publicKey): SshKeyData
     {
         if ($this->failRegister) {
@@ -77,6 +86,10 @@ final class InMemorySshKeyService implements SshKeyService
 
     public function delete(int|string $externalId): bool
     {
+        if ($this->throwOnDelete) {
+            throw new RuntimeException('Simulated API failure on delete');
+        }
+
         if ($this->failDelete) {
             return false;
         }

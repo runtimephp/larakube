@@ -32,6 +32,23 @@ final readonly class HetznerNetworkService implements NetworkService
             throw new RuntimeException($response->json('error.message', 'Failed to create network on Hetzner.'));
         }
 
+        $networkId = $response->json('network.id');
+
+        if ($networkId === null) {
+            throw new RuntimeException('Network ID not found in Hetzner response.');
+        }
+
+        $subnetResponse = Http::withToken($this->token)
+            ->post("https://api.hetzner.cloud/v1/networks/{$networkId}/actions/add_subnet", [
+                'type' => 'cloud',
+                'network_zone' => 'eu-central',
+                'ip_range' => $data->cidr,
+            ]);
+
+        if (! $subnetResponse->successful()) {
+            throw new RuntimeException($subnetResponse->json('error.message', 'Failed to add subnet to network on Hetzner.'));
+        }
+
         return $this->mapNetworkData($response->json('network'));
     }
 

@@ -7,7 +7,35 @@ use App\Models\CloudProvider;
 use App\Models\Firewall;
 use App\Models\Infrastructure;
 use App\Services\CloudProviderFactory;
+use App\Services\InMemory\InMemoryCloudProviderFactory;
 use App\Services\InMemory\InMemoryFirewallService;
+
+test('returns early when firewall already exists',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var CloudProvider $provider */
+        $provider = CloudProvider::factory()->hetzner()->createQuietly();
+
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->provisioning()->createQuietly([
+            'cloud_provider_id' => $provider->id,
+        ]);
+
+        Firewall::factory()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+        ]);
+
+        $firewallService = new InMemoryFirewallService();
+        $factory = new InMemoryCloudProviderFactory(firewallService: $firewallService);
+
+        $action = new CreateFirewallForInfrastructure($factory);
+        $action->handle($infrastructure);
+
+        expect($firewallService->list())->toBeEmpty()
+            ->and(Firewall::where('infrastructure_id', $infrastructure->id)->count())->toBe(1);
+    });
 
 test('creates firewall via provider and stores model',
     /**

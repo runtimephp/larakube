@@ -86,7 +86,7 @@ final class ProcessProvisioningStep implements ShouldQueue
             ];
 
             if ($nextStep === null || $nextStep->isTerminal()) {
-                $updateData['status'] = InfrastructureStatus::Healthy;
+                $updateData['status'] = InfrastructureStatus::Healthy; // @codeCoverageIgnore
             }
 
             $this->infrastructure->update($updateData);

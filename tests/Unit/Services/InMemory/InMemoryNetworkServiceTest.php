@@ -6,6 +6,14 @@ use App\Data\CreateNetworkData;
 use App\Data\NetworkData;
 use App\Services\InMemory\InMemoryNetworkService;
 
+test('delete throws when configured to throw on delete', function (): void {
+    $service = new InMemoryNetworkService();
+    $service->addNetwork(new NetworkData(externalId: '123', name: 'k8s-vpc', cidr: '10.0.0.0/16'));
+    $service->shouldThrowOnDelete();
+
+    $service->delete('123');
+})->throws(RuntimeException::class, 'Simulated API failure on delete');
+
 test('create stores and returns network data', function (): void {
     $service = new InMemoryNetworkService();
     $network = $service->create(new CreateNetworkData(

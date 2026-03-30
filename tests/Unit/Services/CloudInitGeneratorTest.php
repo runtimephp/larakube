@@ -5,6 +5,42 @@ declare(strict_types=1);
 use App\Services\CloudInitGenerator;
 use Symfony\Component\Yaml\Yaml;
 
+test('throws when template file does not exist', function (): void {
+    $generator = new CloudInitGenerator(basePath: '/nonexistent/path');
+    $generator->bastion(bastionPublicKey: 'ssh-ed25519 AAAA...');
+})->throws(RuntimeException::class, 'Cloud-init template not found');
+
+test('throws when template content is invalid yaml', function (): void {
+    $tempDir = sys_get_temp_dir().'/cloudinit-test-'.uniqid();
+    mkdir($tempDir);
+    file_put_contents($tempDir.'/bastion.yaml', 'just a string');
+
+    try {
+        $generator = new CloudInitGenerator(basePath: $tempDir);
+        $generator->bastion(bastionPublicKey: 'ssh-ed25519 AAAA...');
+    } finally {
+        @unlink($tempDir.'/bastion.yaml');
+        @rmdir($tempDir);
+    }
+})->throws(RuntimeException::class, 'Invalid cloud-init template format');
+
+test('uses custom basePath for template resolution', function (): void {
+    $tempDir = sys_get_temp_dir().'/cloudinit-test-'.uniqid();
+    mkdir($tempDir);
+    file_put_contents($tempDir.'/bastion.yaml', "packages:\n  - curl\nruncmd:\n  - echo hello\n");
+
+    try {
+        $generator = new CloudInitGenerator(basePath: $tempDir);
+        $yaml = $generator->bastion(bastionPublicKey: 'ssh-ed25519 AAAA...');
+
+        expect($yaml)->toStartWith("#cloud-config\n")
+            ->and($yaml)->toContain('ssh-ed25519 AAAA...');
+    } finally {
+        @unlink($tempDir.'/bastion.yaml');
+        @rmdir($tempDir);
+    }
+});
+
 test('throws on empty bastion public key', function (): void {
     $generator = new CloudInitGenerator();
     $generator->bastion(bastionPublicKey: '');

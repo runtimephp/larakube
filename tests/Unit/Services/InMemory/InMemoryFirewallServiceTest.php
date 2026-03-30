@@ -7,6 +7,26 @@ use App\Data\FirewallData;
 use App\Data\FirewallRuleData;
 use App\Services\InMemory\InMemoryFirewallService;
 
+test('add rule throws when firewall not found', function (): void {
+    $service = new InMemoryFirewallService();
+
+    $service->addRule('nonexistent', new FirewallRuleData(
+        direction: 'in',
+        protocol: 'tcp',
+        portStart: 80,
+        portEnd: 80,
+        sourceIps: ['0.0.0.0/0'],
+    ));
+})->throws(RuntimeException::class, 'not found');
+
+test('delete throws when configured to throw on delete', function (): void {
+    $service = new InMemoryFirewallService();
+    $service->addFirewall(new FirewallData(externalId: '123', name: 'k8s-firewall'));
+    $service->shouldThrowOnDelete();
+
+    $service->delete('123');
+})->throws(RuntimeException::class, 'Simulated API failure on delete');
+
 test('create stores and returns firewall data', function (): void {
     $service = new InMemoryFirewallService();
     $firewall = $service->create(new CreateFirewallData(

@@ -6,6 +6,49 @@ use App\Data\CreateNetworkData;
 use App\Services\HetznerNetworkService;
 use Illuminate\Support\Facades\Http;
 
+test('create throws when network id is null in response', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/networks' => Http::response([
+            'network' => [
+                'id' => null,
+                'name' => 'k8s-vpc',
+                'ip_range' => '10.0.0.0/16',
+            ],
+        ]),
+    ]);
+
+    $service = new HetznerNetworkService('token');
+
+    $service->create(new CreateNetworkData(
+        name: 'k8s-vpc',
+        cidr: '10.0.0.0/16',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+    ));
+})->throws(RuntimeException::class, 'Network ID not found');
+
+test('create throws when subnet creation fails', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/networks' => Http::response([
+            'network' => [
+                'id' => 123,
+                'name' => 'k8s-vpc',
+                'ip_range' => '10.0.0.0/16',
+            ],
+        ]),
+        'api.hetzner.cloud/v1/networks/123/actions/add_subnet' => Http::response([
+            'error' => ['message' => 'subnet creation failed', 'code' => 'server_error'],
+        ], 500),
+    ]);
+
+    $service = new HetznerNetworkService('token');
+
+    $service->create(new CreateNetworkData(
+        name: 'k8s-vpc',
+        cidr: '10.0.0.0/16',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+    ));
+})->throws(RuntimeException::class, 'subnet creation failed');
+
 test('create throws on api error', function (): void {
     Http::fake([
         'api.hetzner.cloud/v1/networks' => Http::response([
@@ -132,6 +175,9 @@ test('create returns network data', function (): void {
                 'name' => 'k8s-vpc',
                 'ip_range' => '10.0.0.0/16',
             ],
+        ]),
+        'api.hetzner.cloud/v1/networks/123/actions/add_subnet' => Http::response([
+            'action' => ['id' => 1, 'status' => 'success'],
         ]),
     ]);
 

@@ -10,6 +10,7 @@ enum InfrastructureStatus: string
     case Healthy = 'healthy';
     case Degraded = 'degraded';
     case Failed = 'failed';
+    case Destroyed = 'destroyed';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum InfrastructureStatus: string
             self::Healthy => 'Healthy',
             self::Degraded => 'Degraded',
             self::Failed => 'Failed',
+            self::Destroyed => 'Destroyed',
         };
     }
 }

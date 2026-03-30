@@ -35,9 +35,9 @@ final readonly class RegisterSshKeys implements StepHandler
             ->get()
             ->each(function (SshKey $key) use ($sshKeyService): void {
                 $registered = $sshKeyService->register($key->name, $key->public_key);
-                $externalId = $registered->externalId !== null ? (string) $registered->externalId : null;
+                $externalId = (string) $registered->externalId;
 
-                if ($externalId === null || $externalId === '') {
+                if ($externalId === '') {
                     throw new RuntimeException('Cloud provider returned an empty external SSH key ID.');
                 }
 

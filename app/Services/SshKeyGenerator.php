@@ -26,9 +26,9 @@ final readonly class SshKeyGenerator
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'kuven_ssh_');
 
-        if ($tempFile === false) {
-            throw new RuntimeException('Failed to create temporary file for SSH keypair generation.');
-        }
+        if ($tempFile === false) { // @codeCoverageIgnore
+            throw new RuntimeException('Failed to create temporary file for SSH keypair generation.'); // @codeCoverageIgnore
+        } // @codeCoverageIgnore
 
         // Remove the temp file so ssh-keygen can create it
         unlink($tempFile);
@@ -51,9 +51,9 @@ final readonly class SshKeyGenerator
             $privateKey = file_get_contents($tempFile);
             $publicKey = file_get_contents($tempFile.'.pub');
 
-            if ($privateKey === false || $publicKey === false) {
-                throw new RuntimeException('Failed to read generated SSH keypair files.');
-            }
+            if ($privateKey === false || $publicKey === false) { // @codeCoverageIgnore
+                throw new RuntimeException('Failed to read generated SSH keypair files.'); // @codeCoverageIgnore
+            } // @codeCoverageIgnore
 
             return new SshKeypairData(
                 publicKey: $publicKey,

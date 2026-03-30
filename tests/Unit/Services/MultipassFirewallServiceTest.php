@@ -18,6 +18,20 @@ test('create returns firewall data with provided values', function (): void {
         ->and($firewall->rules)->toBeEmpty();
 });
 
+test('add rule extracts name from multipass prefix', function (): void {
+    $service = new MultipassFirewallService();
+    $firewall = $service->addRule('multipass-my-firewall', new FirewallRuleData(
+        direction: 'in',
+        protocol: 'tcp',
+        portStart: 443,
+        portEnd: 443,
+        sourceIps: ['0.0.0.0/0'],
+    ));
+
+    expect($firewall->externalId)->toBe('multipass-my-firewall')
+        ->and($firewall->name)->toBe('my-firewall');
+});
+
 test('add rule returns firewall data with matching external id', function (): void {
     $service = new MultipassFirewallService();
     $firewall = $service->addRule('any-id', new FirewallRuleData(

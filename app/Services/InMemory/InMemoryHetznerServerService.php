@@ -32,6 +32,8 @@ final class InMemoryHetznerServerService implements ServerService
 
     private bool $shouldFailDelete = false;
 
+    private bool $shouldThrowOnDelete = false;
+
     public function __construct()
     {
         $this->servers = collect([]);
@@ -79,6 +81,16 @@ final class InMemoryHetznerServerService implements ServerService
         return $this;
     }
 
+    /**
+     * Set whether delete operations should throw an exception.
+     */
+    public function shouldThrowOnDelete(bool $throw = true): self
+    {
+        $this->shouldThrowOnDelete = $throw;
+
+        return $this;
+    }
+
     public function getAll(): Collection
     {
         return $this->servers->filter(
@@ -117,6 +129,10 @@ final class InMemoryHetznerServerService implements ServerService
 
     public function destroy(int|string $externalId): bool
     {
+        if ($this->shouldThrowOnDelete) {
+            throw new \RuntimeException('Simulated API failure on destroy');
+        }
+
         if ($this->shouldFailDelete) {
             return false;
         }

@@ -8,14 +8,16 @@ test('label returns correct labels', function (): void {
     expect(InfrastructureStatus::Provisioning->label())->toBe('Provisioning')
         ->and(InfrastructureStatus::Healthy->label())->toBe('Healthy')
         ->and(InfrastructureStatus::Degraded->label())->toBe('Degraded')
-        ->and(InfrastructureStatus::Failed->label())->toBe('Failed');
+        ->and(InfrastructureStatus::Failed->label())->toBe('Failed')
+        ->and(InfrastructureStatus::Destroyed->label())->toBe('Destroyed');
 });
 
 test('from string returns correct status', function (): void {
     expect(InfrastructureStatus::from('provisioning'))->toBe(InfrastructureStatus::Provisioning)
         ->and(InfrastructureStatus::from('healthy'))->toBe(InfrastructureStatus::Healthy)
         ->and(InfrastructureStatus::from('degraded'))->toBe(InfrastructureStatus::Degraded)
-        ->and(InfrastructureStatus::from('failed'))->toBe(InfrastructureStatus::Failed);
+        ->and(InfrastructureStatus::from('failed'))->toBe(InfrastructureStatus::Failed)
+        ->and(InfrastructureStatus::from('destroyed'))->toBe(InfrastructureStatus::Destroyed);
 });
 
 test('try from returns correct status', function (): void {
@@ -23,6 +25,7 @@ test('try from returns correct status', function (): void {
         ->and(InfrastructureStatus::tryFrom('healthy'))->toBe(InfrastructureStatus::Healthy)
         ->and(InfrastructureStatus::tryFrom('degraded'))->toBe(InfrastructureStatus::Degraded)
         ->and(InfrastructureStatus::tryFrom('failed'))->toBe(InfrastructureStatus::Failed)
+        ->and(InfrastructureStatus::tryFrom('destroyed'))->toBe(InfrastructureStatus::Destroyed)
         ->and(InfrastructureStatus::tryFrom('invalid'))->toBeNull();
 });
 
@@ -32,5 +35,6 @@ test('cases returns all cases', function (): void {
         InfrastructureStatus::Healthy,
         InfrastructureStatus::Degraded,
         InfrastructureStatus::Failed,
+        InfrastructureStatus::Destroyed,
     ]);
 });

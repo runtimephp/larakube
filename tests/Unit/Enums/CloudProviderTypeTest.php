@@ -5,6 +5,12 @@ declare(strict_types=1);
 use App\Data\ServerSpecData;
 use App\Enums\CloudProviderType;
 
+test('ssh user returns correct user per provider', function (): void {
+    expect(CloudProviderType::Hetzner->sshUser())->toBe('root')
+        ->and(CloudProviderType::DigitalOcean->sshUser())->toBe('root')
+        ->and(CloudProviderType::Multipass->sshUser())->toBe('ubuntu');
+});
+
 test('bastion spec returns hetzner defaults', function (): void {
     $spec = CloudProviderType::Hetzner->bastionSpec();
 

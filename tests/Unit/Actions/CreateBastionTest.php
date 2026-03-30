@@ -13,7 +13,46 @@ use App\Queries\ServerQuery;
 use App\Queries\SshKeyQuery;
 use App\Services\CloudInitGenerator;
 use App\Services\CloudProviderFactory;
+use App\Services\InMemory\InMemoryCloudProviderFactory;
 use App\Services\InMemory\InMemoryHetznerServerService;
+
+test('returns early when bastion already exists',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var CloudProvider $provider */
+        $provider = CloudProvider::factory()->hetzner()->createQuietly();
+
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->provisioning()->createQuietly([
+            'cloud_provider_id' => $provider->id,
+            'organization_id' => $provider->organization_id,
+        ]);
+
+        SshKey::factory()->bastion()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+            'external_ssh_key_id' => '123',
+        ]);
+
+        Server::factory()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+            'role' => ServerRole::Bastion,
+        ]);
+
+        $serverService = new InMemoryHetznerServerService();
+        $factory = new InMemoryCloudProviderFactory(serverService: $serverService);
+
+        $createServer = new CreateServer($factory);
+        $cloudInit = new CloudInitGenerator();
+
+        $action = new CreateBastion($createServer, $cloudInit, new ServerQuery(), new SshKeyQuery());
+        $action->handle($infrastructure);
+
+        expect(Server::where('infrastructure_id', $infrastructure->id)
+            ->where('role', ServerRole::Bastion)
+            ->count())->toBe(1);
+    });
 
 test('creates bastion server with cloud-init and ssh keys',
     /**
