@@ -77,10 +77,16 @@ final class ProcessProvisioningStep implements ShouldQueue
         $nextStep = $currentStep->nextStep();
 
         DB::transaction(function () use ($nextStep): void {
-            $this->infrastructure->update([
+            $updateData = [
                 'provisioning_step' => $nextStep,
                 'provisioning_phase' => $nextStep?->phase(),
-            ]);
+            ];
+
+            if ($nextStep === null || $nextStep->isTerminal()) {
+                $updateData['status'] = InfrastructureStatus::Healthy;
+            }
+
+            $this->infrastructure->update($updateData);
         });
 
         if ($nextStep !== null && ! $nextStep->isTerminal()) {

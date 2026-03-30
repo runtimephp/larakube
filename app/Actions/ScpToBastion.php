@@ -78,7 +78,7 @@ final readonly class ScpToBastion implements StepHandler
 
             $this->scp(
                 $sshOptions,
-                base_path('infrastructure/playbooks'),
+                base_path('infrastructure/playbooks').'/',
                 "ubuntu@{$bastion->ipv4}:/home/ubuntu/playbooks",
                 recursive: true,
             );
