@@ -87,7 +87,7 @@ test('destroys all infrastructure resources and resets status',
 
         $infrastructure->refresh();
 
-        expect($infrastructure->status)->toBe(InfrastructureStatus::Healthy)
+        expect($infrastructure->status)->toBe(InfrastructureStatus::Destroyed)
             ->and($infrastructure->provisioning_step)->toBeNull()
             ->and($infrastructure->provisioning_phase)->toBeNull();
     });

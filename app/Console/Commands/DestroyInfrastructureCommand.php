@@ -103,7 +103,7 @@ final class DestroyInfrastructureCommand extends AuthenticatedCommand
             });
 
         $infrastructure->update([
-            'status' => InfrastructureStatus::Healthy,
+            'status' => InfrastructureStatus::Destroyed,
             'provisioning_step' => null,
             'provisioning_phase' => null,
         ]);
