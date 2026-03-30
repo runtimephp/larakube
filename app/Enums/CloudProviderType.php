@@ -24,7 +24,7 @@ enum CloudProviderType: string
     public function bastionSpec(): ServerSpecData
     {
         return match ($this) {
-            self::Hetzner => new ServerSpecData(type: 'cx22', image: 'ubuntu-24.04', region: 'hel1'),
+            self::Hetzner => new ServerSpecData(type: 'cpx22', image: 'ubuntu-24.04', region: 'hel1'),
             self::DigitalOcean => new ServerSpecData(type: 's-1vcpu-2gb', image: 'ubuntu-24-04-x64', region: 'ams3'),
             self::Multipass => new ServerSpecData(type: 'custom', image: 'noble', region: 'local', cpus: 1, memory: '1G', disk: '10G'),
         };
@@ -33,7 +33,7 @@ enum CloudProviderType: string
     public function controlPlaneSpec(): ServerSpecData
     {
         return match ($this) {
-            self::Hetzner => new ServerSpecData(type: 'cx32', image: 'ubuntu-24.04', region: 'hel1'),
+            self::Hetzner => new ServerSpecData(type: 'cpx32', image: 'ubuntu-24.04', region: 'hel1'),
             self::DigitalOcean => new ServerSpecData(type: 's-4vcpu-8gb', image: 'ubuntu-24-04-x64', region: 'ams3'),
             self::Multipass => new ServerSpecData(type: 'custom', image: 'noble', region: 'local', cpus: 2, memory: '4G', disk: '20G'),
         };
@@ -42,7 +42,7 @@ enum CloudProviderType: string
     public function workerSpec(): ServerSpecData
     {
         return match ($this) {
-            self::Hetzner => new ServerSpecData(type: 'cx32', image: 'ubuntu-24.04', region: 'hel1'),
+            self::Hetzner => new ServerSpecData(type: 'cpx32', image: 'ubuntu-24.04', region: 'hel1'),
             self::DigitalOcean => new ServerSpecData(type: 's-4vcpu-8gb', image: 'ubuntu-24-04-x64', region: 'ams3'),
             self::Multipass => new ServerSpecData(type: 'custom', image: 'noble', region: 'local', cpus: 2, memory: '2G', disk: '20G'),
         };
