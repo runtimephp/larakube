@@ -27,26 +27,30 @@ final readonly class GenerateSshKeypairs implements StepHandler
             return;
         }
 
-        $bastionKeypair = $this->generator->generate('kuven@bastion');
+        if (! $hasBastionKey) {
+            $bastionKeypair = $this->generator->generate('kuven@bastion');
 
-        $this->createSshKey->handle(
-            infrastructure: $infrastructure,
-            name: "{$infrastructure->name}-bastion",
-            fingerprint: md5($bastionKeypair->publicKey),
-            publicKey: mb_trim($bastionKeypair->publicKey),
-            purpose: SshKeyPurpose::Bastion,
-            privateKey: $bastionKeypair->privateKey,
-        );
+            $this->createSshKey->handle(
+                infrastructure: $infrastructure,
+                name: "{$infrastructure->name}-bastion",
+                fingerprint: md5($bastionKeypair->publicKey),
+                publicKey: mb_trim($bastionKeypair->publicKey),
+                purpose: SshKeyPurpose::Bastion,
+                privateKey: $bastionKeypair->privateKey,
+            );
+        }
 
-        $nodeKeypair = $this->generator->generate('kuven@node');
+        if (! $hasNodeKey) {
+            $nodeKeypair = $this->generator->generate('kuven@node');
 
-        $this->createSshKey->handle(
-            infrastructure: $infrastructure,
-            name: "{$infrastructure->name}-node",
-            fingerprint: md5($nodeKeypair->publicKey),
-            publicKey: mb_trim($nodeKeypair->publicKey),
-            purpose: SshKeyPurpose::Node,
-            privateKey: $nodeKeypair->privateKey,
-        );
+            $this->createSshKey->handle(
+                infrastructure: $infrastructure,
+                name: "{$infrastructure->name}-node",
+                fingerprint: md5($nodeKeypair->publicKey),
+                publicKey: mb_trim($nodeKeypair->publicKey),
+                purpose: SshKeyPurpose::Node,
+                privateKey: $nodeKeypair->privateKey,
+            );
+        }
     }
 }
