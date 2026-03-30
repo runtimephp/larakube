@@ -1,0 +1,58 @@
+---
+# Initialize the first control plane node with kubeadm.
+# Skips kube-proxy addon (Cilium replaces it).
+
+- name: Check if kubeadm has already been initialized
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_init_check
+
+- name: Generate kubeadm init config
+  ansible.builtin.template:
+    src: kubeadm-config.yml.j2
+    dest: /etc/kubernetes/kubeadm-config.yml
+    mode: "0644"
+  when: not kubeadm_init_check.stat.exists
+
+- name: Initialize kubeadm (skip kube-proxy for Cilium)
+  ansible.builtin.command: >
+    kubeadm init
+    --config /etc/kubernetes/kubeadm-config.yml
+    --skip-phases=addon/kube-proxy
+    --upload-certs
+  register: kubeadm_init_output
+  when: not kubeadm_init_check.stat.exists
+  changed_when: kubeadm_init_output.rc == 0
+
+- name: Create .kube directory for root
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: "0700"
+
+- name: Copy admin.conf to root's .kube/config
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: true
+    mode: "0600"
+
+- name: Generate join command for workers
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: worker_join_command
+  changed_when: false
+
+- name: Store worker join command
+  ansible.builtin.set_fact:
+    kubeadm_worker_join_command: "{{ worker_join_command.stdout }}"
+
+- name: Generate certificate key for control plane join (HA)
+  ansible.builtin.command: kubeadm init phase upload-certs --upload-certs
+  register: cert_key_output
+  changed_when: false
+  when: groups['controlplane'] | length > 1
+
+- name: Store certificate key
+  ansible.builtin.set_fact:
+    kubeadm_cert_key: "{{ cert_key_output.stdout_lines[-1] }}"
+  when: groups['controlplane'] | length > 1
