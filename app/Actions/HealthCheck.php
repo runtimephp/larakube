@@ -17,7 +17,7 @@ final readonly class HealthCheck implements StepHandler
     {
         $output = $this->ssh->execute(
             $infrastructure,
-            'kubectl get nodes --no-headers',
+            'sudo kubectl --kubeconfig=/root/.kube/config get nodes --no-headers',
         );
 
         $lines = array_filter(explode("\n", mb_trim($output)));
