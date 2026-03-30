@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Contracts\StepHandler;
 use App\Enums\ServerRole;
 use App\Enums\SshKeyPurpose;
+use App\Exceptions\RetryStepException;
 use App\Models\Infrastructure;
 use App\Queries\ServerQuery;
 use App\Queries\SshKeyQuery;
@@ -116,7 +117,13 @@ final readonly class ScpToBastion implements StepHandler
         $process->run();
 
         if (! $process->isSuccessful()) {
-            throw new RuntimeException('SCP failed: '.$process->getErrorOutput());
+            $error = $process->getErrorOutput();
+
+            if (str_contains($error, 'Connection refused') || str_contains($error, 'Connection timed out') || str_contains($error, 'No route to host')) {
+                throw new RetryStepException('SCP connection failed (server may still be booting): '.$error);
+            }
+
+            throw new RuntimeException('SCP failed: '.$error);
         }
     }
 }

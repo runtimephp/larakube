@@ -133,6 +133,9 @@ test('create returns network data', function (): void {
                 'ip_range' => '10.0.0.0/16',
             ],
         ]),
+        'api.hetzner.cloud/v1/networks/123/actions/add_subnet' => Http::response([
+            'action' => ['id' => 1, 'status' => 'success'],
+        ]),
     ]);
 
     $service = new HetznerNetworkService('token');
