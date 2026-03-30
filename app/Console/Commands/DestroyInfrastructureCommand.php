@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Enums\InfrastructureStatus;
-use App\Models\Firewall;
-use App\Models\Infrastructure;
-use App\Models\Network;
-use App\Models\Server;
-use App\Models\SshKey;
-use App\Services\CloudProviderFactory;
-use Throwable;
+use App\Actions\DestroyInfrastructure;
+use App\Models\Organization;
+use App\Queries\InfrastructureQuery;
 
 final class DestroyInfrastructureCommand extends AuthenticatedCommand
 {
@@ -23,12 +18,15 @@ final class DestroyInfrastructureCommand extends AuthenticatedCommand
 
     protected bool $requiresInfrastructure = true;
 
-    private int $failures = 0;
-
-    public function handleCommand(CloudProviderFactory $factory): int
+    public function handleCommand(InfrastructureQuery $query, DestroyInfrastructure $action): int
     {
-        /** @var Infrastructure|null $infrastructure */
-        $infrastructure = Infrastructure::query()->find($this->infrastructure->id);
+        /** @var Organization $organization */
+        $organization = Organization::query()->findOrFail($this->organization->id);
+
+        $infrastructure = ($query)()
+            ->byId($this->infrastructure->id)
+            ->byOrganization($organization)
+            ->first();
 
         if ($infrastructure === null) {
             $this->components->error('Infrastructure not found.');
@@ -42,92 +40,19 @@ final class DestroyInfrastructureCommand extends AuthenticatedCommand
             return self::FAILURE;
         }
 
-        $provider = $infrastructure->cloudProvider;
-        $serverService = $factory->makeServerService($provider->type, $provider->api_token);
-        $sshKeyService = $factory->makeSshKeyService($provider->type, $provider->api_token);
-        $networkService = $factory->makeNetworkService($provider->type, $provider->api_token);
-        $firewallService = $factory->makeFirewallService($provider->type, $provider->api_token);
+        $this->components->info('Destroying infrastructure resources...');
 
-        $this->components->info('Destroying servers...');
-        Server::query()
-            ->where('infrastructure_id', $infrastructure->id)
-            ->get()
-            ->each(function (Server $server) use ($serverService): void {
-                $this->tryCloudDelete(
-                    fn (): bool => $serverService->destroy($server->external_id),
-                    "server: {$server->name}",
-                );
-                $server->delete();
-            });
+        $failures = $action->handle($infrastructure);
 
-        $this->components->info('Destroying firewalls...');
-        Firewall::query()
-            ->where('infrastructure_id', $infrastructure->id)
-            ->get()
-            ->each(function (Firewall $firewall) use ($firewallService): void {
-                if ($firewall->external_firewall_id) {
-                    $this->tryCloudDelete(
-                        fn (): bool => $firewallService->delete($firewall->external_firewall_id),
-                        "firewall: {$firewall->name}",
-                    );
-                }
-                $firewall->delete();
-            });
-
-        $this->components->info('Destroying networks...');
-        Network::query()
-            ->where('infrastructure_id', $infrastructure->id)
-            ->get()
-            ->each(function (Network $network) use ($networkService): void {
-                if ($network->external_network_id) {
-                    $this->tryCloudDelete(
-                        fn (): bool => $networkService->delete($network->external_network_id),
-                        "network: {$network->name}",
-                    );
-                }
-                $network->delete();
-            });
-
-        $this->components->info('Destroying SSH keys...');
-        SshKey::query()
-            ->where('infrastructure_id', $infrastructure->id)
-            ->get()
-            ->each(function (SshKey $key) use ($sshKeyService): void {
-                if ($key->external_ssh_key_id) {
-                    $this->tryCloudDelete(
-                        fn (): bool => $sshKeyService->delete($key->external_ssh_key_id),
-                        "SSH key: {$key->name}",
-                    );
-                }
-                $key->delete();
-            });
-
-        $infrastructure->update([
-            'status' => InfrastructureStatus::Destroyed,
-            'provisioning_step' => null,
-            'provisioning_phase' => null,
-        ]);
-
-        if ($this->failures > 0) {
-            $this->components->warn("Infrastructure \"{$infrastructure->name}\" destroyed with {$this->failures} cloud API failure(s). DB records cleaned. Check cloud console for orphaned resources.");
+        if ($failures !== []) {
+            $this->components->warn('Destroyed with '.count($failures).' cloud API failure(s). Check cloud console for orphaned resources:');
+            foreach ($failures as $failure) {
+                $this->line("  - {$failure}");
+            }
         } else {
             $this->components->info("Infrastructure \"{$infrastructure->name}\" destroyed successfully.");
         }
 
         return self::SUCCESS;
-    }
-
-    /**
-     * @param  callable(): bool  $callback
-     */
-    private function tryCloudDelete(callable $callback, string $resource): void
-    {
-        try {
-            $callback();
-            $this->line("  Deleted {$resource}");
-        } catch (Throwable $e) {
-            $this->failures++;
-            $this->components->warn("  Failed to delete {$resource}: {$e->getMessage()}");
-        }
     }
 }

@@ -8,7 +8,8 @@ use App\Enums\InfrastructureStatus;
 use App\Enums\ProvisioningPhase;
 use App\Enums\ProvisioningStep;
 use App\Jobs\ProcessProvisioningStep;
-use App\Models\Infrastructure;
+use App\Models\Organization;
+use App\Queries\InfrastructureQuery;
 
 final class ProvisionInfrastructureCommand extends AuthenticatedCommand
 {
@@ -20,10 +21,15 @@ final class ProvisionInfrastructureCommand extends AuthenticatedCommand
 
     protected bool $requiresInfrastructure = true;
 
-    public function handleCommand(): int
+    public function handleCommand(InfrastructureQuery $query): int
     {
-        /** @var Infrastructure|null $infrastructure */
-        $infrastructure = Infrastructure::query()->find($this->infrastructure->id);
+        /** @var Organization $organization */
+        $organization = Organization::query()->findOrFail($this->organization->id);
+
+        $infrastructure = ($query)()
+            ->byId($this->infrastructure->id)
+            ->byOrganization($organization)
+            ->first();
 
         if ($infrastructure === null) {
             $this->components->error('Infrastructure not found.');
