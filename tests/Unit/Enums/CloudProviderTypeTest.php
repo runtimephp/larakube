@@ -9,7 +9,7 @@ test('bastion spec returns hetzner defaults', function (): void {
     $spec = CloudProviderType::Hetzner->bastionSpec();
 
     expect($spec)->toBeInstanceOf(ServerSpecData::class)
-        ->and($spec->type)->toBe('cx22')
+        ->and($spec->type)->toBe('cpx22')
         ->and($spec->image)->toBe('ubuntu-24.04')
         ->and($spec->region)->toBe('hel1')
         ->and($spec->cpus)->toBeNull()
@@ -33,7 +33,7 @@ test('control plane spec returns hetzner defaults', function (): void {
     $spec = CloudProviderType::Hetzner->controlPlaneSpec();
 
     expect($spec)->toBeInstanceOf(ServerSpecData::class)
-        ->and($spec->type)->toBe('cx32')
+        ->and($spec->type)->toBe('cpx32')
         ->and($spec->image)->toBe('ubuntu-24.04');
 });
 
@@ -50,7 +50,7 @@ test('worker spec returns hetzner defaults', function (): void {
     $spec = CloudProviderType::Hetzner->workerSpec();
 
     expect($spec)->toBeInstanceOf(ServerSpecData::class)
-        ->and($spec->type)->toBe('cx32');
+        ->and($spec->type)->toBe('cpx32');
 });
 
 test('worker spec returns multipass defaults', function (): void {
