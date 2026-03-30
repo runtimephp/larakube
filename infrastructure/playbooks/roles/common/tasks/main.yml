@@ -82,8 +82,8 @@
 
 - name: Generate default containerd config
   ansible.builtin.shell: containerd config default > /etc/containerd/config.toml
-  args:
-    creates: /etc/containerd/config.toml
+  changed_when: true
+  notify: Restart containerd
 
 - name: Enable SystemdCgroup in containerd
   ansible.builtin.replace:
@@ -97,6 +97,11 @@
     name: containerd
     state: restarted
     daemon_reload: true
+
+- name: Wait for containerd socket
+  ansible.builtin.wait_for:
+    path: /var/run/containerd/containerd.sock
+    timeout: 30
 
 - name: Enable containerd
   ansible.builtin.systemd:
