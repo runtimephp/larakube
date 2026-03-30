@@ -47,6 +47,7 @@
       - curl
       - gnupg
       - software-properties-common
+      - conntrack
     state: present
     update_cache: true
 
@@ -91,7 +92,13 @@
     replace: 'SystemdCgroup = true'
   notify: Restart containerd
 
-- name: Enable and start containerd
+- name: Restart containerd to apply config
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted
+    daemon_reload: true
+
+- name: Enable containerd
   ansible.builtin.systemd:
     name: containerd
     enabled: true
