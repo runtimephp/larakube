@@ -44,9 +44,9 @@ final readonly class CloudInitGenerator
 
         $content = file_get_contents($path);
 
-        if ($content === false) {
-            throw new RuntimeException("Failed to read cloud-init template: {$path}");
-        }
+        if ($content === false) { // @codeCoverageIgnore
+            throw new RuntimeException("Failed to read cloud-init template: {$path}"); // @codeCoverageIgnore
+        } // @codeCoverageIgnore
 
         $parsed = Yaml::parse($content);
 

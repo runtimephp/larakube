@@ -11,8 +11,130 @@ use App\Jobs\ProcessProvisioningStep;
 use App\Models\Infrastructure;
 use App\Models\Server;
 use App\Services\CloudProviderFactory;
+use App\Services\InMemory\InMemoryCloudProviderFactory;
 use App\Services\InMemory\InMemoryHetznerServerService;
 use Illuminate\Support\Facades\Bus;
+
+test('display name shows complete when step is null',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->createQuietly([
+            'status' => InfrastructureStatus::Healthy,
+            'provisioning_step' => null,
+            'provisioning_phase' => null,
+        ]);
+
+        $job = new ProcessProvisioningStep($infrastructure);
+
+        expect($job->displayName())->toBe('ProcessProvisioningStep [Complete]');
+    });
+
+test('display name shows step label when step is set',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->provisioning()->createQuietly();
+
+        $job = new ProcessProvisioningStep($infrastructure);
+
+        expect($job->displayName())->toBe('ProcessProvisioningStep [Generate SSH Keypairs]');
+    });
+
+test('throws runtime exception when max retries exceeded',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->createQuietly([
+            'status' => InfrastructureStatus::Provisioning,
+            'provisioning_step' => ProvisioningStep::WaitForBastion,
+            'provisioning_phase' => ProvisioningPhase::Infrastructure,
+        ]);
+
+        $serverService = new InMemoryHetznerServerService();
+        $factory = new InMemoryCloudProviderFactory(serverService: $serverService);
+        $this->app->instance(CloudProviderFactory::class, $factory);
+
+        Server::factory()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+            'cloud_provider_id' => $infrastructure->cloud_provider_id,
+            'role' => ServerRole::Bastion,
+            'status' => ServerStatus::Starting,
+            'name' => 'test-bastion',
+        ]);
+
+        $job = new ProcessProvisioningStep($infrastructure, stepRetries: 40);
+
+        expect(fn () => $job->handle())->toThrow(RuntimeException::class, 'exceeded maximum retries');
+    });
+
+test('sets healthy when null step is reached',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Bus::fake([ProcessProvisioningStep::class]);
+
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->createQuietly([
+            'status' => InfrastructureStatus::Provisioning,
+            'provisioning_step' => null,
+            'provisioning_phase' => null,
+        ]);
+
+        $job = new ProcessProvisioningStep($infrastructure);
+        $job->handle();
+
+        $infrastructure->refresh();
+
+        expect($infrastructure->status)->toBe(InfrastructureStatus::Healthy);
+
+        Bus::assertNotDispatched(ProcessProvisioningStep::class);
+    });
+
+test('sets healthy when WaitForNodes completes and next step is terminal-adjacent',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Bus::fake([ProcessProvisioningStep::class]);
+
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->createQuietly([
+            'status' => InfrastructureStatus::Provisioning,
+            'provisioning_step' => ProvisioningStep::WaitForNodes,
+            'provisioning_phase' => ProvisioningPhase::Infrastructure,
+        ]);
+
+        $serverService = new InMemoryHetznerServerService();
+        $factory = new InMemoryCloudProviderFactory(serverService: $serverService);
+        $this->app->instance(CloudProviderFactory::class, $factory);
+
+        // WaitForNodes needs all non-bastion servers running
+        Server::factory()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+            'cloud_provider_id' => $infrastructure->cloud_provider_id,
+            'role' => ServerRole::ControlPlane,
+            'status' => ServerStatus::Running,
+            'name' => 'test-cp-1',
+        ]);
+
+        $job = new ProcessProvisioningStep($infrastructure);
+        $job->handle();
+
+        $infrastructure->refresh();
+
+        // Next step after WaitForNodes is GenerateInventory which is not terminal
+        expect($infrastructure->provisioning_step)->toBe(ProvisioningStep::GenerateInventory);
+
+        Bus::assertDispatched(ProcessProvisioningStep::class);
+    });
 
 test('advances to next step and dispatches itself',
     /**

@@ -11,6 +11,32 @@ use App\Queries\SshKeyQuery;
 use App\Services\SshKeyGenerator;
 use Symfony\Component\Process\Process;
 
+test('returns early when both keys already exist',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->provisioning()->createQuietly();
+
+        SshKey::factory()->bastion()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+        ]);
+
+        SshKey::factory()->node()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+        ]);
+
+        $generator = new SshKeyGenerator(function (array $command): Process {
+            throw new RuntimeException('Should not be called');
+        });
+
+        $action = new GenerateSshKeypairs($generator, new CreateSshKey(), new SshKeyQuery());
+        $action->handle($infrastructure);
+
+        expect(SshKey::where('infrastructure_id', $infrastructure->id)->count())->toBe(2);
+    });
+
 test('generates bastion and node keypairs and stores them',
     /**
      * @throws Throwable

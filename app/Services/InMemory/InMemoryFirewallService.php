@@ -20,6 +20,8 @@ final class InMemoryFirewallService implements FirewallService
 
     private bool $failDelete = false;
 
+    private bool $throwOnDelete = false;
+
     private int $nextId = 1;
 
     public function __construct()
@@ -50,6 +52,13 @@ final class InMemoryFirewallService implements FirewallService
     public function shouldFailDelete(bool $fail = true): self
     {
         $this->failDelete = $fail;
+
+        return $this;
+    }
+
+    public function shouldThrowOnDelete(bool $throw = true): self
+    {
+        $this->throwOnDelete = $throw;
 
         return $this;
     }
@@ -107,6 +116,10 @@ final class InMemoryFirewallService implements FirewallService
 
     public function delete(string $id): bool
     {
+        if ($this->throwOnDelete) {
+            throw new RuntimeException('Simulated API failure on delete');
+        }
+
         if ($this->failDelete) {
             return false;
         }

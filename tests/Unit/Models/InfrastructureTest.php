@@ -14,6 +14,7 @@ use App\Models\LoadBalancer;
 use App\Models\Network;
 use App\Models\Organization;
 use App\Models\Region;
+use App\Models\Server;
 use App\Models\SshKey;
 use App\Models\Storage;
 use Carbon\CarbonImmutable;
@@ -229,6 +230,24 @@ test('has many backups',
         expect($infrastructure->backups)->toHaveCount(1)
             ->and($infrastructure->backups->first())->toBeInstanceOf(Backup::class)
             ->and($infrastructure->backups->first()->id)->toBe($backup->id);
+    });
+
+test('has many servers',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->create();
+
+        /** @var Server $server */
+        $server = Server::factory()->create([
+            'infrastructure_id' => $infrastructure->id,
+        ]);
+
+        expect($infrastructure->servers)->toHaveCount(1)
+            ->and($infrastructure->servers->first())->toBeInstanceOf(Server::class)
+            ->and($infrastructure->servers->first()->id)->toBe($server->id);
     });
 
 test('has many ssh keys',

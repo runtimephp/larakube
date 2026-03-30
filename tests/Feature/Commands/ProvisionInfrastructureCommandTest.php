@@ -23,6 +23,39 @@ beforeEach(
         $this->app->singleton(SessionManager::class);
     });
 
+test('fails when infrastructure is not found',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->create([
+            'email' => 'missing@example.com',
+            'password' => 'password123',
+        ]);
+
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+        $organization->users()->attach($user, ['role' => 'owner']);
+
+        $userData = app(LoginUser::class)->handle('missing@example.com', 'password123');
+        $session = app(SessionManager::class);
+        $session->setUser($userData);
+        $session->setOrganization(new SessionOrganizationData(
+            id: $organization->id,
+            name: $organization->name,
+            slug: $organization->slug,
+        ));
+        $session->setInfrastructure(new SessionInfrastructureData(
+            id: '00000000-0000-0000-0000-000000000099',
+            name: 'nonexistent',
+        ));
+
+        $this->artisan('infrastructure:provision')
+            ->expectsOutputToContain('Infrastructure not found')
+            ->assertFailed();
+    });
+
 test('dispatches provisioning job for infrastructure',
     /**
      * @throws Throwable

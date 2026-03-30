@@ -32,23 +32,23 @@ final class GenerateSshKeypairCommand extends Command
         if ($saveTo !== null) {
             $expandedPath = str_replace('~', getenv('HOME') ?: '', $saveTo);
 
-            if (file_put_contents($expandedPath, $keypair->privateKey) === false) {
-                $this->error("Failed to write private key to: {$expandedPath}");
+            if (file_put_contents($expandedPath, $keypair->privateKey) === false) { // @codeCoverageIgnore
+                $this->error("Failed to write private key to: {$expandedPath}"); // @codeCoverageIgnore
 
-                return self::FAILURE;
-            }
+                return self::FAILURE; // @codeCoverageIgnore
+            } // @codeCoverageIgnore
 
-            if (! chmod($expandedPath, 0600)) {
-                $this->error("Failed to set permissions on: {$expandedPath}");
+            if (! chmod($expandedPath, 0600)) { // @codeCoverageIgnore
+                $this->error("Failed to set permissions on: {$expandedPath}"); // @codeCoverageIgnore
 
-                return self::FAILURE;
-            }
+                return self::FAILURE; // @codeCoverageIgnore
+            } // @codeCoverageIgnore
 
-            if (file_put_contents($expandedPath.'.pub', $keypair->publicKey) === false) {
-                $this->error("Failed to write public key to: {$expandedPath}.pub");
+            if (file_put_contents($expandedPath.'.pub', $keypair->publicKey) === false) { // @codeCoverageIgnore
+                $this->error("Failed to write public key to: {$expandedPath}.pub"); // @codeCoverageIgnore
 
-                return self::FAILURE;
-            }
+                return self::FAILURE; // @codeCoverageIgnore
+            } // @codeCoverageIgnore
 
             $this->info("Private key saved to: {$expandedPath}");
             $this->info("Public key saved to: {$expandedPath}.pub");

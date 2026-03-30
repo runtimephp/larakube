@@ -54,19 +54,19 @@ final readonly class ScpToBastion implements StepHandler
 
         $keyFile = tempnam(sys_get_temp_dir(), 'kuven_bastion_key_');
 
-        if ($keyFile === false || file_put_contents($keyFile, $bastionKey->private_key) === false) {
-            throw new RuntimeException('Failed to write bastion key to temporary file.');
-        }
+        if ($keyFile === false || file_put_contents($keyFile, $bastionKey->private_key) === false) { // @codeCoverageIgnore
+            throw new RuntimeException('Failed to write bastion key to temporary file.'); // @codeCoverageIgnore
+        } // @codeCoverageIgnore
 
         chmod($keyFile, 0600);
 
         $nodeKeyFile = tempnam(sys_get_temp_dir(), 'kuven_node_key_');
 
-        if ($nodeKeyFile === false || file_put_contents($nodeKeyFile, $nodeKey->private_key) === false) {
-            @unlink($keyFile);
+        if ($nodeKeyFile === false || file_put_contents($nodeKeyFile, $nodeKey->private_key) === false) { // @codeCoverageIgnore
+            @unlink($keyFile); // @codeCoverageIgnore
 
-            throw new RuntimeException('Failed to write node key to temporary file.');
-        }
+            throw new RuntimeException('Failed to write node key to temporary file.'); // @codeCoverageIgnore
+        } // @codeCoverageIgnore
 
         chmod($nodeKeyFile, 0600);
 

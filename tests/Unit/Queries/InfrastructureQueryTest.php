@@ -8,10 +8,32 @@ use App\Models\Infrastructure;
 use App\Models\Organization;
 use App\Queries\InfrastructureQuery;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 beforeEach(function (): void {
     $this->query = app(InfrastructureQuery::class);
 });
+
+test('first or fail throws when not found',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        ($this->query)()->byId('nonexistent-id')->firstOrFail();
+    })->throws(ModelNotFoundException::class);
+
+test('first or fail returns infrastructure when found',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->createQuietly();
+
+        $result = ($this->query)()->byId($infrastructure->id)->firstOrFail();
+
+        expect($result->id)->toBe($infrastructure->id);
+    });
 
 test('returns all infrastructures',
     /**

@@ -7,6 +7,94 @@ use App\Enums\ServerStatus;
 use App\Services\HetznerServerService;
 use Illuminate\Support\Facades\Http;
 
+test('create sends cloud init user data when provided', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/servers' => Http::response([
+            'server' => [
+                'id' => 789,
+                'name' => 'bastion-1',
+                'status' => 'initializing',
+                'server_type' => ['name' => 'cx22'],
+                'datacenter' => ['name' => 'hel1-dc2'],
+                'public_net' => ['ipv4' => ['ip' => '1.2.3.4'], 'ipv6' => ['ip' => null]],
+            ],
+        ]),
+    ]);
+
+    $service = new HetznerServerService('token');
+    $service->create(new CreateServerData(
+        name: 'bastion-1',
+        type: 'cx22',
+        image: 'ubuntu-24.04',
+        region: 'hel1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+        cloudInit: '#cloud-config\npackages:\n  - curl',
+    ));
+
+    Http::assertSent(fn($request) => $request->data()['user_data'] === '#cloud-config\npackages:\n  - curl');
+});
+
+test('create disables public net when public ip is false', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/servers' => Http::response([
+            'server' => [
+                'id' => 789,
+                'name' => 'worker-1',
+                'status' => 'initializing',
+                'server_type' => ['name' => 'cpx32'],
+                'datacenter' => ['name' => 'hel1-dc2'],
+                'public_net' => ['ipv4' => ['ip' => null], 'ipv6' => ['ip' => null]],
+                'private_net' => [['ip' => '10.0.0.5']],
+            ],
+        ]),
+    ]);
+
+    $service = new HetznerServerService('token');
+    $service->create(new CreateServerData(
+        name: 'worker-1',
+        type: 'cpx32',
+        image: 'ubuntu-24.04',
+        region: 'hel1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+        publicIp: false,
+    ));
+
+    Http::assertSent(function ($request) {
+        $data = $request->data();
+
+        return isset($data['public_net'])
+            && $data['public_net']['enable_ipv4'] === false
+            && $data['public_net']['enable_ipv6'] === false;
+    });
+});
+
+test('create sends network id when provided', function (): void {
+    Http::fake([
+        'api.hetzner.cloud/v1/servers' => Http::response([
+            'server' => [
+                'id' => 789,
+                'name' => 'worker-1',
+                'status' => 'initializing',
+                'server_type' => ['name' => 'cpx32'],
+                'datacenter' => ['name' => 'hel1-dc2'],
+                'public_net' => ['ipv4' => ['ip' => '1.2.3.4'], 'ipv6' => ['ip' => null]],
+            ],
+        ]),
+    ]);
+
+    $service = new HetznerServerService('token');
+    $service->create(new CreateServerData(
+        name: 'worker-1',
+        type: 'cpx32',
+        image: 'ubuntu-24.04',
+        region: 'hel1',
+        infrastructure_id: '00000000-0000-0000-0000-000000000001',
+        networkId: '456',
+    ));
+
+    Http::assertSent(fn($request) => $request->data()['networks'] === [456]);
+});
+
 test('get all returns collection of server data', function (): void {
     Http::fake([
         'api.hetzner.cloud/v1/servers' => Http::response([
@@ -99,9 +187,7 @@ test('create does not send ssh keys when not provided', function (): void {
         infrastructure_id: '00000000-0000-0000-0000-000000000001',
     ));
 
-    Http::assertSent(function ($request) {
-        return ! array_key_exists('ssh_keys', $request->data());
-    });
+    Http::assertSent(fn($request) => ! array_key_exists('ssh_keys', $request->data()));
 });
 
 test('create returns server data', function (): void {

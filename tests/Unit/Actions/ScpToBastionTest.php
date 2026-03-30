@@ -5,12 +5,83 @@ declare(strict_types=1);
 use App\Actions\ScpToBastion;
 use App\Enums\ServerRole;
 use App\Enums\ServerStatus;
+use App\Exceptions\RetryStepException;
 use App\Models\Infrastructure;
 use App\Models\Server;
 use App\Models\SshKey;
 use App\Queries\ServerQuery;
 use App\Queries\SshKeyQuery;
 use Symfony\Component\Process\Process;
+
+test('throws retry step exception on connection refused',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->provisioning()->createQuietly();
+
+        SshKey::factory()->bastion()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+        ]);
+
+        SshKey::factory()->node()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+            'private_key' => 'fake-node-private-key',
+        ]);
+
+        Server::factory()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+            'role' => ServerRole::Bastion,
+            'status' => ServerStatus::Running,
+            'ipv4' => '192.168.64.10',
+        ]);
+
+        $processFactory = function (array $command): Process {
+            $process = Process::fromShellCommandline('echo "Connection refused" >&2 && exit 1');
+            $process->run();
+
+            return $process;
+        };
+
+        $action = new ScpToBastion(new ServerQuery(), new SshKeyQuery(), $processFactory);
+        $action->handle($infrastructure);
+    })->throws(RetryStepException::class, 'Connection refused');
+
+test('throws runtime exception on fatal scp failure',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Infrastructure $infrastructure */
+        $infrastructure = Infrastructure::factory()->provisioning()->createQuietly();
+
+        SshKey::factory()->bastion()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+        ]);
+
+        SshKey::factory()->node()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+            'private_key' => 'fake-node-private-key',
+        ]);
+
+        Server::factory()->createQuietly([
+            'infrastructure_id' => $infrastructure->id,
+            'role' => ServerRole::Bastion,
+            'status' => ServerStatus::Running,
+            'ipv4' => '192.168.64.10',
+        ]);
+
+        $processFactory = function (array $command): Process {
+            $process = Process::fromShellCommandline('echo "Permission denied" >&2 && exit 1');
+            $process->run();
+
+            return $process;
+        };
+
+        $action = new ScpToBastion(new ServerQuery(), new SshKeyQuery(), $processFactory);
+        $action->handle($infrastructure);
+    })->throws(RuntimeException::class, 'SCP failed');
 
 test('scps playbooks and node key to bastion',
     /**

@@ -5,6 +5,14 @@ declare(strict_types=1);
 use App\Data\SshKeyData;
 use App\Services\InMemory\InMemorySshKeyService;
 
+test('delete throws when configured to throw on delete', function (): void {
+    $service = new InMemorySshKeyService();
+    $service->addKey(new SshKeyData(externalId: '123', name: 'key-1', fingerprint: 'fp-1', publicKey: 'pk-1'));
+    $service->shouldThrowOnDelete();
+
+    $service->delete('123');
+})->throws(RuntimeException::class, 'Simulated API failure on delete');
+
 test('register stores and returns ssh key data', function (): void {
     $service = new InMemorySshKeyService();
     $key = $service->register('deploy-key', 'ssh-ed25519 AAAA...');
