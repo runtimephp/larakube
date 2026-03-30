@@ -31,7 +31,7 @@ test('create sends cloud init user data when provided', function (): void {
         cloudInit: '#cloud-config\npackages:\n  - curl',
     ));
 
-    Http::assertSent(fn($request) => $request->data()['user_data'] === '#cloud-config\npackages:\n  - curl');
+    Http::assertSent(fn ($request) => $request->data()['user_data'] === '#cloud-config\npackages:\n  - curl');
 });
 
 test('create disables public net when public ip is false', function (): void {
@@ -92,7 +92,7 @@ test('create sends network id when provided', function (): void {
         networkId: '456',
     ));
 
-    Http::assertSent(fn($request) => $request->data()['networks'] === [456]);
+    Http::assertSent(fn ($request) => $request->data()['networks'] === [456]);
 });
 
 test('get all returns collection of server data', function (): void {
@@ -187,7 +187,7 @@ test('create does not send ssh keys when not provided', function (): void {
         infrastructure_id: '00000000-0000-0000-0000-000000000001',
     ));
 
-    Http::assertSent(fn($request) => ! array_key_exists('ssh_keys', $request->data()));
+    Http::assertSent(fn ($request) => ! array_key_exists('ssh_keys', $request->data()));
 });
 
 test('create returns server data', function (): void {
