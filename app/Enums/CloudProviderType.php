@@ -21,6 +21,15 @@ enum CloudProviderType: string
         };
     }
 
+    public function sshUser(): string
+    {
+        return match ($this) {
+            self::Hetzner => 'root',
+            self::DigitalOcean => 'root',
+            self::Multipass => 'ubuntu',
+        };
+    }
+
     public function bastionSpec(): ServerSpecData
     {
         return match ($this) {
