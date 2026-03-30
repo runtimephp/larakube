@@ -20,6 +20,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use LogicException;
+use RuntimeException;
 use Throwable;
 
 final class ProcessProvisioningStep implements ShouldQueue
@@ -28,9 +29,14 @@ final class ProcessProvisioningStep implements ShouldQueue
 
     private const int RETRY_DELAY_SECONDS = 15;
 
+    private const int MAX_RETRIES_PER_STEP = 40;
+
     public int $timeout = 600;
 
-    public function __construct(public Infrastructure $infrastructure) {}
+    public function __construct(
+        public Infrastructure $infrastructure,
+        public int $stepRetries = 0,
+    ) {}
 
     public function displayName(): string
     {
@@ -57,8 +63,12 @@ final class ProcessProvisioningStep implements ShouldQueue
 
         try {
             $handler->handle($this->infrastructure);
-        } catch (RetryStepException) {
-            self::dispatch($this->infrastructure)
+        } catch (RetryStepException $e) {
+            if ($this->stepRetries >= self::MAX_RETRIES_PER_STEP) {
+                throw new RuntimeException("Step [{$currentStep->label()}] exceeded maximum retries ({$this->stepRetries}): {$e->getMessage()}");
+            }
+
+            self::dispatch($this->infrastructure, $this->stepRetries + 1)
                 ->delay(now()->addSeconds(self::RETRY_DELAY_SECONDS));
 
             return;

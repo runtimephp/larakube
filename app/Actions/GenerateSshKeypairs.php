@@ -20,7 +20,10 @@ final readonly class GenerateSshKeypairs implements StepHandler
 
     public function handle(Infrastructure $infrastructure): void
     {
-        if (($this->sshKeyQuery)()->byInfrastructure($infrastructure)->exists()) {
+        $hasBastionKey = ($this->sshKeyQuery)()->byInfrastructure($infrastructure)->byPurpose(SshKeyPurpose::Bastion)->exists();
+        $hasNodeKey = ($this->sshKeyQuery)()->byInfrastructure($infrastructure)->byPurpose(SshKeyPurpose::Node)->exists();
+
+        if ($hasBastionKey && $hasNodeKey) {
             return;
         }
 

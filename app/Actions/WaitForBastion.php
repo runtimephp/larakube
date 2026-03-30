@@ -40,7 +40,9 @@ final readonly class WaitForBastion implements StepHandler
             $bastion->update(['status' => $current->status, 'ipv4' => $current->ipv4]);
         }
 
-        if ($bastion->fresh()->status !== ServerStatus::Running) {
+        $bastion->refresh();
+
+        if ($bastion->status !== ServerStatus::Running) {
             throw new RetryStepException('Bastion server is not yet running. Current status: '.$bastion->status->value);
         }
     }

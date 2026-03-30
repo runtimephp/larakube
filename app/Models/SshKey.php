@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read string $fingerprint
  * @property-read string|null $public_key
  * @property-read SshKeyPurpose $purpose
- * @property-read string|null $external_ssh_key_id
+ * @property string|null $external_ssh_key_id
  * @property-read string|null $private_key
  * @property-read Infrastructure $infrastructure
  */

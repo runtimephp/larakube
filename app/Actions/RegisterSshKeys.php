@@ -31,6 +31,7 @@ final readonly class RegisterSshKeys implements StepHandler
 
                 $key->update([
                     'external_ssh_key_id' => (string) $registered->externalId,
+                    'fingerprint' => $registered->fingerprint,
                 ]);
             });
     }
