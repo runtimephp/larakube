@@ -46,19 +46,18 @@ final readonly class CreateBastion implements StepHandler
         $cloudInitYaml = $this->cloudInit->bastion(bastionPublicKey: $bastionKey->public_key);
         $spec = $provider->type->bastionSpec();
 
-        $server = $this->createServer->handle($provider, new CreateServerData(
+        $this->createServer->handle($provider, new CreateServerData(
             name: "{$infrastructure->name}-bastion",
             type: $spec->type,
             image: $spec->image,
             region: $spec->region,
             infrastructure_id: $infrastructure->id,
+            role: ServerRole::Bastion,
             cpus: $spec->cpus,
             memory: $spec->memory,
             disk: $spec->disk,
             sshKeyIds: $sshKeyIds,
             cloudInit: $cloudInitYaml,
         ));
-
-        $server->update(['role' => ServerRole::Bastion]);
     }
 }
