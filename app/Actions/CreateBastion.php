@@ -9,16 +9,14 @@ use App\Data\CreateServerData;
 use App\Enums\ServerRole;
 use App\Enums\SshKeyPurpose;
 use App\Models\Infrastructure;
-use App\Models\Server;
 use App\Queries\ServerQuery;
 use App\Queries\SshKeyQuery;
 use App\Services\CloudInitGenerator;
-use App\Services\CloudProviderFactory;
 
 final readonly class CreateBastion implements StepHandler
 {
     public function __construct(
-        private CloudProviderFactory $factory,
+        private CreateServer $createServer,
         private CloudInitGenerator $cloudInit,
         private ServerQuery $serverQuery,
         private SshKeyQuery $sshKeyQuery,
@@ -31,7 +29,6 @@ final readonly class CreateBastion implements StepHandler
         }
 
         $provider = $infrastructure->cloudProvider;
-        $serverService = $this->factory->makeServerService($provider->type, $provider->api_token);
 
         $bastionKey = ($this->sshKeyQuery)()
             ->byInfrastructure($infrastructure)
@@ -49,7 +46,7 @@ final readonly class CreateBastion implements StepHandler
         $cloudInitYaml = $this->cloudInit->bastion(bastionPublicKey: $bastionKey->public_key);
         $spec = $provider->type->bastionSpec();
 
-        $serverData = $serverService->create(new CreateServerData(
+        $server = $this->createServer->handle($provider, new CreateServerData(
             name: "{$infrastructure->name}-bastion",
             type: $spec->type,
             image: $spec->image,
@@ -62,18 +59,6 @@ final readonly class CreateBastion implements StepHandler
             cloudInit: $cloudInitYaml,
         ));
 
-        Server::query()->create([
-            'organization_id' => $infrastructure->organization_id,
-            'cloud_provider_id' => $provider->id,
-            'infrastructure_id' => $infrastructure->id,
-            'external_id' => (string) $serverData->externalId,
-            'name' => $serverData->name,
-            'status' => $serverData->status,
-            'type' => $serverData->type,
-            'region' => $serverData->region,
-            'ipv4' => $serverData->ipv4,
-            'ipv6' => $serverData->ipv6,
-            'role' => ServerRole::Bastion,
-        ]);
+        $server->update(['role' => ServerRole::Bastion]);
     }
 }

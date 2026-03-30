@@ -7,7 +7,6 @@ namespace App\Actions;
 use App\Contracts\StepHandler;
 use App\Enums\SshKeyPurpose;
 use App\Models\Infrastructure;
-use App\Models\SshKey;
 use App\Queries\SshKeyQuery;
 use App\Services\SshKeyGenerator;
 
@@ -15,6 +14,7 @@ final readonly class GenerateSshKeypairs implements StepHandler
 {
     public function __construct(
         private SshKeyGenerator $generator,
+        private CreateSshKey $createSshKey,
         private SshKeyQuery $sshKeyQuery,
     ) {}
 
@@ -29,24 +29,24 @@ final readonly class GenerateSshKeypairs implements StepHandler
 
         $bastionKeypair = $this->generator->generate('kuven@bastion');
 
-        SshKey::query()->create([
-            'infrastructure_id' => $infrastructure->id,
-            'name' => "{$infrastructure->name}-bastion",
-            'fingerprint' => md5($bastionKeypair->publicKey),
-            'public_key' => mb_trim($bastionKeypair->publicKey),
-            'private_key' => $bastionKeypair->privateKey,
-            'purpose' => SshKeyPurpose::Bastion,
-        ]);
+        $this->createSshKey->handle(
+            infrastructure: $infrastructure,
+            name: "{$infrastructure->name}-bastion",
+            fingerprint: md5($bastionKeypair->publicKey),
+            publicKey: mb_trim($bastionKeypair->publicKey),
+            purpose: SshKeyPurpose::Bastion,
+            privateKey: $bastionKeypair->privateKey,
+        );
 
         $nodeKeypair = $this->generator->generate('kuven@node');
 
-        SshKey::query()->create([
-            'infrastructure_id' => $infrastructure->id,
-            'name' => "{$infrastructure->name}-node",
-            'fingerprint' => md5($nodeKeypair->publicKey),
-            'public_key' => mb_trim($nodeKeypair->publicKey),
-            'private_key' => $nodeKeypair->privateKey,
-            'purpose' => SshKeyPurpose::Node,
-        ]);
+        $this->createSshKey->handle(
+            infrastructure: $infrastructure,
+            name: "{$infrastructure->name}-node",
+            fingerprint: md5($nodeKeypair->publicKey),
+            publicKey: mb_trim($nodeKeypair->publicKey),
+            purpose: SshKeyPurpose::Node,
+            privateKey: $nodeKeypair->privateKey,
+        );
     }
 }

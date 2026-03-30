@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\CreateBastion;
+use App\Actions\CreateServer;
 use App\Enums\ServerRole;
 use App\Models\CloudProvider;
 use App\Models\Infrastructure;
@@ -41,9 +42,10 @@ test('creates bastion server with cloud-init and ssh keys',
             ->once()
             ->andReturn($serverService);
 
+        $createServer = new CreateServer($factory);
         $cloudInit = new CloudInitGenerator();
 
-        $action = new CreateBastion($factory, $cloudInit, new ServerQuery(), new SshKeyQuery());
+        $action = new CreateBastion($createServer, $cloudInit, new ServerQuery(), new SshKeyQuery());
         $action->handle($infrastructure);
 
         /** @var Server $bastion */

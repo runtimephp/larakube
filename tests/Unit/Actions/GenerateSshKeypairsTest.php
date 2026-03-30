@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\CreateSshKey;
 use App\Actions\GenerateSshKeypairs;
 use App\Enums\SshKeyPurpose;
 use App\Models\Infrastructure;
@@ -41,7 +42,7 @@ test('generates bastion and node keypairs and stores them',
             return $process;
         });
 
-        $action = new GenerateSshKeypairs($generator, new SshKeyQuery());
+        $action = new GenerateSshKeypairs($generator, new CreateSshKey(), new SshKeyQuery());
         $action->handle($infrastructure);
 
         $bastionKey = SshKey::where('infrastructure_id', $infrastructure->id)
