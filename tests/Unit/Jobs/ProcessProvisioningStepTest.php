@@ -200,23 +200,6 @@ test('marks infrastructure failed on exception',
         expect($infrastructure->status)->toBe(InfrastructureStatus::Failed);
     });
 
-test('throws logic exception for unimplemented steps',
-    /**
-     * @throws Throwable
-     */
-    function (): void {
-        /** @var Infrastructure $infrastructure */
-        $infrastructure = Infrastructure::factory()->createQuietly([
-            'status' => InfrastructureStatus::Provisioning,
-            'provisioning_step' => ProvisioningStep::GenerateInventory,
-            'provisioning_phase' => ProvisioningPhase::Configuration,
-        ]);
-
-        $job = new ProcessProvisioningStep($infrastructure);
-
-        expect(fn () => $job->handle())->toThrow(LogicException::class, 'No handler registered');
-    });
-
 test('retries same step with delay on RetryStepException',
     /**
      * @throws Throwable

@@ -9,9 +9,16 @@ use App\Actions\CreateControlPlaneNodes;
 use App\Actions\CreateFirewallForInfrastructure;
 use App\Actions\CreateNetworkForInfrastructure;
 use App\Actions\CreateWorkerNodes;
+use App\Actions\GenerateInventory;
 use App\Actions\GenerateSshKeypairs;
+use App\Actions\HealthCheck;
+use App\Actions\MarkHealthy;
 use App\Actions\RegisterSshKeys;
+use App\Actions\RetrieveKubeconfig;
+use App\Actions\RunAnsible;
+use App\Actions\ScpInventoryToBastion;
 use App\Actions\ScpToBastion;
+use App\Actions\StoreKubeconfig;
 use App\Actions\WaitForBastion;
 use App\Actions\WaitForNodes;
 use App\Contracts\StepHandler;
@@ -22,7 +29,6 @@ use App\Models\Infrastructure;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
-use LogicException;
 use RuntimeException;
 use Throwable;
 
@@ -117,9 +123,13 @@ final class ProcessProvisioningStep implements ShouldQueue
             ProvisioningStep::CreateControlPlaneNodes => app(CreateControlPlaneNodes::class),
             ProvisioningStep::CreateWorkerNodes => app(CreateWorkerNodes::class),
             ProvisioningStep::WaitForNodes => app(WaitForNodes::class),
-
-            // Steps 11-17 will be implemented in #52
-            default => throw new LogicException("No handler registered for provisioning step: {$step->value}"),
+            ProvisioningStep::GenerateInventory => app(GenerateInventory::class),
+            ProvisioningStep::ScpInventory => app(ScpInventoryToBastion::class),
+            ProvisioningStep::RunAnsible => app(RunAnsible::class),
+            ProvisioningStep::RetrieveKubeconfig => app(RetrieveKubeconfig::class),
+            ProvisioningStep::StoreKubeconfig => app(StoreKubeconfig::class),
+            ProvisioningStep::HealthCheck => app(HealthCheck::class),
+            ProvisioningStep::MarkHealthy => app(MarkHealthy::class),
         };
     }
 }
