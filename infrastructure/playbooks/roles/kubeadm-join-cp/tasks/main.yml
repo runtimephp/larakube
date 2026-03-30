@@ -1,0 +1,30 @@
+---
+# Join additional control plane nodes (HA topology).
+# Runs serially (one at a time) to avoid etcd quorum issues.
+
+- name: Check if node has already joined
+  ansible.builtin.stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: kubelet_conf_check
+
+- name: Join as control plane node
+  ansible.builtin.command: >
+    {{ hostvars[groups['controlplane'][0]]['kubeadm_worker_join_command'] }}
+    --control-plane
+    --certificate-key {{ hostvars[groups['controlplane'][0]]['kubeadm_cert_key'] }}
+  when: not kubelet_conf_check.stat.exists
+  register: cp_join_output
+  changed_when: cp_join_output.rc == 0
+
+- name: Create .kube directory for root
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: "0700"
+
+- name: Copy admin.conf to root's .kube/config
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: true
+    mode: "0600"

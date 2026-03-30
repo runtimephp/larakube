@@ -1,0 +1,18 @@
+---
+# Deploy kube-vip as a static pod on control plane nodes.
+# Provides a floating VIP for the Kubernetes API server (HA topology).
+# Only applied when kube_vip_address is defined.
+
+- name: Check if kube-vip manifest exists
+  ansible.builtin.stat:
+    path: /etc/kubernetes/manifests/kube-vip.yaml
+  register: kube_vip_check
+
+- name: Deploy kube-vip static pod manifest
+  ansible.builtin.template:
+    src: kube-vip.yaml.j2
+    dest: /etc/kubernetes/manifests/kube-vip.yaml
+    mode: "0644"
+  when:
+    - kube_vip_address is defined
+    - not kube_vip_check.stat.exists

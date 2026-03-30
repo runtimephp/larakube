@@ -1,0 +1,46 @@
+---
+# Kuven Kubernetes Cluster Bootstrap Playbook
+#
+# Bootstraps a kubeadm cluster with Cilium CNI.
+# Supports single-CP (Multipass) and HA (Hetzner) topologies.
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.ini site.yml
+
+- name: Prepare all cluster nodes
+  hosts: cluster
+  become: true
+  roles:
+    - common
+
+- name: Deploy kube-vip for HA (before kubeadm init)
+  hosts: controlplane
+  become: true
+  roles:
+    - role: kube-vip
+      when: kube_vip_address is defined
+
+- name: Initialize first control plane node
+  hosts: controlplane[0]
+  become: true
+  roles:
+    - kubeadm-init
+
+- name: Install Cilium CNI
+  hosts: controlplane[0]
+  become: true
+  roles:
+    - cilium
+
+- name: Join additional control plane nodes (HA only)
+  hosts: controlplane[1:]
+  become: true
+  serial: 1
+  roles:
+    - kubeadm-join-cp
+
+- name: Join worker nodes
+  hosts: workers
+  become: true
+  roles:
+    - kubeadm-join-worker

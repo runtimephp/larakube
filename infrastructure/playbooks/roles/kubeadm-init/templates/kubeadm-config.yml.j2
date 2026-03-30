@@ -1,0 +1,15 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+kubernetesVersion: v{{ kubernetes_version }}.0
+networking:
+  podSubnet: "{{ pod_cidr }}"
+  serviceSubnet: "{{ service_cidr }}"
+{% if control_plane_endpoint is defined %}
+controlPlaneEndpoint: "{{ control_plane_endpoint }}"
+{% endif %}
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: InitConfiguration
+nodeRegistration:
+  criSocket: unix:///var/run/containerd/containerd.sock
