@@ -29,6 +29,7 @@ use App\Models\Infrastructure;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Throwable;
 
@@ -72,9 +73,13 @@ final class ProcessProvisioningStep implements ShouldQueue
 
         $handler = $this->resolveHandler($currentStep);
 
+        Log::info("[{$this->infrastructure->name}] Step: {$currentStep->label()} — starting");
+
         try {
             $handler->handle($this->infrastructure);
+            Log::info("[{$this->infrastructure->name}] Step: {$currentStep->label()} — completed");
         } catch (RetryStepException $e) {
+            Log::info("[{$this->infrastructure->name}] Step: {$currentStep->label()} — retry ({$this->stepRetries}): {$e->getMessage()}");
             if ($this->stepRetries >= self::MAX_RETRIES_PER_STEP) {
                 throw new RuntimeException("Step [{$currentStep->label()}] exceeded maximum retries ({$this->stepRetries}): {$e->getMessage()}");
             }
@@ -107,6 +112,10 @@ final class ProcessProvisioningStep implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
+        $step = $this->infrastructure->provisioning_step;
+
+        Log::error("[{$this->infrastructure->name}] Step: {$step?->label()} — FAILED: {$exception->getMessage()}");
+
         $this->infrastructure->update([
             'status' => InfrastructureStatus::Failed,
         ]);

@@ -36,7 +36,7 @@ final readonly class GenerateInventory implements StepHandler
 
         $lines[] = '[bastion]';
         if ($bastion instanceof Server) {
-            $lines[] = "{$bastion->name} ansible_host={$bastion->ipv4}";
+            $lines[] = "{$bastion->name} ansible_host={$bastion->ipv4} ansible_connection=local";
         }
         $lines[] = '';
 

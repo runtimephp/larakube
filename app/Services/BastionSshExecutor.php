@@ -11,6 +11,8 @@ use App\Models\Infrastructure;
 use App\Queries\ServerQuery;
 use App\Queries\SshKeyQuery;
 use Closure;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
@@ -34,6 +36,8 @@ final readonly class BastionSshExecutor
     {
         [$keyFile, $sshUser, $bastionIp] = $this->prepareConnection($infrastructure);
 
+        Log::info("[{$infrastructure->name}] SSH: {$command}");
+
         try {
             $sshCommand = [
                 'ssh',
@@ -49,9 +53,12 @@ final readonly class BastionSshExecutor
             $process->setTimeout($timeout);
             $process->run();
 
+            $stdout = $process->getOutput();
+            $stderr = $process->getErrorOutput();
+
+            $this->appendLog($infrastructure, $command, $stdout, $stderr, $process->getExitCode());
+
             if (! $process->isSuccessful()) {
-                $stderr = $process->getErrorOutput();
-                $stdout = $process->getOutput();
                 $fullOutput = trim($stdout."\n".$stderr);
 
                 if (str_contains($stderr, 'Connection refused') || str_contains($stderr, 'Connection timed out')) {
@@ -61,7 +68,7 @@ final readonly class BastionSshExecutor
                 throw new RuntimeException("SSH command failed (exit code {$process->getExitCode()}): {$fullOutput}");
             }
 
-            return $process->getOutput();
+            return $stdout;
         } finally {
             @unlink($keyFile);
         }
@@ -70,6 +77,8 @@ final readonly class BastionSshExecutor
     public function scp(Infrastructure $infrastructure, string $localPath, string $remotePath, bool $recursive = false): void
     {
         [$keyFile, $sshUser, $bastionIp] = $this->prepareConnection($infrastructure);
+
+        Log::info("[{$infrastructure->name}] SCP: {$localPath} → {$sshUser}@{$bastionIp}:{$remotePath}");
 
         try {
             $command = ['scp'];
@@ -91,6 +100,8 @@ final readonly class BastionSshExecutor
             $process = ($this->processFactory)($command);
             $process->setTimeout(120);
             $process->run();
+
+            $this->appendLog($infrastructure, "SCP {$localPath} → {$remotePath}", $process->getOutput(), $process->getErrorOutput(), $process->getExitCode());
 
             if (! $process->isSuccessful()) {
                 $error = $process->getErrorOutput();
@@ -136,5 +147,24 @@ final readonly class BastionSshExecutor
         $sshUser = $infrastructure->cloudProvider->type->sshUser();
 
         return [$keyFile, $sshUser, $bastion->ipv4];
+    }
+
+    private function appendLog(Infrastructure $infrastructure, string $command, string $stdout, string $stderr, ?int $exitCode): void
+    {
+        $logPath = "bastion-logs/{$infrastructure->id}.log";
+        $timestamp = now()->toIso8601String();
+        $separator = str_repeat('-', 80);
+
+        $entry = "{$separator}\n[{$timestamp}] Command: {$command}\nExit code: {$exitCode}\n";
+
+        if ($stdout !== '') {
+            $entry .= "--- STDOUT ---\n{$stdout}\n";
+        }
+
+        if ($stderr !== '') {
+            $entry .= "--- STDERR ---\n{$stderr}\n";
+        }
+
+        Storage::disk('local')->append($logPath, $entry);
     }
 }
