@@ -78,26 +78,6 @@ test('marks infrastructure failed on exception',
         expect($infrastructure->status)->toBe(InfrastructureStatus::Failed);
     });
 
-test('updates phase when crossing from infrastructure to configuration',
-    /**
-     * @throws Throwable
-     */
-    function (): void {
-        Bus::fake([ProcessProvisioningStep::class]);
-
-        /** @var Infrastructure $infrastructure */
-        $infrastructure = Infrastructure::factory()->createQuietly([
-            'status' => InfrastructureStatus::Provisioning,
-            'provisioning_step' => ProvisioningStep::WaitForNodes,
-            'provisioning_phase' => ProvisioningPhase::Infrastructure,
-        ]);
-
-        $job = new ProcessProvisioningStep($infrastructure);
-
-        // WaitForNodes has no handler yet (steps 8-17), so it throws LogicException
-        expect(fn () => $job->handle())->toThrow(LogicException::class);
-    });
-
 test('throws logic exception for unimplemented steps',
     /**
      * @throws Throwable
@@ -106,8 +86,8 @@ test('throws logic exception for unimplemented steps',
         /** @var Infrastructure $infrastructure */
         $infrastructure = Infrastructure::factory()->createQuietly([
             'status' => InfrastructureStatus::Provisioning,
-            'provisioning_step' => ProvisioningStep::CreateControlPlaneNodes,
-            'provisioning_phase' => ProvisioningPhase::Infrastructure,
+            'provisioning_step' => ProvisioningStep::GenerateInventory,
+            'provisioning_phase' => ProvisioningPhase::Configuration,
         ]);
 
         $job = new ProcessProvisioningStep($infrastructure);
