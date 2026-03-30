@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Actions\CreateBastion;
+use App\Actions\CreateControlPlaneNodes;
 use App\Actions\CreateFirewallForInfrastructure;
 use App\Actions\CreateNetworkForInfrastructure;
+use App\Actions\CreateWorkerNodes;
 use App\Actions\GenerateSshKeypairs;
 use App\Actions\RegisterSshKeys;
 use App\Actions\ScpToBastion;
 use App\Actions\WaitForBastion;
+use App\Actions\WaitForNodes;
 use App\Contracts\StepHandler;
 use App\Enums\InfrastructureStatus;
 use App\Enums\ProvisioningStep;
@@ -111,8 +114,11 @@ final class ProcessProvisioningStep implements ShouldQueue
             ProvisioningStep::CreateBastion => app(CreateBastion::class),
             ProvisioningStep::WaitForBastion => app(WaitForBastion::class),
             ProvisioningStep::ScpToBastion => app(ScpToBastion::class),
+            ProvisioningStep::CreateControlPlaneNodes => app(CreateControlPlaneNodes::class),
+            ProvisioningStep::CreateWorkerNodes => app(CreateWorkerNodes::class),
+            ProvisioningStep::WaitForNodes => app(WaitForNodes::class),
 
-            // Steps 8-17 will be implemented in #48 and #52
+            // Steps 11-17 will be implemented in #52
             default => throw new LogicException("No handler registered for provisioning step: {$step->value}"),
         };
     }
