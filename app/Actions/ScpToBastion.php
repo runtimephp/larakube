@@ -69,24 +69,28 @@ final readonly class ScpToBastion implements StepHandler
 
         chmod($nodeKeyFile, 0600);
 
+        $sshUser = $infrastructure->cloudProvider->type->sshUser();
+        $homeDir = $sshUser === 'root' ? '/root' : "/home/{$sshUser}";
+
         try {
             $sshOptions = [
                 '-o', 'StrictHostKeyChecking=no',
                 '-o', 'UserKnownHostsFile=/dev/null',
+                '-o', 'BatchMode=yes',
                 '-i', $keyFile,
             ];
 
             $this->scp(
                 $sshOptions,
                 base_path('infrastructure/playbooks').'/',
-                "ubuntu@{$bastion->ipv4}:/home/ubuntu/playbooks",
+                "{$sshUser}@{$bastion->ipv4}:{$homeDir}/playbooks",
                 recursive: true,
             );
 
             $this->scp(
                 $sshOptions,
                 $nodeKeyFile,
-                "ubuntu@{$bastion->ipv4}:/home/ubuntu/.ssh/node_key",
+                "{$sshUser}@{$bastion->ipv4}:{$homeDir}/.ssh/node_key",
             );
         } finally {
             @unlink($keyFile);
