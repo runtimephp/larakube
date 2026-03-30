@@ -39,6 +39,8 @@ final readonly class CreateControlPlaneNodes implements StepHandler
             ->map(fn (string $id): int|string => is_numeric($id) ? (int) $id : $id)
             ->all();
 
+        $networkId = $infrastructure->networks()->first()?->external_network_id;
+
         $nodeCount = $topology === ClusterTopology::Ha ? 3 : 1;
 
         for ($i = 1; $i <= $nodeCount; $i++) {
@@ -53,6 +55,8 @@ final readonly class CreateControlPlaneNodes implements StepHandler
                 memory: $spec->memory,
                 disk: $spec->disk,
                 sshKeyIds: $sshKeyIds,
+                publicIp: false,
+                networkId: $networkId,
             ));
         }
     }

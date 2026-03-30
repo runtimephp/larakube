@@ -45,6 +45,7 @@ final readonly class CreateBastion implements StepHandler
 
         $cloudInitYaml = $this->cloudInit->bastion(bastionPublicKey: $bastionKey->public_key);
         $spec = $provider->type->bastionSpec();
+        $networkId = $infrastructure->networks()->first()?->external_network_id;
 
         $this->createServer->handle($provider, new CreateServerData(
             name: "{$infrastructure->name}-bastion",
@@ -58,6 +59,7 @@ final readonly class CreateBastion implements StepHandler
             disk: $spec->disk,
             sshKeyIds: $sshKeyIds,
             cloudInit: $cloudInitYaml,
+            networkId: $networkId,
         ));
     }
 }

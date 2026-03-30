@@ -55,6 +55,17 @@ final readonly class HetznerServerService implements ServerService
             $payload['user_data'] = $data->cloudInit;
         }
 
+        if (! $data->publicIp) {
+            $payload['public_net'] = [
+                'enable_ipv4' => false,
+                'enable_ipv6' => false,
+            ];
+        }
+
+        if ($data->networkId !== null) {
+            $payload['networks'] = [(int) $data->networkId];
+        }
+
         $response = Http::withToken($this->token)
             ->post('https://api.hetzner.cloud/v1/servers', $payload);
 
@@ -103,13 +114,16 @@ final readonly class HetznerServerService implements ServerService
      */
     private function mapServerData(array $server): ServerData
     {
+        $publicIpv4 = $server['public_net']['ipv4']['ip'] ?? null;
+        $privateIpv4 = $server['private_net'][0]['ip'] ?? null;
+
         return new ServerData(
             externalId: $server['id'],
             name: $server['name'],
             status: ServerStatus::fromHetzner($server['status']),
             type: $server['server_type']['name'] ?? '',
             region: $server['datacenter']['name'] ?? '',
-            ipv4: $server['public_net']['ipv4']['ip'] ?? null,
+            ipv4: $publicIpv4 ?? $privateIpv4,
             ipv6: $server['public_net']['ipv6']['ip'] ?? null,
         );
     }

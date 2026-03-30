@@ -38,6 +38,8 @@ final readonly class CreateWorkerNodes implements StepHandler
             ->map(fn (string $id): int|string => is_numeric($id) ? (int) $id : $id)
             ->all();
 
+        $networkId = $infrastructure->networks()->first()?->external_network_id;
+
         for ($i = 1; $i <= self::DEFAULT_WORKER_COUNT; $i++) {
             $this->createServer->handle($provider, new CreateServerData(
                 name: "{$infrastructure->name}-worker-{$i}",
@@ -50,6 +52,8 @@ final readonly class CreateWorkerNodes implements StepHandler
                 memory: $spec->memory,
                 disk: $spec->disk,
                 sshKeyIds: $sshKeyIds,
+                publicIp: false,
+                networkId: $networkId,
             ));
         }
     }
