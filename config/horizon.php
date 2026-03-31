@@ -262,10 +262,10 @@ return [
                 'maxProcesses' => 3,
             ],
             'supervisor-infrastructure' => [
-                'maxProcesses' => 1,
+                'maxProcesses' => 2,
             ],
             'supervisor-infrastructure-long' => [
-                'maxProcesses' => 1,
+                'maxProcesses' => 2,
             ],
         ],
     ],

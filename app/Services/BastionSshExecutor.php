@@ -166,8 +166,6 @@ final readonly class BastionSshExecutor
             $lines,
         ));
 
-        if ($entry !== '') {
-            Storage::disk('local')->append($logPath, $entry);
-        }
+        Storage::disk('local')->append($logPath, $entry);
     }
 }

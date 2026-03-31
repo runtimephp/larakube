@@ -86,6 +86,79 @@ test('installs helm', function (): void {
     expect($yaml)->toContain('helm');
 });
 
+test('throws on empty node public key', function (): void {
+    $generator = new CloudInitGenerator();
+    $generator->node(nodePublicKey: '');
+})->throws(InvalidArgumentException::class, 'Node public key must not be empty.');
+
+test('throws on whitespace-only node public key', function (): void {
+    $generator = new CloudInitGenerator();
+    $generator->node(nodePublicKey: '   ');
+})->throws(InvalidArgumentException::class, 'Node public key must not be empty.');
+
+test('generates node cloud-init without gateway', function (): void {
+    $generator = new CloudInitGenerator();
+    $yaml = $generator->node(nodePublicKey: 'ssh-ed25519 AAAA... node@key');
+
+    expect($yaml)->toStartWith("#cloud-config\n")
+        ->and($yaml)->toContain('ssh-ed25519 AAAA... node@key')
+        ->and($yaml)->not->toContain('runcmd')
+        ->and($yaml)->not->toContain('write_files');
+});
+
+test('generates node cloud-init with gateway', function (): void {
+    $generator = new CloudInitGenerator();
+    $yaml = $generator->node(
+        nodePublicKey: 'ssh-ed25519 AAAA... node@key',
+        networkGateway: '10.0.0.1',
+    );
+
+    expect($yaml)->toStartWith("#cloud-config\n")
+        ->and($yaml)->toContain('ssh-ed25519 AAAA... node@key')
+        ->and($yaml)->toContain('10.0.0.1')
+        ->and($yaml)->toContain('runcmd')
+        ->and($yaml)->toContain('write_files')
+        ->and($yaml)->toContain('enp7s0');
+});
+
+test('generates node cloud-init with gateway and custom dns', function (): void {
+    $generator = new CloudInitGenerator();
+    $yaml = $generator->node(
+        nodePublicKey: 'ssh-ed25519 AAAA... node@key',
+        networkGateway: '10.0.0.1',
+        dnsServers: ['185.12.64.1', '185.12.64.2'],
+    );
+
+    expect($yaml)->toContain('185.12.64.1 185.12.64.2');
+});
+
+test('generates node cloud-init with gateway uses default dns when empty', function (): void {
+    $generator = new CloudInitGenerator();
+    $yaml = $generator->node(
+        nodePublicKey: 'ssh-ed25519 AAAA... node@key',
+        networkGateway: '10.0.0.1',
+        dnsServers: [],
+    );
+
+    expect($yaml)->toContain('1.1.1.1 8.8.8.8');
+});
+
+test('node cloud-init with gateway is valid yaml', function (): void {
+    $generator = new CloudInitGenerator();
+    $yaml = $generator->node(
+        nodePublicKey: 'ssh-ed25519 AAAA...',
+        networkGateway: '10.0.0.1',
+    );
+
+    $withoutHeader = mb_substr($yaml, mb_strlen("#cloud-config\n"));
+    $parsed = Yaml::parse($withoutHeader);
+
+    expect($parsed)->toBeArray()
+        ->and($parsed)->toHaveKey('ssh_authorized_keys')
+        ->and($parsed)->toHaveKey('runcmd')
+        ->and($parsed)->toHaveKey('write_files');
+});
+
 test('output is valid yaml', function (): void {
     $generator = new CloudInitGenerator();
     $yaml = $generator->bastion(bastionPublicKey: 'ssh-ed25519 AAAA...');
