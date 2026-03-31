@@ -52,8 +52,9 @@ final readonly class CloudInitGenerator
             $dnsLine = $dnsServers !== [] ? implode(' ', $dnsServers) : '1.1.1.1 8.8.8.8';
 
             $config['runcmd'] = [
-                ['systemctl', 'disable', '--now', 'hc-utils'],
-                ['ip', 'route', 'add', 'default', 'via', $networkGateway, 'dev', 'enp7s0'],
+                ['bash', '-c', 'systemctl disable --now hc-utils 2>/dev/null || true'],
+                ['bash', '-c', "for i in $(seq 1 30); do ip route get {$networkGateway} >/dev/null 2>&1 && break; sleep 1; done"],
+                ['bash', '-c', "ip route add default via {$networkGateway} dev enp7s0 2>/dev/null || true"],
                 ['bash', '-c', "sed -i 's/^#DNS=.*/DNS={$dnsLine}/' /etc/systemd/resolved.conf"],
                 ['systemctl', 'restart', 'systemd-resolved'],
             ];
