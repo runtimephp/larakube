@@ -48,7 +48,9 @@ final readonly class CreateWorkerNodes implements StepHandler
             ->byPurpose(SshKeyPurpose::Node)
             ->firstOrFail();
 
-        $nodeCloudInit = $this->cloudInit->node($nodeKey->public_key);
+        $gatewayIp = ConfigureNatGateway::getGatewayIp($infrastructure);
+        $dnsServers = $provider->type->dnsServers();
+        $nodeCloudInit = $this->cloudInit->node($nodeKey->public_key, $gatewayIp, $dnsServers);
 
         for ($i = 1; $i <= self::DEFAULT_WORKER_COUNT; $i++) {
             $this->createServer->handle($provider, new CreateServerData(

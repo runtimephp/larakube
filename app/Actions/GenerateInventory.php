@@ -65,6 +65,19 @@ final readonly class GenerateInventory implements StepHandler
         $lines[] = 'kubernetes_version=1.31';
         $lines[] = 'pod_cidr=10.244.0.0/16';
         $lines[] = 'service_cidr=10.96.0.0/12';
+
+        $dnsServers = $infrastructure->cloudProvider->type->dnsServers();
+        $lines[] = 'dns_servers='.implode(',', $dnsServers);
+
+        if ($controlPlanes->count() > 1) {
+            $firstCp = $controlPlanes->first();
+            $lines[] = "control_plane_endpoint={$firstCp->ipv4}:6443";
+        }
+
+        $gatewayIp = ConfigureNatGateway::getGatewayIp($infrastructure);
+        if ($gatewayIp !== null) {
+            $lines[] = "nat_gateway_ip={$gatewayIp}";
+        }
         $lines[] = '';
 
         $content = implode("\n", $lines);

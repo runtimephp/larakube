@@ -31,7 +31,10 @@ final readonly class CloudInitGenerator
         return "#cloud-config\n".Yaml::dump($base, 4, 2);
     }
 
-    public function node(string $nodePublicKey): string
+    /**
+     * @param  list<string>  $dnsServers
+     */
+    public function node(string $nodePublicKey, ?string $networkGateway = null, array $dnsServers = []): string
     {
         $trimmed = trim($nodePublicKey);
 
@@ -44,6 +47,25 @@ final readonly class CloudInitGenerator
                 $trimmed,
             ],
         ];
+
+        if ($networkGateway !== null) {
+            $dnsLine = $dnsServers !== [] ? implode(' ', $dnsServers) : '1.1.1.1 8.8.8.8';
+
+            $config['runcmd'] = [
+                ['systemctl', 'disable', '--now', 'hc-utils'],
+                ['ip', 'route', 'add', 'default', 'via', $networkGateway, 'dev', 'enp7s0'],
+                ['bash', '-c', "sed -i 's/^#DNS=.*/DNS={$dnsLine}/' /etc/systemd/resolved.conf"],
+                ['systemctl', 'restart', 'systemd-resolved'],
+            ];
+
+            $config['write_files'] = [
+                [
+                    'path' => '/etc/systemd/network/10-enp7s0.network',
+                    'content' => "[Match]\nName=enp7s0\n\n[Network]\nDHCP=yes\n\n[Route]\nGateway={$networkGateway}\n",
+                    'permissions' => '0644',
+                ],
+            ];
+        }
 
         return "#cloud-config\n".Yaml::dump($config, 4, 2);
     }

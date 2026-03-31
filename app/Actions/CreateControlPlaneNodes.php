@@ -49,7 +49,9 @@ final readonly class CreateControlPlaneNodes implements StepHandler
             ->byPurpose(SshKeyPurpose::Node)
             ->firstOrFail();
 
-        $nodeCloudInit = $this->cloudInit->node($nodeKey->public_key);
+        $gatewayIp = ConfigureNatGateway::getGatewayIp($infrastructure);
+        $dnsServers = $provider->type->dnsServers();
+        $nodeCloudInit = $this->cloudInit->node($nodeKey->public_key, $gatewayIp, $dnsServers);
 
         $nodeCount = $topology === ClusterTopology::Ha ? 3 : 1;
 

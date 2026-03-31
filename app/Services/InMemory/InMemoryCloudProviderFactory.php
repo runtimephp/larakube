@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\InMemory;
 
 use App\Contracts\FirewallService;
+use App\Contracts\NatGatewayService;
 use App\Contracts\NetworkService;
 use App\Contracts\ServerService;
 use App\Contracts\SshKeyService;
@@ -23,6 +24,7 @@ final class InMemoryCloudProviderFactory extends CloudProviderFactory
         private readonly ?SshKeyService $sshKeyService = null,
         private readonly ?NetworkService $networkService = null,
         private readonly ?FirewallService $firewallService = null,
+        private readonly ?NatGatewayService $natGatewayService = null,
     ) {}
 
     public function makeServerService(CloudProviderType $type, ?string $token = null): ServerService
@@ -59,5 +61,14 @@ final class InMemoryCloudProviderFactory extends CloudProviderFactory
         }
 
         return parent::makeFirewallService($type, $token); // @codeCoverageIgnore
+    }
+
+    public function makeNatGatewayService(CloudProviderType $type, ?string $token = null): NatGatewayService
+    {
+        if ($this->natGatewayService !== null) {
+            return $this->natGatewayService;
+        }
+
+        return parent::makeNatGatewayService($type, $token); // @codeCoverageIgnore
     }
 }

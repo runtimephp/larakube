@@ -17,6 +17,7 @@ final readonly class WaitForBastion implements StepHandler
 {
     public function __construct(
         private CloudProviderFactory $factory,
+        private ConfigureNatGateway $configureNat,
         private ServerQuery $serverQuery,
     ) {}
 
@@ -45,5 +46,7 @@ final readonly class WaitForBastion implements StepHandler
         if ($bastion->status !== ServerStatus::Running) {
             throw new RetryStepException('Bastion server is not yet running. Current status: '.$bastion->status->value);
         }
+
+        $this->configureNat->handle($infrastructure);
     }
 }

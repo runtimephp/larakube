@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\ConfigureNatGateway;
 use App\Actions\WaitForBastion;
 use App\Data\ServerData;
 use App\Enums\ServerRole;
@@ -11,7 +12,8 @@ use App\Models\CloudProvider;
 use App\Models\Infrastructure;
 use App\Models\Server;
 use App\Queries\ServerQuery;
-use App\Services\CloudProviderFactory;
+use App\Queries\SshKeyQuery;
+use App\Services\InMemory\InMemoryCloudProviderFactory;
 use App\Services\InMemory\InMemoryHetznerServerService;
 
 test('succeeds when bastion is running',
@@ -46,13 +48,10 @@ test('succeeds when bastion is running',
             ipv4: '192.168.64.10',
         ));
 
-        $factory = Mockery::mock(CloudProviderFactory::class);
-        $factory->shouldReceive('makeServerService')
-            ->with($provider->type, $provider->api_token)
-            ->once()
-            ->andReturn($serverService);
+        $factory = new InMemoryCloudProviderFactory(serverService: $serverService);
+        $serverQuery = new ServerQuery();
 
-        $action = new WaitForBastion($factory, new ServerQuery());
+        $action = new WaitForBastion($factory, new ConfigureNatGateway($factory, $serverQuery, new SshKeyQuery()), $serverQuery);
         $action->handle($infrastructure);
 
         $bastion->refresh();
@@ -74,8 +73,7 @@ test('throws retry exception when bastion is not running',
             'cloud_provider_id' => $provider->id,
         ]);
 
-        /** @var Server $bastion */
-        $bastion = Server::factory()->createQuietly([
+        Server::factory()->createQuietly([
             'infrastructure_id' => $infrastructure->id,
             'cloud_provider_id' => $provider->id,
             'role' => ServerRole::Bastion,
@@ -85,20 +83,17 @@ test('throws retry exception when bastion is not running',
 
         $serverService = new InMemoryHetznerServerService();
         $serverService->addServer(new ServerData(
-            externalId: $bastion->external_id,
+            externalId: 'ext-1',
             name: 'test-bastion',
             status: ServerStatus::Starting,
             type: 'cx22',
             region: 'hel1',
         ));
 
-        $factory = Mockery::mock(CloudProviderFactory::class);
-        $factory->shouldReceive('makeServerService')
-            ->with($provider->type, $provider->api_token)
-            ->once()
-            ->andReturn($serverService);
+        $factory = new InMemoryCloudProviderFactory(serverService: $serverService);
+        $serverQuery = new ServerQuery();
 
-        $action = new WaitForBastion($factory, new ServerQuery());
+        $action = new WaitForBastion($factory, new ConfigureNatGateway($factory, $serverQuery, new SshKeyQuery()), $serverQuery);
         $action->handle($infrastructure);
     })->throws(RetryStepException::class);
 
@@ -110,8 +105,9 @@ test('throws when no bastion exists',
         /** @var Infrastructure $infrastructure */
         $infrastructure = Infrastructure::factory()->provisioning()->createQuietly();
 
-        $factory = Mockery::mock(CloudProviderFactory::class);
+        $factory = new InMemoryCloudProviderFactory();
+        $serverQuery = new ServerQuery();
 
-        $action = new WaitForBastion($factory, new ServerQuery());
+        $action = new WaitForBastion($factory, new ConfigureNatGateway($factory, $serverQuery, new SshKeyQuery()), $serverQuery);
         $action->handle($infrastructure);
     })->throws(RuntimeException::class, 'No bastion server found');

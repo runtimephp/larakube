@@ -41,7 +41,7 @@ final class ProcessProvisioningStep implements ShouldQueue
 
     private const int MAX_RETRIES_PER_STEP = 40;
 
-    public int $timeout = 600;
+    public int $timeout = 1800;
 
     public function __construct(
         public Infrastructure $infrastructure,

@@ -21,6 +21,18 @@ enum CloudProviderType: string
         };
     }
 
+    /**
+     * @return list<string>
+     */
+    public function dnsServers(): array
+    {
+        return match ($this) {
+            self::Hetzner => ['185.12.64.1', '185.12.64.2'],
+            self::DigitalOcean => ['67.207.67.2', '67.207.67.3'],
+            self::Multipass => ['1.1.1.1', '8.8.8.8'],
+        };
+    }
+
     public function sshUser(): string
     {
         return match ($this) {

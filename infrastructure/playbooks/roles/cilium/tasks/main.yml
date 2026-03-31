@@ -30,6 +30,10 @@
     --set kubeProxyReplacement=true
     --set k8sServiceHost={{ cp_api_host }}
     --set k8sServicePort=6443
+    --set routingMode=tunnel
+    --set tunnelProtocol=vxlan
+    --set ipam.mode=kubernetes
+    --set bpf.masquerade=false
     --set hubble.enabled=true
     --set hubble.relay.enabled=true
   when: cilium_check.rc != 0

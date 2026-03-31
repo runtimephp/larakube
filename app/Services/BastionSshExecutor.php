@@ -32,7 +32,10 @@ final readonly class BastionSshExecutor
         $this->processFactory = $processFactory ?? fn (array $command): Process => new Process($command);
     }
 
-    public function execute(Infrastructure $infrastructure, string $command, int $timeout = 600): string
+    /**
+     * @param  Closure(string, string): void|null  $onOutput
+     */
+    public function execute(Infrastructure $infrastructure, string $command, int $timeout = 600, ?Closure $onOutput = null): string
     {
         [$keyFile, $sshUser, $bastionIp] = $this->prepareConnection($infrastructure);
 
@@ -44,6 +47,8 @@ final readonly class BastionSshExecutor
                 '-o', 'StrictHostKeyChecking=no',
                 '-o', 'UserKnownHostsFile=/dev/null',
                 '-o', 'BatchMode=yes',
+                '-o', 'ServerAliveInterval=30',
+                '-o', 'ServerAliveCountMax=5',
                 '-i', $keyFile,
                 "{$sshUser}@{$bastionIp}",
                 $command,
@@ -51,14 +56,17 @@ final readonly class BastionSshExecutor
 
             $process = ($this->processFactory)($sshCommand);
             $process->setTimeout($timeout);
-            $process->run();
 
-            $stdout = $process->getOutput();
-            $stderr = $process->getErrorOutput();
-
-            $this->appendLog($infrastructure, $command, $stdout, $stderr, $process->getExitCode());
+            $process->run(function (string $type, string $buffer) use ($infrastructure, $onOutput): void {
+                $this->streamLog($infrastructure, $type, $buffer);
+                if ($onOutput !== null) {
+                    $onOutput($type, $buffer);
+                }
+            });
 
             if (! $process->isSuccessful()) {
+                $stderr = $process->getErrorOutput();
+                $stdout = $process->getOutput();
                 $fullOutput = trim($stdout."\n".$stderr);
 
                 if (str_contains($stderr, 'Connection refused') || str_contains($stderr, 'Connection timed out')) {
@@ -68,7 +76,7 @@ final readonly class BastionSshExecutor
                 throw new RuntimeException("SSH command failed (exit code {$process->getExitCode()}): {$fullOutput}");
             }
 
-            return $stdout;
+            return $process->getOutput();
         } finally {
             @unlink($keyFile);
         }
@@ -100,8 +108,6 @@ final readonly class BastionSshExecutor
             $process = ($this->processFactory)($command);
             $process->setTimeout(120);
             $process->run();
-
-            $this->appendLog($infrastructure, "SCP {$localPath} → {$remotePath}", $process->getOutput(), $process->getErrorOutput(), $process->getExitCode());
 
             if (! $process->isSuccessful()) {
                 $error = $process->getErrorOutput();
@@ -149,22 +155,19 @@ final readonly class BastionSshExecutor
         return [$keyFile, $sshUser, $bastion->ipv4];
     }
 
-    private function appendLog(Infrastructure $infrastructure, string $command, string $stdout, string $stderr, ?int $exitCode): void
+    private function streamLog(Infrastructure $infrastructure, string $type, string $buffer): void
     {
         $logPath = "bastion-logs/{$infrastructure->id}.log";
-        $timestamp = now()->toIso8601String();
-        $separator = str_repeat('-', 80);
+        $prefix = $type === Process::ERR ? '[STDERR]' : '[STDOUT]';
 
-        $entry = "{$separator}\n[{$timestamp}] Command: {$command}\nExit code: {$exitCode}\n";
+        $lines = explode("\n", rtrim($buffer));
+        $entry = implode("\n", array_map(
+            fn (string $line): string => $line !== '' ? "{$prefix} {$line}" : '',
+            $lines,
+        ));
 
-        if ($stdout !== '') {
-            $entry .= "--- STDOUT ---\n{$stdout}\n";
+        if ($entry !== '') {
+            Storage::disk('local')->append($logPath, $entry);
         }
-
-        if ($stderr !== '') {
-            $entry .= "--- STDERR ---\n{$stderr}\n";
-        }
-
-        Storage::disk('local')->append($logPath, $entry);
     }
 }
