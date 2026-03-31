@@ -26,11 +26,38 @@
   roles:
     - kubeadm-init
 
-- name: Install Cilium CNI
+- name: Fetch kubeconfig to bastion
   hosts: controlplane[0]
   become: true
-  roles:
-    - cilium
+  tasks:
+    - name: Read admin.conf
+      ansible.builtin.slurp:
+        src: /etc/kubernetes/admin.conf
+      register: kubeconfig_content
+
+    - name: Store kubeconfig fact
+      ansible.builtin.set_fact:
+        kubeconfig_b64: "{{ kubeconfig_content.content }}"
+
+- name: Install Cilium CNI from bastion
+  hosts: bastion
+  become: true
+  tasks:
+    - name: Create .kube directory
+      ansible.builtin.file:
+        path: /root/.kube
+        state: directory
+        mode: "0700"
+
+    - name: Write kubeconfig to bastion
+      ansible.builtin.copy:
+        content: "{{ hostvars[groups['controlplane'][0]]['kubeconfig_b64'] | b64decode }}"
+        dest: /root/.kube/config
+        mode: "0600"
+
+    - name: Include Cilium role
+      ansible.builtin.include_role:
+        name: cilium
 
 - name: Join additional control plane nodes (HA only)
   hosts: controlplane[1:]

@@ -1,14 +1,12 @@
 ---
 # Install Cilium CNI in kube-proxy replacement mode.
-# Runs on the first control plane node only (has kubectl access).
+# Runs on the bastion (has kubectl + helm + kubeconfig).
 
 - name: Check if Cilium is already installed
   ansible.builtin.command: kubectl get daemonset -n kube-system cilium
   register: cilium_check
   failed_when: false
   changed_when: false
-  environment:
-    KUBECONFIG: /etc/kubernetes/admin.conf
 
 - name: Add Cilium Helm repo
   ansible.builtin.command: helm repo add cilium https://helm.cilium.io/
@@ -20,18 +18,24 @@
   when: cilium_check.rc != 0
   changed_when: true
 
+- name: Get CP node IP for Cilium API server config
+  ansible.builtin.set_fact:
+    cp_api_host: "{{ hostvars[groups['controlplane'][0]]['ansible_host'] }}"
+
 - name: Install Cilium via Helm
   ansible.builtin.command: >
     helm install cilium cilium/cilium
     --version {{ cilium_version | default('1.16.5') }}
     --namespace kube-system
     --set kubeProxyReplacement=true
-    --set k8sServiceHost={{ kubernetes_api_host | default(ansible_default_ipv4.address) }}
+    --set k8sServiceHost={{ cp_api_host }}
     --set k8sServicePort=6443
+    --set routingMode=tunnel
+    --set tunnelProtocol=vxlan
+    --set ipam.mode=kubernetes
+    --set bpf.masquerade=false
     --set hubble.enabled=true
     --set hubble.relay.enabled=true
-  environment:
-    KUBECONFIG: /etc/kubernetes/admin.conf
   when: cilium_check.rc != 0
   register: cilium_install
   changed_when: cilium_install.rc == 0
@@ -42,8 +46,6 @@
     -l k8s-app=cilium
     -n kube-system
     --timeout=300s
-  environment:
-    KUBECONFIG: /etc/kubernetes/admin.conf
   changed_when: false
   retries: 3
   delay: 10

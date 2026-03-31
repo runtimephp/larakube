@@ -7,9 +7,11 @@ namespace App\Actions;
 use App\Contracts\StepHandler;
 use App\Data\CreateServerData;
 use App\Enums\ServerRole;
+use App\Enums\SshKeyPurpose;
 use App\Models\Infrastructure;
 use App\Queries\ServerQuery;
 use App\Queries\SshKeyQuery;
+use App\Services\CloudInitGenerator;
 
 final readonly class CreateWorkerNodes implements StepHandler
 {
@@ -17,6 +19,7 @@ final readonly class CreateWorkerNodes implements StepHandler
 
     public function __construct(
         private CreateServer $createServer,
+        private CloudInitGenerator $cloudInit,
         private ServerQuery $serverQuery,
         private SshKeyQuery $sshKeyQuery,
     ) {}
@@ -40,6 +43,15 @@ final readonly class CreateWorkerNodes implements StepHandler
 
         $networkId = $infrastructure->networks()->first()?->external_network_id;
 
+        $nodeKey = ($this->sshKeyQuery)()
+            ->byInfrastructure($infrastructure)
+            ->byPurpose(SshKeyPurpose::Node)
+            ->firstOrFail();
+
+        $gatewayIp = ConfigureNatGateway::getGatewayIp($infrastructure);
+        $dnsServers = $provider->type->dnsServers();
+        $nodeCloudInit = $this->cloudInit->node($nodeKey->public_key, $gatewayIp, $dnsServers);
+
         for ($i = 1; $i <= self::DEFAULT_WORKER_COUNT; $i++) {
             $this->createServer->handle($provider, new CreateServerData(
                 name: "{$infrastructure->name}-worker-{$i}",
@@ -52,6 +64,7 @@ final readonly class CreateWorkerNodes implements StepHandler
                 memory: $spec->memory,
                 disk: $spec->disk,
                 sshKeyIds: $sshKeyIds,
+                cloudInit: $nodeCloudInit,
                 publicIp: false,
                 networkId: $networkId,
             ));

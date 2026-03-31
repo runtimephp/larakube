@@ -102,3 +102,37 @@ test('make for validation returns hetzner service', function (): void {
 
     expect($service)->toBeInstanceOf(HetznerService::class);
 });
+
+test('make nat gateway service returns hetzner nat gateway service', function (): void {
+    $factory = new CloudProviderFactory;
+    $service = $factory->makeNatGatewayService(CloudProviderType::Hetzner, 'token');
+
+    expect($service)->toBeInstanceOf(App\Services\HetznerNatGatewayService::class);
+});
+
+test('make nat gateway service returns multipass nat gateway service', function (): void {
+    $factory = new CloudProviderFactory;
+    $service = $factory->makeNatGatewayService(CloudProviderType::Multipass);
+
+    expect($service)->toBeInstanceOf(App\Services\MultipassNatGatewayService::class);
+});
+
+test('make nat gateway service throws for digital ocean', function (): void {
+    $factory = new CloudProviderFactory;
+
+    $factory->makeNatGatewayService(CloudProviderType::DigitalOcean, 'token');
+})->throws(RuntimeException::class, 'NAT gateway service for DigitalOcean is not yet implemented.');
+
+test('make server service returns multipass server service', function (): void {
+    $factory = new CloudProviderFactory;
+    $service = $factory->makeServerService(CloudProviderType::Multipass);
+
+    expect($service)->toBeInstanceOf(App\Services\MultipassServerService::class);
+});
+
+test('make for validation returns multipass service', function (): void {
+    $factory = new CloudProviderFactory;
+    $service = $factory->makeForValidation(CloudProviderType::Multipass);
+
+    expect($service)->toBeInstanceOf(App\Services\MultipassService::class);
+});

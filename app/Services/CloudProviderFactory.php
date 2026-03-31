@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Contracts\CloudProviderService;
 use App\Contracts\FirewallService;
+use App\Contracts\NatGatewayService;
 use App\Contracts\NetworkService;
 use App\Contracts\ServerService;
 use App\Contracts\SshKeyService;
@@ -47,6 +48,15 @@ class CloudProviderFactory
             CloudProviderType::Hetzner => new HetznerSshKeyService($token ?? ''),
             CloudProviderType::DigitalOcean => throw new RuntimeException('SSH key service for DigitalOcean is not yet implemented.'),
             CloudProviderType::Multipass => new MultipassSshKeyService(),
+        };
+    }
+
+    public function makeNatGatewayService(CloudProviderType $type, ?string $token = null): NatGatewayService
+    {
+        return match ($type) {
+            CloudProviderType::Hetzner => new HetznerNatGatewayService($token ?? ''),
+            CloudProviderType::DigitalOcean => throw new RuntimeException('NAT gateway service for DigitalOcean is not yet implemented.'),
+            CloudProviderType::Multipass => new MultipassNatGatewayService(),
         };
     }
 
