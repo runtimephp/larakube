@@ -52,7 +52,7 @@ test('organization settings placeholder pages can be rendered for organization m
 })->with([
     ['members', 'organization-settings-placeholder/index', 'Members', null],
     ['billing', 'organization-settings-placeholder/index', 'Billing', null],
-    ['cloud-providers', 'organization-settings-placeholder/index', 'Cloud Providers', ['connected' => 0]],
+    // cloud-providers now has its own controller and page — tested in OrganizationCloudProvidersTest
     ['danger-zone', 'organization-settings-placeholder/index', 'Danger Zone', null],
 ]);
 
