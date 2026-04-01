@@ -1,9 +1,9 @@
 import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { type BreadcrumbItem } from '@/types';
+import { type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
@@ -11,16 +11,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Password settings',
-        href: '/settings/password',
-    },
-];
-
 export default function Password() {
+    const { currentOrganization } = usePage<SharedData>().props;
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
+
+    const tabs = currentOrganization
+        ? [
+              { title: 'Dashboard', url: `/${currentOrganization.slug}/dashboard` },
+              { title: 'Clusters', url: `/${currentOrganization.slug}/clusters` },
+              { title: 'Resources', url: `/${currentOrganization.slug}/resources` },
+              { title: 'Settings', url: '/settings/profile' },
+          ]
+        : [{ title: 'Settings', url: '/settings/profile' }];
 
     const { data, setData, errors, put, reset, processing, recentlySuccessful } = useForm({
         current_password: '',
@@ -49,8 +52,8 @@ export default function Password() {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Profile settings" />
+        <AppLayout tabs={tabs}>
+            <Head title="Password settings" />
 
             <SettingsLayout>
                 <div className="space-y-6">
