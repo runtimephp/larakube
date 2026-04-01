@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Organization;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -47,6 +48,13 @@ final class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'currentOrganization' => fn (): ?Organization => $request->user()?->currentOrganization,
+            'organizations' => fn (): ?array => $request->user()?->organizations?->map(fn (Organization $organization): array => [
+                'id' => $organization->id,
+                'name' => $organization->name,
+                'slug' => $organization->slug,
+                'logo' => $organization->logo,
+            ])?->all(),
         ]);
     }
 }

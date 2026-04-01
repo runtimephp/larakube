@@ -29,6 +29,8 @@ pest()->extend(Tests\TestCase::class)
 
         $this->withoutVite();
         $this->freezeTime();
+
+        config()->set('inertia.ssr.enabled', false);
     })
     ->in('Feature', 'Unit');
 

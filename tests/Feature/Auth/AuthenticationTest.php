@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\Organization;
 use App\Models\User;
 
 test('login screen can be rendered', function () {
@@ -11,7 +12,14 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    /** @var Organization $organization */
+    $organization = Organization::factory()->create();
+
+    /** @var User $user */
+    $user = User::factory()->create([
+        'current_organization_id' => $organization->id,
+    ]);
+    $user->organizations()->attach($organization, ['role' => 'member']);
 
     $response = $this->post('/login', [
         'email' => $user->email,
@@ -23,6 +31,7 @@ test('users can authenticate using the login screen', function () {
 });
 
 test('users can not authenticate with invalid password', function () {
+    /** @var User $user */
     $user = User::factory()->create();
 
     $this->post('/login', [
@@ -34,6 +43,7 @@ test('users can not authenticate with invalid password', function () {
 });
 
 test('login is rate limited after too many attempts', function () {
+    /** @var User $user */
     $user = User::factory()->create();
 
     for ($i = 0; $i < 5; $i++) {
@@ -53,6 +63,7 @@ test('login is rate limited after too many attempts', function () {
 });
 
 test('users can logout', function () {
+    /** @var User $user */
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->post('/logout');
