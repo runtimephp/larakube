@@ -20,10 +20,11 @@ final class OrganizationFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->company();
+        $slug = str($name)->slug()->toString().'-'.$this->faker->unique()->numerify('########');
 
         return [
             'name' => $name,
-            'slug' => str($name)->slug()->toString(),
+            'slug' => $slug,
             'description' => $this->faker->paragraph(),
         ];
     }
