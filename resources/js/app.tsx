@@ -1,5 +1,8 @@
-import 'virtual:instruckt';
 import '../css/app.css';
+
+if (import.meta.env.DEV) {
+    await import('virtual:instruckt');
+}
 
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
