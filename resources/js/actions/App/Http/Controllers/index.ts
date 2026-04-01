@@ -1,6 +1,8 @@
 import Api from './Api'
 import OrganizationController from './OrganizationController'
 import SwitchOrganizationController from './SwitchOrganizationController'
+import OrganizationGeneralSettingsController from './OrganizationGeneralSettingsController'
+import OrganizationLogoController from './OrganizationLogoController'
 import Settings from './Settings'
 import Auth from './Auth'
 
@@ -8,6 +10,8 @@ const Controllers = {
     Api: Object.assign(Api, Api),
     OrganizationController: Object.assign(OrganizationController, OrganizationController),
     SwitchOrganizationController: Object.assign(SwitchOrganizationController, SwitchOrganizationController),
+    OrganizationGeneralSettingsController: Object.assign(OrganizationGeneralSettingsController, OrganizationGeneralSettingsController),
+    OrganizationLogoController: Object.assign(OrganizationLogoController, OrganizationLogoController),
     Settings: Object.assign(Settings, Settings),
     Auth: Object.assign(Auth, Auth),
 }

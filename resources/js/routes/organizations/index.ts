@@ -1,4 +1,6 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults, validateParameters } from './../../wayfinder'
+import settings from './settings'
+import logo from './logo'
 /**
 * @see \App\Http\Controllers\OrganizationController::create
 * @see app/Http/Controllers/OrganizationController.php:16
@@ -136,7 +138,7 @@ switchMethod.post = (args: { organization: string | { slug: string } } | [organi
 })
 
 /**
-* @see routes/web.php:33
+* @see routes/web.php:36
 * @param organization - Default: '$organization'
 * @route '/{organization?}/dashboard'
 */
@@ -151,7 +153,7 @@ dashboard.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see routes/web.php:33
+* @see routes/web.php:36
 * @param organization - Default: '$organization'
 * @route '/{organization?}/dashboard'
 */
@@ -182,7 +184,7 @@ dashboard.url = (args?: { organization?: string | number } | [organization: stri
 }
 
 /**
-* @see routes/web.php:33
+* @see routes/web.php:36
 * @param organization - Default: '$organization'
 * @route '/{organization?}/dashboard'
 */
@@ -192,7 +194,7 @@ dashboard.get = (args?: { organization?: string | number } | [organization: stri
 })
 
 /**
-* @see routes/web.php:33
+* @see routes/web.php:36
 * @param organization - Default: '$organization'
 * @route '/{organization?}/dashboard'
 */
@@ -206,6 +208,8 @@ const organizations = {
     store: Object.assign(store, store),
     switch: Object.assign(switchMethod, switchMethod),
     dashboard: Object.assign(dashboard, dashboard),
+    settings: Object.assign(settings, settings),
+    logo: Object.assign(logo, logo),
 }
 
 export default organizations

@@ -6,9 +6,9 @@ namespace App\Http\Middleware;
 
 use App\Actions\SwitchOrganization;
 use App\Models\Organization;
+use App\Queries\OrganizationQuery;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,26 +16,30 @@ final readonly class EnsureOrganizationMembership
 {
     public function __construct(
         private SwitchOrganization $switchOrganization,
+        private OrganizationQuery $organizationQuery,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
+        $routeOrganization = $request->route('organization');
+        $slug = $routeOrganization instanceof Organization ? $routeOrganization->slug : (string) $routeOrganization;
 
-        if ($user->organizations()->doesntExist()) {
-            return redirect()->route('organizations.create');
-        }
-
-        $slug = $request->route('organization');
-
-        $organization = Organization::query()->where('slug', $slug)->first();
+        $organization = ($this->organizationQuery)()
+            ->bySlug($slug)
+            ->byUser($user)
+            ->first();
 
         if (! $organization instanceof Organization) {
-            abort(404);
-        }
+            if ($user->organizations()->doesntExist()) {
+                return redirect()->route('organizations.create');
+            }
 
-        if (Gate::denies('view', $organization)) {
-            abort(403);
+            if (($this->organizationQuery)()->bySlug($slug)->first() instanceof Organization) {
+                abort(403);
+            }
+
+            abort(404);
         }
 
         if ($user->current_organization_id !== $organization->id) {

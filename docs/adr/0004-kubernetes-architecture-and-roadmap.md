@@ -1,8 +1,9 @@
 ---
 adr:
   number: 4
-  status: proposed
+  status: superseded
   date: 2026-03-29
+  superseded_by: ADR-0005
   authors: [Francisco Barrento]
   tags: [kubernetes, infrastructure, architecture, roadmap, ansible, cilium, gateway-api]
   related: [ADR-0001, ADR-0002, ADR-0003]

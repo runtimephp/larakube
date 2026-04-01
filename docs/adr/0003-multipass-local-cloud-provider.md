@@ -1,11 +1,11 @@
 ---
 adr:
-  number: 3
-  status: proposed
-  date: 2026-03-28
-  authors: [Francisco Barrento]
-  tags: [infrastructure, local-development, cloud-provider, multipass]
-  related: [ADR-0002]
+    number: 3
+    status: proposed
+    date: 2026-03-28
+    authors: [Francisco Barrento]
+    tags: [infrastructure, local-development, cloud-provider, multipass]
+    related: [ADR-0002]
 ---
 
 # Multipass as Local Cloud Provider for Development
@@ -17,6 +17,7 @@ live API credentials, and an internet connection to provision any server — mak
 and testing slower and more expensive than it needs to be.
 
 Developers need a way to:
+
 - Test the full server provisioning flow without spending money or hitting real cloud APIs
 - Work offline or in environments where cloud access is restricted
 - Spin up and tear down VMs quickly during feature development
@@ -26,13 +27,13 @@ A local VM provider that slots into the existing `CloudProviderType` / `CloudPro
 
 ### Options Considered
 
-| Option | Description |
-|---|---|
-| **Multipass** | Canonical's CLI tool for launching Ubuntu VMs via HyperKit (Mac) or KVM (Linux) |
-| **Vagrant** | VM lifecycle manager using Vagrantfiles; supports multiple hypervisors and boxes |
-| **Lima** | Lightweight Linux VMs on macOS with automatic file sharing and port forwarding |
-| **Docker** | Container runtime — not actual VMs, but can simulate server environments |
-| **QEMU/KVM** | Raw hypervisor with full hardware emulation; maximum control on Linux |
+| Option        | Description                                                                      |
+| ------------- | -------------------------------------------------------------------------------- |
+| **Multipass** | Canonical's CLI tool for launching Ubuntu VMs via HyperKit (Mac) or KVM (Linux)  |
+| **Vagrant**   | VM lifecycle manager using Vagrantfiles; supports multiple hypervisors and boxes |
+| **Lima**      | Lightweight Linux VMs on macOS with automatic file sharing and port forwarding   |
+| **Docker**    | Container runtime — not actual VMs, but can simulate server environments         |
+| **QEMU/KVM**  | Raw hypervisor with full hardware emulation; maximum control on Linux            |
 
 ## Decision
 
@@ -58,12 +59,12 @@ Returns `true` if exit code is 0 (binary exists and is functional). No actual to
 
 **MultipassServerService CLI mapping**:
 
-| Operation | Command |
-|-----------|---------|
-| `getAll()` | `multipass list --format json` |
-| `create()` | `multipass launch <image> --name <name> --cpus <n> --memory <size> --disk <size>` |
-| `find()` | `multipass info <name> --format json` |
-| `destroy()` | `multipass delete <name>` then `multipass purge` |
+| Operation   | Command                                                                           |
+| ----------- | --------------------------------------------------------------------------------- |
+| `getAll()`  | `multipass list --format json`                                                    |
+| `create()`  | `multipass launch <image> --name <name> --cpus <n> --memory <size> --disk <size>` |
+| `find()`    | `multipass info <name> --format json`                                             |
+| `destroy()` | `multipass delete <name>` then `multipass purge`                                  |
 
 **CreateServerData expansion** — Add nullable fields for Multipass resource specs: `?int $cpus`,
 `?string $memory` (e.g., `"2G"`), `?string $disk` (e.g., `"20G"`). Hetzner/DigitalOcean ignore
@@ -75,12 +76,12 @@ Multipass identifies VMs by name (enforces uniqueness).
 
 **Status mapping** — `ServerStatus::fromMultipass(string $status)`:
 
-| Multipass | ServerStatus |
-|-----------|-------------|
-| Running | Running |
-| Stopped, Suspended | Off |
-| Starting, Restarting | Starting |
-| Other | Unknown |
+| Multipass            | ServerStatus |
+| -------------------- | ------------ |
+| Running              | Running      |
+| Stopped, Suspended   | Off          |
+| Starting, Restarting | Starting     |
+| Other                | Unknown      |
 
 **Delete behavior** — `multipass delete <name>` followed by `multipass purge`. Purge affects all
 deleted VMs, but in LaraKube's context a delete should be permanent, matching Hetzner/DigitalOcean
@@ -88,6 +89,7 @@ behavior.
 
 **Command adjustments** — `CreateServerCommand` checks the selected provider's type and shows
 different prompts:
+
 - **Hetzner/DigitalOcean**: name, type, image, region (existing behavior)
 - **Multipass**: name, image (Ubuntu release), cpus, memory, disk. Type set to `"custom"`, region
   to `"local"` automatically
@@ -166,3 +168,7 @@ management without significant additional tooling.
 
 - SSH key injection via cloud-init when creating Multipass VMs
 - Multipass network configuration for multi-VM clusters
+
+### Post-ADR-0005 Scope Clarification (2026-04-01)
+
+Multipass is scoped to **local workload clusters only** — for developer testing of application deployments on a real Kubernetes cluster. It is NOT used for bootstrapping the CAPI management cluster; `clusterctl init` with `kind` serves that role (ADR-0007). The Multipass driver will be narrowed to read-only inventory queries under the CloudManager pattern (ADR-0009).

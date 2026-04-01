@@ -45,7 +45,12 @@ ADRs are immutable—once created, they are never edited. If a decision changes,
 | [ADR-0001](0001-adr-process.md) | Establish ADR Process | proposed | 2026-03-28 |
 | [ADR-0002](0002-architecture-overview.md) | Architecture Overview | proposed | 2026-03-28 |
 | [ADR-0003](0003-multipass-local-cloud-provider.md) | Multipass as Local Cloud Provider | proposed | 2026-03-28 |
-| [ADR-0004](0004-kubernetes-architecture-and-roadmap.md) | Kubernetes Architecture, Provisioning Pipeline, and Roadmap | proposed | 2026-03-29 |
+| [ADR-0004](0004-kubernetes-architecture-and-roadmap.md) | Kubernetes Architecture, Provisioning Pipeline, and Roadmap | superseded | 2026-03-29 |
+| [ADR-0005](0005-cluster-api-as-cluster-lifecycle-engine.md) | Adopt Cluster API as Cluster Lifecycle Engine | proposed | 2026-04-01 |
+| [ADR-0006](0006-managed-paas-tenant-responsibility-model.md) | Kuven as Managed PaaS — Tenant Responsibility Model | proposed | 2026-04-01 |
+| [ADR-0007](0007-management-cluster-bootstrap-strategy.md) | Management Cluster Bootstrap Strategy | proposed | 2026-04-01 |
+| [ADR-0008](0008-tenant-isolation-via-rbac-scoped-namespaces.md) | Tenant Isolation via RBAC-Scoped Namespaces | proposed | 2026-04-01 |
+| [ADR-0009](0009-cloud-provider-driver-pattern.md) | Cloud Provider Driver Pattern | proposed | 2026-04-01 |
 
 ## Related Documentation
 
