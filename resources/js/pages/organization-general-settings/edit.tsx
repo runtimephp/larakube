@@ -1,14 +1,14 @@
+import { update as updateGeneralSettings } from '@/actions/App/Http/Controllers/OrganizationGeneralSettingsController';
+import { update as updateOrganizationLogo } from '@/actions/App/Http/Controllers/OrganizationLogoController';
 import InputError from '@/components/input-error';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { edit as editGeneralSettings, update as updateGeneralSettings } from '@/actions/App/Http/Controllers/OrganizationGeneralSettingsController';
-import { update as updateOrganizationLogo } from '@/actions/App/Http/Controllers/OrganizationLogoController';
 import AppLayout from '@/layouts/app-layout';
 import OrganizationSettingsLayout from '@/layouts/organization-settings-layout';
-import { type BreadcrumbItem, type Organization } from '@/types';
+import { type Organization } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle, Upload } from 'lucide-react';
 import { type ChangeEvent, useEffect, useMemo, useRef } from 'react';
@@ -24,19 +24,11 @@ interface OrganizationGeneralSettingsPageProps {
 export default function EditOrganizationGeneralSettingsPage({ organization, can, status }: OrganizationGeneralSettingsPageProps) {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: 'Dashboard',
-            href: `/${organization.slug}/dashboard`,
-        },
-        {
-            title: 'Organization Settings',
-            href: editGeneralSettings.url(organization.slug),
-        },
-        {
-            title: 'General',
-            href: editGeneralSettings.url(organization.slug),
-        },
+    const tabs = [
+        { title: 'Dashboard', url: `/${organization.slug}/dashboard` },
+        { title: 'Clusters', url: `/${organization.slug}/clusters` },
+        { title: 'Resources', url: `/${organization.slug}/resources` },
+        { title: 'Settings', url: `/${organization.slug}/settings/general` },
     ];
 
     const detailsForm = useForm({
@@ -80,7 +72,7 @@ export default function EditOrganizationGeneralSettingsPage({ organization, can,
         .toUpperCase();
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout tabs={tabs}>
             <Head title={`${organization.name} Settings`} />
 
             <OrganizationSettingsLayout organization={organization}>
@@ -118,7 +110,7 @@ export default function EditOrganizationGeneralSettingsPage({ organization, can,
                                         value={detailsForm.data.description}
                                         onChange={(event) => detailsForm.setData('description', event.target.value)}
                                         disabled={!can.update || detailsForm.processing}
-                                        className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-28 w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-28 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                                     />
                                     <InputError message={detailsForm.errors.description} />
                                 </div>

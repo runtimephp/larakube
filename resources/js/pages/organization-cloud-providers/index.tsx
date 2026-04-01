@@ -8,9 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import OrganizationSettingsLayout from '@/layouts/organization-settings-layout';
-import { cloudProviders as cloudProvidersRoute } from '@/routes/organizations/settings';
 import cloudProviderRoutes from '@/routes/organizations/settings/cloud-providers';
-import { type BreadcrumbItem, type CloudProvider, type Organization } from '@/types';
+import { type CloudProvider, type Organization } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
 import { LoaderCircle, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -33,10 +32,11 @@ export default function OrganizationCloudProvidersPage({ organization, cloudProv
     const [addDialogOpen, setAddDialogOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<CloudProvider | null>(null);
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: `/${organization.slug}/dashboard` },
-        { title: 'Organization Settings', href: `/${organization.slug}/settings/general` },
-        { title: 'Cloud Providers', href: cloudProvidersRoute.url(organization.slug) },
+    const tabs = [
+        { title: 'Dashboard', url: `/${organization.slug}/dashboard` },
+        { title: 'Clusters', url: `/${organization.slug}/clusters` },
+        { title: 'Resources', url: `/${organization.slug}/resources` },
+        { title: 'Settings', url: `/${organization.slug}/settings/general` },
     ];
 
     const addForm = useForm({
@@ -67,7 +67,7 @@ export default function OrganizationCloudProvidersPage({ organization, cloudProv
     }
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout tabs={tabs}>
             <Head title={`${organization.name} — Cloud Providers`} />
 
             <OrganizationSettingsLayout organization={organization}>

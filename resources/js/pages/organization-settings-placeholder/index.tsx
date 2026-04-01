@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import OrganizationSettingsLayout from '@/layouts/organization-settings-layout';
-import { type BreadcrumbItem, type Organization } from '@/types';
+import { type Organization } from '@/types';
 import { Head } from '@inertiajs/react';
 
 interface OrganizationSettingsPlaceholderPageProps {
@@ -16,23 +16,15 @@ interface OrganizationSettingsPlaceholderPageProps {
 }
 
 export default function OrganizationSettingsPlaceholderPage({ organization, section, stats }: OrganizationSettingsPlaceholderPageProps) {
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: 'Dashboard',
-            href: `/${organization.slug}/dashboard`,
-        },
-        {
-            title: 'Organization Settings',
-            href: `/${organization.slug}/settings/general`,
-        },
-        {
-            title: section.title,
-            href: window.location.pathname,
-        },
+    const tabs = [
+        { title: 'Dashboard', url: `/${organization.slug}/dashboard` },
+        { title: 'Clusters', url: `/${organization.slug}/clusters` },
+        { title: 'Resources', url: `/${organization.slug}/resources` },
+        { title: 'Settings', url: `/${organization.slug}/settings/general` },
     ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout tabs={tabs}>
             <Head title={`${organization.name} ${section.title}`} />
 
             <OrganizationSettingsLayout organization={organization}>
