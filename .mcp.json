@@ -6,6 +6,14 @@
                 "artisan",
                 "boost:mcp"
             ]
+        },
+        "instruckt": {
+            "command": "php",
+            "args": [
+                "/Users/franciscobarrento/Herd/larakube/artisan",
+                "mcp:start",
+                "instruckt"
+            ]
         }
     }
 }

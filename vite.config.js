@@ -4,9 +4,11 @@ import {
     defineConfig
 } from 'vite';
 import tailwindcss from "@tailwindcss/vite";
+import instruckt from 'instruckt/vite'
 
 export default defineConfig({
     plugins: [
+        instruckt({ server: false, endpoint: '/instruckt', adapters: ['react', 'blade'], mcp: true }),
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             ssr: 'resources/js/ssr.jsx',

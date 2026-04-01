@@ -4,6 +4,7 @@ import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import { route as routeFn } from 'ziggy-js';
 import { initializeTheme } from './hooks/use-appearance';
+import 'virtual:instruckt'
 
 declare global {
     const route: typeof routeFn;
