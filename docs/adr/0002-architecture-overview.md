@@ -1,11 +1,11 @@
 ---
 adr:
-  number: 2
-  status: proposed
-  date: 2026-03-28
-  authors: [Francisco Barrento]
-  tags: [architecture, overview, stack, foundation]
-  related: []
+    number: 2
+    status: proposed
+    date: 2026-03-28
+    authors: [Francisco Barrento]
+    tags: [architecture, overview, stack, foundation]
+    related: []
 ---
 
 # Architecture Overview
@@ -20,16 +20,16 @@ The application is built on the following technology stack and architectural pat
 
 ### Core Stack
 
-| Component | Technology | Version | Purpose |
-|-----------|-----------|---------|---------|
-| PHP | PHP | 8.4 | Backend runtime |
-| Framework | Laravel | v12 | Application framework |
-| Frontend | React | v19 | UI components |
-| Inertia | Inertia.js | v2 | Server-driven SPA |
-| Styling | Tailwind CSS | v4 | Utility-first CSS |
-| Database | MySQL | 8.0+ | Primary data store |
-| Testing | Pest | v4 | PHP testing framework |
-| Auth | Laravel Sanctum | v4 | API authentication |
+| Component | Technology      | Version | Purpose               |
+| --------- | --------------- | ------- | --------------------- |
+| PHP       | PHP             | 8.4     | Backend runtime       |
+| Framework | Laravel         | v12     | Application framework |
+| Frontend  | React           | v19     | UI components         |
+| Inertia   | Inertia.js      | v2      | Server-driven SPA     |
+| Styling   | Tailwind CSS    | v4      | Utility-first CSS     |
+| Database  | MySQL           | 8.0+    | Primary data store    |
+| Testing   | Pest            | v4      | PHP testing framework |
+| Auth      | Laravel Sanctum | v4      | API authentication    |
 
 ### Directory Structure
 
@@ -62,22 +62,26 @@ larakube/
 ### Architectural Patterns
 
 **Server-Driven SPA (Inertia)**
+
 - Pages are React components rendered server-side via Inertia
 - No separate API for frontend-backend communication
 - Uses Ziggy for named route generation in JavaScript
 
 **Domain-Driven Design (Emerging)**
+
 - Models represent domain entities
 - Services encapsulate business logic
 - Form Requests handle validation and authorization
 
 **Testing Strategy**
+
 - Pest for feature and unit tests
 - Feature tests for HTTP endpoints and user flows
 - Unit tests for isolated business logic
 - Browser tests for critical user journeys
 
 **Code Quality Tools**
+
 - Laravel Pint for code formatting
 - PHPStan (via Larastan) for static analysis
 - Rector for automated refactoring
@@ -86,6 +90,7 @@ larakube/
 ### Configuration
 
 Key configuration files:
+
 - `bootstrap/app.php` — Application configuration, middleware registration
 - `bootstrap/providers.php` — Service provider registration
 - `config/*.php` — Package and application configuration
@@ -130,6 +135,7 @@ Key configuration files:
 - **PHP version upgrades**: Annual PHP upgrades require testing effort
 
 **Mitigation strategies**:
+
 - Monitor bundle size with build analysis
 - Plan for horizontal scaling early
 - Keep PHP upgrades in CI/CD pipeline
