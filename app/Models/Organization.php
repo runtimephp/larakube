@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\HasSlug;
 use Carbon\CarbonImmutable;
 use Database\Factories\OrganizationFactory;
 use Illuminate\Database\Eloquent\Collection;
@@ -30,7 +31,13 @@ final class Organization extends Model
     /** @use HasFactory<OrganizationFactory> */
     use HasFactory;
 
+    use HasSlug;
     use HasUuids;
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
     /**
      * @return array|string[]

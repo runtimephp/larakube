@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Concerns\HasOrganizations;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -21,15 +20,17 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read string $email
  * @property-read string $password
  * @property-read string $remember_token
+ * @property-read string|null $current_organization_id
  * @property-read CarbonImmutable|null $email_verified_at
  * @property-read CarbonImmutable $created_at
  * @property-read CarbonImmutable $updated_at
+ * @property-read Organization|null $currentOrganization
  * @property-read Collection<int, Organization> $organizations
  */
 final class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasUuids, Notifiable;
+    use HasApiTokens, HasFactory, HasOrganizations, HasUuids, Notifiable;
 
     /**
      * The attributes that are mass-assignable.
@@ -40,6 +41,7 @@ final class User extends Authenticatable
         'name',
         'email',
         'password',
+        'current_organization_id',
     ];
 
     /**
@@ -52,15 +54,6 @@ final class User extends Authenticatable
         'remember_token',
     ];
 
-    /** @return BelongsToMany<Organization, $this, OrganizationUser, 'pivot'> */
-    public function organizations(): BelongsToMany
-    {
-        return $this->belongsToMany(Organization::class)
-            ->using(OrganizationUser::class)
-            ->withPivot('role')
-            ->withTimestamps();
-    }
-
     /**
      * @return array<string, string>
      */
@@ -70,6 +63,7 @@ final class User extends Authenticatable
             'id' => 'string',
             'name' => 'string',
             'email' => 'string',
+            'current_organization_id' => 'string',
             'email_verified_at' => 'immutable_datetime',
             'password' => 'hashed',
             'remember_token' => 'string',

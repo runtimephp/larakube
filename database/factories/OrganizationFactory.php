@@ -19,9 +19,11 @@ final class OrganizationFactory extends Factory
      */
     public function definition(): array
     {
+        $name = $this->faker->company();
+
         return [
-            'name' => $this->faker->company(),
-            'slug' => $this->faker->slug(),
+            'name' => $name,
+            'slug' => str($name)->slug()->toString(),
             'description' => $this->faker->paragraph(),
         ];
     }

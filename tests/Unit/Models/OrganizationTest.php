@@ -103,6 +103,17 @@ test('uses uuid for primary key',
             ->toBeUuid();
     });
 
+test('uses slug as route key name',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+
+        expect($organization->getRouteKeyName())->toBe('slug');
+    });
+
 test('to array has all fields in correct order',
     /**
      * @throws Throwable
