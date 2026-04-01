@@ -8,6 +8,9 @@ use App\Data\CreateServerData;
 use App\Data\ServerData;
 use Illuminate\Support\Collection;
 
+/**
+ * @see ADR-0005, ADR-0009 — Write methods to be removed; refactoring to CloudManager driver pattern
+ */
 interface ServerService
 {
     public function getAll(): Collection;

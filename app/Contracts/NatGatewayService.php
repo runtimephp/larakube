@@ -6,6 +6,9 @@ namespace App\Contracts;
 
 use App\Data\NatGatewayConfigData;
 
+/**
+ * @see ADR-0005, ADR-0009 — Write methods to be removed; refactoring to CloudManager driver pattern
+ */
 interface NatGatewayService
 {
     /**

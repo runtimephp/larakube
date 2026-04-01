@@ -8,6 +8,9 @@ use App\Data\CreateNetworkData;
 use App\Data\NetworkData;
 use Illuminate\Support\Collection;
 
+/**
+ * @see ADR-0005, ADR-0009 — Write methods to be removed; refactoring to CloudManager driver pattern
+ */
 interface NetworkService
 {
     public function create(CreateNetworkData $data): NetworkData;

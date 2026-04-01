@@ -13,6 +13,9 @@ use App\Contracts\SshKeyService;
 use App\Enums\CloudProviderType;
 use RuntimeException;
 
+/**
+ * @see ADR-0009 — To be replaced by CloudManager
+ */
 class CloudProviderFactory
 {
     public function makeServerService(CloudProviderType $type, ?string $token = null): ServerService
