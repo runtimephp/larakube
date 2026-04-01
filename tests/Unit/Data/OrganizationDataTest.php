@@ -25,6 +25,7 @@ test('fromArray and toArray round-trip', function (): void {
         'name' => 'Acme Corp',
         'slug' => 'acme-corp',
         'description' => 'A great company',
+        'logo' => 'https://example.com/logo.png',
     ];
 
     $data = OrganizationData::fromArray($original);
@@ -32,12 +33,13 @@ test('fromArray and toArray round-trip', function (): void {
     expect($data->toArray())->toBe($original);
 });
 
-test('description defaults to null', function (): void {
+test('description and logo default to null', function (): void {
     $data = OrganizationData::fromArray([
         'id' => 'uuid-123',
         'name' => 'Acme',
         'slug' => 'acme',
     ]);
 
-    expect($data->description)->toBeNull();
+    expect($data->description)->toBeNull()
+        ->and($data->logo)->toBeNull();
 });

@@ -6,9 +6,8 @@ namespace App\Http\Controllers;
 
 use App\Actions\CreateOrganization;
 use App\Data\CreateOrganizationData;
-use App\Rules\OrganizationName;
+use App\Http\Requests\StoreOrganizationRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,17 +18,12 @@ final class OrganizationController extends Controller
         return Inertia::render('organizations/create');
     }
 
-    public function store(Request $request, CreateOrganization $createOrganization): RedirectResponse
+    public function store(StoreOrganizationRequest $request, CreateOrganization $createOrganization): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', new OrganizationName],
-            'description' => ['nullable', 'string', 'max:1000'],
-        ]);
-
         $organization = $createOrganization->handle(
             new CreateOrganizationData(
-                name: $validated['name'],
-                description: $validated['description'] ?? null,
+                name: $request->validated('name'),
+                description: $request->validated('description'),
             ),
             owner: $request->user(),
         );

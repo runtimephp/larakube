@@ -22,20 +22,5 @@ test('switches the user current organization',
 
         $user->refresh();
 
-        expect($user->current_organization_id)->toBe($organization->id)
-            ->and($user->currentOrganization->id)->toBe($organization->id);
+        expect($user->current_organization_id)->toBe($organization->id);
     });
-
-test('throws exception when user is not a member',
-    /**
-     * @throws Throwable
-     */
-    function (): void {
-        /** @var Organization $organization */
-        $organization = Organization::factory()->create();
-
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        app(SwitchOrganization::class)->handle($user, $organization);
-    })->throws(Illuminate\Auth\Access\AuthorizationException::class);

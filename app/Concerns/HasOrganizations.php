@@ -6,11 +6,12 @@ namespace App\Concerns;
 
 use App\Models\Organization;
 use App\Models\OrganizationUser;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
- * @mixin \App\Models\User
+ * @mixin User
  */
 trait HasOrganizations
 {

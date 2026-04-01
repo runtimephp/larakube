@@ -8,6 +8,7 @@ use App\Actions\SwitchOrganization;
 use App\Models\Organization;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -33,7 +34,7 @@ final readonly class EnsureOrganizationMembership
             abort(404);
         }
 
-        if (! $user->belongsToOrganization($organization)) {
+        if (Gate::denies('view', $organization)) {
             abort(403);
         }
 
