@@ -15,11 +15,11 @@ import { Check, ChevronsUpDown, Plus } from 'lucide-react';
 
 function OrganizationAvatar({ organization }: { organization: Organization }) {
     if (organization.logo) {
-        return <img src={organization.logo} alt={organization.name} className="size-4 rounded" />;
+        return <img src={organization.logo} alt={organization.name} className="size-6 shrink-0 rounded" />;
     }
 
     return (
-        <div className="bg-primary text-primary-foreground flex size-4 items-center justify-center rounded text-[10px] font-semibold">
+        <div className="bg-primary text-primary-foreground flex size-6 shrink-0 items-center justify-center rounded text-xs font-semibold">
             {organization.name.charAt(0).toUpperCase()}
         </div>
     );
@@ -54,7 +54,6 @@ export function OrganizationSwitcher() {
                             <OrganizationAvatar organization={currentOrganization} />
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 <span className="truncate font-medium">{currentOrganization.name}</span>
-                                <span className="text-muted-foreground truncate text-xs">{currentOrganization.slug}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>
