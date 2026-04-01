@@ -1,3 +1,4 @@
+import 'virtual:instruckt';
 import '../css/app.css';
 
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';

@@ -9,9 +9,10 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { create, switchMethod } from '@/routes/organizations';
+import organizationSettings from '@/routes/organizations/settings';
 import { type Organization, type SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/react';
-import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import { Check, ChevronsUpDown, Plus, Settings } from 'lucide-react';
 
 function OrganizationAvatar({ organization }: { organization: Organization }) {
     if (organization.logo) {
@@ -77,6 +78,15 @@ export function OrganizationSwitcher() {
                             </DropdownMenuItem>
                         ))}
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            onClick={() => router.visit(organizationSettings.general.edit.url(currentOrganization.slug))}
+                            className="cursor-pointer gap-2 p-2"
+                        >
+                            <div className="bg-background flex size-4 items-center justify-center rounded border">
+                                <Settings className="size-3" />
+                            </div>
+                            <span>Organization settings</span>
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() => router.visit(create.url())}
                             className="cursor-pointer gap-2 p-2"

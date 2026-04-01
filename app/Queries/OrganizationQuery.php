@@ -31,6 +31,13 @@ final class OrganizationQuery
         return $this;
     }
 
+    public function bySlug(string $slug): self
+    {
+        $this->builder->where('slug', $slug);
+
+        return $this;
+    }
+
     public function search(string $search): self
     {
         $this->builder->where(function (Builder $builder) use ($search): void {
