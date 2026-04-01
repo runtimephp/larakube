@@ -21,6 +21,13 @@ export interface NavItem {
     isActive?: boolean;
 }
 
+export interface CloudProvider {
+    id: string;
+    name: string;
+    type: 'hetzner' | 'digital_ocean';
+    is_verified: boolean;
+}
+
 export interface Organization {
     id: string;
     name: string;

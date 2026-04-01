@@ -13,6 +13,16 @@ final readonly class CloudProviderData
         public bool $isVerified,
     ) {}
 
+    public static function fromModel(\App\Models\CloudProvider $cloudProvider): self
+    {
+        return new self(
+            id: $cloudProvider->id,
+            name: $cloudProvider->name,
+            type: $cloudProvider->type->value,
+            isVerified: $cloudProvider->is_verified,
+        );
+    }
+
     /**
      * @param  array{id: string, name: string, type: string, is_verified: bool}  $data
      */

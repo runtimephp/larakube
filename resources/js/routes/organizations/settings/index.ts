@@ -1,5 +1,6 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults, validateParameters } from './../../../wayfinder'
 import general from './general'
+import cloudProviders151255 from './cloud-providers'
 /**
 * @see routes/web.php:40
 * @param organization - Default: '$organization'
@@ -73,7 +74,7 @@ members.head = (args?: { organization?: string | { slug: string } } | [organizat
 })
 
 /**
-* @see routes/web.php:49
+* @see routes/web.php:47
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/billing'
 */
@@ -88,7 +89,7 @@ billing.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see routes/web.php:49
+* @see routes/web.php:47
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/billing'
 */
@@ -125,7 +126,7 @@ billing.url = (args?: { organization?: string | { slug: string } } | [organizati
 }
 
 /**
-* @see routes/web.php:49
+* @see routes/web.php:47
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/billing'
 */
@@ -135,7 +136,7 @@ billing.get = (args?: { organization?: string | { slug: string } } | [organizati
 })
 
 /**
-* @see routes/web.php:49
+* @see routes/web.php:47
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/billing'
 */
@@ -145,11 +146,12 @@ billing.head = (args?: { organization?: string | { slug: string } } | [organizat
 })
 
 /**
-* @see routes/web.php:58
+* @see \OrganizationCloudProvidersController::cloudProviders
+* @see [unknown]:0
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/cloud-providers'
 */
-export const cloudProviders = (args?: { organization?: string | { slug: string } } | [organization: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const cloudProviders = (args?: { organization?: string | number } | [organization: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: cloudProviders.url(args, options),
     method: 'get',
 })
@@ -160,17 +162,14 @@ cloudProviders.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see routes/web.php:58
+* @see \OrganizationCloudProvidersController::cloudProviders
+* @see [unknown]:0
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/cloud-providers'
 */
-cloudProviders.url = (args?: { organization?: string | { slug: string } } | [organization: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions) => {
+cloudProviders.url = (args?: { organization?: string | number } | [organization: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { organization: args }
-    }
-
-    if (typeof args === 'object' && !Array.isArray(args) && 'slug' in args) {
-        args = { organization: args.slug }
     }
 
     if (Array.isArray(args)) {
@@ -186,9 +185,7 @@ cloudProviders.url = (args?: { organization?: string | { slug: string } } | [org
     ])
 
     const parsedArgs = {
-        organization: (typeof args?.organization === 'object'
-        ? args.organization.slug
-        : args?.organization) ?? '$organization',
+        organization: args?.organization ?? '$organization',
     }
 
     return cloudProviders.definition.url
@@ -197,27 +194,29 @@ cloudProviders.url = (args?: { organization?: string | { slug: string } } | [org
 }
 
 /**
-* @see routes/web.php:58
+* @see \OrganizationCloudProvidersController::cloudProviders
+* @see [unknown]:0
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/cloud-providers'
 */
-cloudProviders.get = (args?: { organization?: string | { slug: string } } | [organization: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+cloudProviders.get = (args?: { organization?: string | number } | [organization: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: cloudProviders.url(args, options),
     method: 'get',
 })
 
 /**
-* @see routes/web.php:58
+* @see \OrganizationCloudProvidersController::cloudProviders
+* @see [unknown]:0
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/cloud-providers'
 */
-cloudProviders.head = (args?: { organization?: string | { slug: string } } | [organization: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+cloudProviders.head = (args?: { organization?: string | number } | [organization: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: cloudProviders.url(args, options),
     method: 'head',
 })
 
 /**
-* @see routes/web.php:70
+* @see routes/web.php:57
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/danger-zone'
 */
@@ -232,7 +231,7 @@ dangerZone.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see routes/web.php:70
+* @see routes/web.php:57
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/danger-zone'
 */
@@ -269,7 +268,7 @@ dangerZone.url = (args?: { organization?: string | { slug: string } } | [organiz
 }
 
 /**
-* @see routes/web.php:70
+* @see routes/web.php:57
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/danger-zone'
 */
@@ -279,7 +278,7 @@ dangerZone.get = (args?: { organization?: string | { slug: string } } | [organiz
 })
 
 /**
-* @see routes/web.php:70
+* @see routes/web.php:57
 * @param organization - Default: '$organization'
 * @route '/{organization?}/settings/danger-zone'
 */
@@ -292,7 +291,7 @@ const settings = {
     general: Object.assign(general, general),
     members: Object.assign(members, members),
     billing: Object.assign(billing, billing),
-    cloudProviders: Object.assign(cloudProviders, cloudProviders),
+    cloudProviders: Object.assign(cloudProviders, cloudProviders151255),
     dangerZone: Object.assign(dangerZone, dangerZone),
 }
 
