@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+/**
+ * @see ADR-0005 — Superseded by CAPI; scheduled for removal
+ */
 enum ProvisioningStep: string
 {
     // Infrastructure phase (steps 1-10)

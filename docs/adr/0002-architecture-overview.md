@@ -156,3 +156,7 @@ Key configuration files:
 - Event sourcing for complex domain workflows
 - Caching strategy (Redis) for performance
 - Queue system for background jobs
+
+### Post-ADR-0005 Update (2026-04-01)
+
+The provider abstraction layer shifts from direct cloud API calls (creating VMs, networks, firewalls) to CAPI manifest generation and Kubernetes API interaction. The `CloudProviderFactory` is replaced by a `CloudManager` following Laravel's Manager/Driver pattern (ADR-0009). Provider service contracts are narrowed to read-only inventory queries. See ADR-0005 for details.

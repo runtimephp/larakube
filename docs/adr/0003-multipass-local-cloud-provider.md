@@ -166,3 +166,7 @@ management without significant additional tooling.
 
 - SSH key injection via cloud-init when creating Multipass VMs
 - Multipass network configuration for multi-VM clusters
+
+### Post-ADR-0005 Scope Clarification (2026-04-01)
+
+Multipass is scoped to **local workload clusters only** — for developer testing of application deployments on a real Kubernetes cluster. It is NOT used for bootstrapping the CAPI management cluster; `clusterctl init` with `kind` serves that role (ADR-0007). The Multipass driver will be narrowed to read-only inventory queries under the CloudManager pattern (ADR-0009).

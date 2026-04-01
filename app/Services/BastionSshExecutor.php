@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
+/**
+ * @see ADR-0005 — Superseded by CAPI; scheduled for removal
+ */
 final readonly class BastionSshExecutor
 {
     /** @var Closure(list<string>): Process */

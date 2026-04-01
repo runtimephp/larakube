@@ -8,6 +8,9 @@ use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\Yaml\Yaml;
 
+/**
+ * @see ADR-0005 — Superseded by CAPI; scheduled for removal
+ */
 final readonly class CloudInitGenerator
 {
     public function __construct(
