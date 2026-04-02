@@ -7,8 +7,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --font-sans:
-        'Mona Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Mona Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -148,11 +147,15 @@
 }
 
 @layer base {
+    html {
+        @apply bg-white;
+    }
+
     * {
         @apply border-border;
     }
 
     body {
-        @apply bg-background text-foreground;
+        @apply text-foreground bg-white;
     }
 }
