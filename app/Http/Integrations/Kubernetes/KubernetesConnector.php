@@ -8,6 +8,7 @@ use Saloon\Contracts\Authenticator;
 use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Connector;
 use Saloon\Traits\Plugins\AcceptsJson;
+use SensitiveParameter;
 
 final class KubernetesConnector extends Connector
 {
@@ -15,7 +16,7 @@ final class KubernetesConnector extends Connector
 
     public function __construct(
         private readonly string $server,
-        private readonly string $token,
+        #[SensitiveParameter] private readonly string $token,
         private readonly bool $verifySsl = true,
     ) {}
 

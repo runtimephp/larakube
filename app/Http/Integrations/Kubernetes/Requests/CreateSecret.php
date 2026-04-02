@@ -10,6 +10,7 @@ use Saloon\Enums\Method;
 use Saloon\Http\Request;
 use Saloon\Http\Response;
 use Saloon\Traits\Body\HasJsonBody;
+use SensitiveParameter;
 
 final class CreateSecret extends Request implements HasBody
 {
@@ -23,7 +24,7 @@ final class CreateSecret extends Request implements HasBody
     public function __construct(
         private readonly string $name,
         private readonly string $namespace,
-        private readonly array $data,
+        #[SensitiveParameter] private readonly array $data,
         private readonly string $type = 'Opaque',
     ) {}
 
