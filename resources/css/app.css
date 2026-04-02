@@ -7,7 +7,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --font-sans: 'Mona Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-headline: 'Manrope', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -146,9 +147,82 @@
     --sidebar-ring: hsl(217.2, 91.2%, 59.8%);
 }
 
+/* Kuven Light Theme */
+.kuven-light {
+    --background: #f9fafb;
+    --foreground: #111827;
+    --card: #ffffff;
+    --card-foreground: #111827;
+    --popover: #ffffff;
+    --popover-foreground: #111827;
+    --primary: #6d3bd7;
+    --primary-foreground: #ffffff;
+    --secondary: #f3f4f6;
+    --secondary-foreground: #4b5563;
+    --muted: #f3f4f6;
+    --muted-foreground: #4b5563;
+    --accent: #f3f4f6;
+    --accent-foreground: #111827;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #6d3bd7;
+    --radius: 0.375rem;
+    --sidebar-background: #ffffff;
+    --sidebar-foreground: #4b5563;
+    --sidebar-primary: #6d3bd7;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f3f4f6;
+    --sidebar-accent-foreground: #111827;
+    --sidebar-border: #e2e8f0;
+    --sidebar-ring: #6d3bd7;
+    --chart-1: #6d3bd7;
+    --chart-2: #a078ff;
+    --chart-3: #d97706;
+    --chart-4: #059669;
+    --chart-5: #dc2626;
+}
+
+/* Kuven Dark Theme */
+.kuven-dark {
+    --background: #0c1324;
+    --foreground: #dce1fb;
+    --card: #151b2d;
+    --card-foreground: #dce1fb;
+    --popover: #151b2d;
+    --popover-foreground: #dce1fb;
+    --primary: #d0bcff;
+    --primary-foreground: #3c0091;
+    --secondary: #23293c;
+    --secondary-foreground: #c3c0ff;
+    --muted: #151b2d;
+    --muted-foreground: #cbc3d7;
+    --accent: #23293c;
+    --accent-foreground: #dce1fb;
+    --destructive: #ffb4ab;
+    --destructive-foreground: #690005;
+    --border: #494454;
+    --input: #494454;
+    --ring: #d0bcff;
+    --sidebar-background: #050a18;
+    --sidebar-foreground: #cbc3d7;
+    --sidebar-primary: #d0bcff;
+    --sidebar-primary-foreground: #3c0091;
+    --sidebar-accent: #23293c;
+    --sidebar-accent-foreground: #dce1fb;
+    --sidebar-border: #494454;
+    --sidebar-ring: #d0bcff;
+    --chart-1: #d0bcff;
+    --chart-2: #a078ff;
+    --chart-3: #ffb869;
+    --chart-4: #34d399;
+    --chart-5: #ffb4ab;
+}
+
 @layer base {
     html {
-        @apply bg-white;
+        @apply bg-background;
     }
 
     * {
@@ -156,6 +230,6 @@
     }
 
     body {
-        @apply text-foreground bg-white;
+        @apply text-foreground bg-background;
     }
 }

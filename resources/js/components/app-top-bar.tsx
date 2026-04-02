@@ -1,6 +1,6 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
@@ -46,26 +46,26 @@ function OrgSwitcher({ currentOrganization, organizations }: { currentOrganizati
             <DropdownMenuContent align="start" sideOffset={8} className="min-w-52">
                 <p className="text-muted-foreground px-2 py-1.5 text-xs font-medium">Organizations</p>
                 {organizations.map((organization) => (
-                    <button
+                    <DropdownMenuItem
                         key={organization.id}
                         onClick={() => switchOrganization(organization)}
-                        className="hover:bg-accent flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm"
+                        className="cursor-pointer gap-2"
                     >
                         <OrganizationAvatar organization={organization} />
-                        <span className="flex-1 truncate text-left">{organization.name}</span>
+                        <span className="flex-1 truncate">{organization.name}</span>
                         {organization.id === currentOrganization.id && <Check className="size-4" />}
-                    </button>
+                    </DropdownMenuItem>
                 ))}
-                <div className="my-1 h-px bg-neutral-100 dark:bg-neutral-800" />
-                <button
+                <div className="my-1 h-px bg-border" />
+                <DropdownMenuItem
                     onClick={() => router.visit(create.url())}
-                    className="hover:bg-accent flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm"
+                    className="cursor-pointer gap-2"
                 >
                     <div className="bg-background flex size-5 items-center justify-center rounded border">
                         <Plus className="size-3" />
                     </div>
                     <span>Create organization</span>
-                </button>
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -82,7 +82,7 @@ function UserAvatar() {
                     <button className="hover:ring-border rounded-full transition-all hover:ring-2 hover:ring-offset-1">
                         <Avatar className="size-8">
                             <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                            <AvatarFallback className="bg-neutral-200 text-xs text-black dark:bg-neutral-700 dark:text-white">
+                            <AvatarFallback className="bg-muted text-muted-foreground text-xs">
                                 {getInitials(auth.user.name)}
                             </AvatarFallback>
                         </Avatar>
@@ -158,10 +158,10 @@ export function AppTopBar({ tabs }: { tabs?: TabItem[] }) {
                 )}
             </div>
 
-            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[calc(100%-1px)] z-20 bg-white px-2">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[calc(100%-1px)] z-20 bg-background px-2">
                 <div className="relative z-20 w-full">
                     <div className="h-2 overflow-hidden">
-                        <div className="border-border h-3 rounded-t-lg border-x border-t bg-white" />
+                        <div className="border-border h-3 rounded-t-lg border-x border-t bg-background" />
                     </div>
                 </div>
             </div>
