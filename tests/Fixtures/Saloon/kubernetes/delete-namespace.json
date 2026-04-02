@@ -1,0 +1,14 @@
+{
+    "statusCode": 200,
+    "headers": {
+        "Audit-Id": "c0d5ee0c-9430-4a6e-9da5-317a85c64b79",
+        "Cache-Control": "no-cache, private",
+        "Content-Type": "application\/json",
+        "X-Kubernetes-Pf-Flowschema-Uid": "13b9e8ce-1e35-4fc1-8fa5-1e295d17855b",
+        "X-Kubernetes-Pf-Prioritylevel-Uid": "fa699d5e-0bb1-4acc-af85-900b977e5f5a",
+        "Date": "Thu, 02 Apr 2026 18:38:20 GMT",
+        "Content-Length": "581"
+    },
+    "data": "{\"kind\":\"Namespace\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"kuven-test-ns\",\"uid\":\"7c741ba8-0962-4168-b7d1-917723457026\",\"resourceVersion\":\"3683\",\"creationTimestamp\":\"2026-04-02T18:37:51Z\",\"deletionTimestamp\":\"2026-04-02T18:38:20Z\",\"labels\":{\"kubernetes.io\/metadata.name\":\"kuven-test-ns\"},\"managedFields\":[{\"manager\":\"kubectl-create\",\"operation\":\"Update\",\"apiVersion\":\"v1\",\"time\":\"2026-04-02T18:37:51Z\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:metadata\":{\"f:labels\":{\".\":{},\"f:kubernetes.io\/metadata.name\":{}}}}}]},\"spec\":{\"finalizers\":[\"kubernetes\"]},\"status\":{\"phase\":\"Terminating\"}}\n",
+    "context": []
+}

@@ -1,0 +1,14 @@
+{
+    "statusCode": 201,
+    "headers": {
+        "Audit-Id": "5708c45b-22e3-4c30-8a8d-0f3fc0201ace",
+        "Cache-Control": "no-cache, private",
+        "Content-Type": "application\/json",
+        "X-Kubernetes-Pf-Flowschema-Uid": "13b9e8ce-1e35-4fc1-8fa5-1e295d17855b",
+        "X-Kubernetes-Pf-Prioritylevel-Uid": "fa699d5e-0bb1-4acc-af85-900b977e5f5a",
+        "Date": "Thu, 02 Apr 2026 18:45:02 GMT",
+        "Content-Length": "668"
+    },
+    "data": "{\"kind\":\"Role\",\"apiVersion\":\"rbac.authorization.k8s.io\/v1\",\"metadata\":{\"name\":\"kuven-operator\",\"namespace\":\"kuven-test-ns\",\"uid\":\"6a052418-9ed9-4351-8731-d6d9e9d858b1\",\"resourceVersion\":\"4229\",\"creationTimestamp\":\"2026-04-02T18:45:02Z\",\"managedFields\":[{\"manager\":\"GuzzleHttp\",\"operation\":\"Update\",\"apiVersion\":\"rbac.authorization.k8s.io\/v1\",\"time\":\"2026-04-02T18:45:02Z\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:rules\":{}}}]},\"rules\":[{\"verbs\":[\"*\"],\"apiGroups\":[\"cluster.x-k8s.io\",\"infrastructure.cluster.x-k8s.io\",\"bootstrap.cluster.x-k8s.io\",\"controlplane.cluster.x-k8s.io\"],\"resources\":[\"*\"]},{\"verbs\":[\"*\"],\"apiGroups\":[\"\"],\"resources\":[\"secrets\",\"configmaps\"]}]}\n",
+    "context": []
+}

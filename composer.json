@@ -25,6 +25,8 @@
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.15",
         "nunomaduro/essentials": "^1.2",
+        "saloonphp/laravel-plugin": "^4.1",
+        "saloonphp/saloon": "^4.0",
         "tightenco/ziggy": "^2.4"
     },
     "require-dev": {
