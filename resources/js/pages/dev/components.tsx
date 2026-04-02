@@ -1,3 +1,4 @@
+import { AppTopBar } from '@/components/app-top-bar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useAppearance } from '@/hooks/use-appearance';
 import { Head } from '@inertiajs/react';
 import { AlertCircle, Heart, Loader2, Mail, Monitor, Moon, Sun, Terminal } from 'lucide-react';
+
+const demoTabs = [
+    { title: 'Dashboard', url: '/demo/dashboard' },
+    { title: 'Applications', url: '/demo/applications' },
+    { title: 'Resources', url: '/demo/resources' },
+    { title: 'Clusters', url: '/demo/clusters' },
+    { title: 'Settings', url: '/dev/components' },
+];
 
 const colorTokens = [
     { name: '--background', class: 'bg-background' },
@@ -82,6 +91,13 @@ export default function Components() {
                         ))}
                     </div>
                 </div>
+
+                {/* Header */}
+                <Section title="App Header" description="Glassmorphic top bar with brand, org switcher, search, notifications, and nav tabs.">
+                    <div className="border-border overflow-hidden rounded-lg border">
+                        <AppTopBar tabs={demoTabs} />
+                    </div>
+                </Section>
 
                 {/* Colors */}
                 <Section title="Colors" description="Core design tokens mapped from Stitch spec. Remove kuven-light/kuven-dark class to see shadcn defaults.">
