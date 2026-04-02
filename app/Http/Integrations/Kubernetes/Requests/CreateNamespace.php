@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Integrations\Kubernetes\Requests;
 
 use App\Http\Integrations\Kubernetes\Data\NamespaceData;
+use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
+use App\Http\Integrations\Kubernetes\Manifests\NamespaceManifest;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -36,12 +38,8 @@ final class CreateNamespace extends Request implements HasBody
      */
     protected function defaultBody(): array
     {
-        return [
-            'apiVersion' => 'v1',
-            'kind' => 'Namespace',
-            'metadata' => [
-                'name' => $this->name,
-            ],
-        ];
+        return new NamespaceManifest(
+            metadata: new ManifestMetadata(name: $this->name),
+        )->toArray();
     }
 }

@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Integrations\Kubernetes\Requests;
 
 use App\Http\Integrations\Kubernetes\Data\SecretData;
+use App\Http\Integrations\Kubernetes\Enums\SecretType;
+use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
+use App\Http\Integrations\Kubernetes\Manifests\SecretManifest;
+use App\Http\Integrations\Kubernetes\Manifests\SecretStringData;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -43,21 +47,13 @@ final class CreateSecret extends Request implements HasBody
      */
     protected function defaultBody(): array
     {
-        $encodedData = [];
-
-        foreach ($this->data as $key => $value) {
-            $encodedData[$key] = base64_encode($value);
-        }
-
-        return [
-            'apiVersion' => 'v1',
-            'kind' => 'Secret',
-            'metadata' => [
-                'name' => $this->name,
-                'namespace' => $this->namespace,
-            ],
-            'type' => $this->type,
-            'data' => $encodedData,
-        ];
+        return new SecretManifest(
+            metadata: new ManifestMetadata(
+                name: $this->name,
+                namespace: $this->namespace,
+            ),
+            data: new SecretStringData($this->data),
+            type: SecretType::tryFrom($this->type) ?? $this->type,
+        )->toArray();
     }
 }
