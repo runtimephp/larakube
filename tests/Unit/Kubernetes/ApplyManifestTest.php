@@ -86,3 +86,15 @@ it('resolves the correct endpoint for cluster-scoped resources', function (): vo
 
     expect($request->resolveEndpoint())->toBe('/api/v1/namespaces');
 });
+
+it('uses explicit resource name when provided', function (): void {
+    $manifest = [
+        'apiVersion' => 'infrastructure.cluster.x-k8s.io/v1beta1',
+        'kind' => 'HetznerCluster',
+        'metadata' => ['name' => 'my-cluster', 'namespace' => 'kuven-org-123'],
+    ];
+
+    $request = new ApplyManifest($manifest, resource: 'hetznerclusters');
+
+    expect($request->resolveEndpoint())->toBe('/apis/infrastructure.cluster.x-k8s.io/v1beta1/namespaces/kuven-org-123/hetznerclusters');
+});

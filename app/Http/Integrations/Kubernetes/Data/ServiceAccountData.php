@@ -11,7 +11,7 @@ final readonly class ServiceAccountData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $response
+     * @param  array{metadata: array{name: string, uid: string, resourceVersion: string, creationTimestamp: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}}  $response
      */
     public static function fromKubernetesResponse(array $response): self
     {

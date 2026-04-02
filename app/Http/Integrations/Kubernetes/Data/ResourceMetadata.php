@@ -23,7 +23,7 @@ final readonly class ResourceMetadata
     ) {}
 
     /**
-     * @param  array<string, mixed>  $metadata
+     * @param  array{name: string, uid: string, resourceVersion: string, creationTimestamp: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}  $metadata
      */
     public static function fromKubernetesResponse(array $metadata): self
     {

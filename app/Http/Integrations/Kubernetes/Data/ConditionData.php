@@ -17,7 +17,7 @@ final readonly class ConditionData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $condition
+     * @param  array{type: string, status: string, reason?: string, message?: string, lastTransitionTime?: string}  $condition
      */
     public static function fromKubernetesResponse(array $condition): self
     {

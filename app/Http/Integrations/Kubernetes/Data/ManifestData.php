@@ -19,7 +19,7 @@ final readonly class ManifestData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $response
+     * @param  array{apiVersion: string, kind: string, metadata: array{name: string, uid: string, resourceVersion: string, creationTimestamp: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}, spec?: array<string, mixed>, status?: array<string, mixed>}  $response
      */
     public static function fromKubernetesResponse(array $response): self
     {

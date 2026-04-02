@@ -24,7 +24,7 @@ final class CreateServiceAccount extends Request implements HasBody
 
     public function resolveEndpoint(): string
     {
-        return "/api/v1/namespaces/{$this->namespace}/serviceaccounts";
+        return '/api/v1/namespaces/'.rawurlencode($this->namespace).'/serviceaccounts';
     }
 
     public function createDtoFromResponse(Response $response): ServiceAccountData

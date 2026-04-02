@@ -19,7 +19,7 @@ final class ListClusters extends Request
 
     public function resolveEndpoint(): string
     {
-        return "/apis/cluster.x-k8s.io/v1beta2/namespaces/{$this->namespace}/clusters";
+        return '/apis/cluster.x-k8s.io/v1beta2/namespaces/'.rawurlencode($this->namespace).'/clusters';
     }
 
     /**

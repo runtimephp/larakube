@@ -15,7 +15,7 @@ final readonly class RoleData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $response
+     * @param  array{metadata: array{name: string, uid: string, resourceVersion: string, creationTimestamp: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}, rules?: list<array{apiGroups?: list<string>, resources?: list<string>, verbs?: list<string>}>}  $response
      */
     public static function fromKubernetesResponse(array $response): self
     {

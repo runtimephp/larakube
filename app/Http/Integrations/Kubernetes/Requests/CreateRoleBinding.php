@@ -26,7 +26,7 @@ final class CreateRoleBinding extends Request implements HasBody
 
     public function resolveEndpoint(): string
     {
-        return "/apis/rbac.authorization.k8s.io/v1/namespaces/{$this->namespace}/rolebindings";
+        return '/apis/rbac.authorization.k8s.io/v1/namespaces/'.rawurlencode($this->namespace).'/rolebindings';
     }
 
     public function createDtoFromResponse(Response $response): RoleBindingData

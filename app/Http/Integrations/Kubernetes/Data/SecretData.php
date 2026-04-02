@@ -16,14 +16,15 @@ final readonly class SecretData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $response
+     * @param  array{metadata: array{name: string, uid: string, resourceVersion: string, creationTimestamp: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}, type?: string, data?: array<string, string>}  $response
      */
     public static function fromKubernetesResponse(array $response): self
     {
         $decodedData = [];
 
         foreach ($response['data'] ?? [] as $key => $value) {
-            $decodedData[$key] = base64_decode((string) $value, true) ?: $value;
+            $decoded = base64_decode((string) $value, true);
+            $decodedData[$key] = $decoded === false ? (string) $value : $decoded;
         }
 
         return new self(

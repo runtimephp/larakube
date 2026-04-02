@@ -29,7 +29,7 @@ final class CreateRole extends Request implements HasBody
 
     public function resolveEndpoint(): string
     {
-        return "/apis/rbac.authorization.k8s.io/v1/namespaces/{$this->namespace}/roles";
+        return '/apis/rbac.authorization.k8s.io/v1/namespaces/'.rawurlencode($this->namespace).'/roles';
     }
 
     public function createDtoFromResponse(Response $response): RoleData

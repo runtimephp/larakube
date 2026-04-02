@@ -26,10 +26,12 @@ final class ApplyManifest extends Request implements HasBody
     protected Method $method = Method::POST;
 
     /**
-     * @param  array<string, mixed>  $manifest
+     * @param  array{apiVersion: string, kind: string, metadata: array{name: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}, spec?: array<string, mixed>, status?: array<string, mixed>}  $manifest
+     * @param  string|null  $resource  Explicit plural resource name (e.g. 'machinedeployments'). When null, derived as lowercase(kind)+'s'.
      */
     public function __construct(
         private readonly array $manifest,
+        private readonly ?string $resource = null,
     ) {}
 
     public function resolveEndpoint(): string
@@ -37,22 +39,22 @@ final class ApplyManifest extends Request implements HasBody
         $apiVersion = $this->manifest['apiVersion'];
         $kind = $this->manifest['kind'];
         $namespace = $this->manifest['metadata']['namespace'] ?? null;
-        $resource = mb_strtolower((string) $kind).'s';
+        $resource = $this->resource ?? mb_strtolower($kind).'s';
 
         $isClusterScoped = in_array($kind, self::CLUSTER_SCOPED_KINDS, true) || $namespace === null;
 
-        if (str_contains((string) $apiVersion, '/')) {
-            [$group, $version] = explode('/', (string) $apiVersion, 2);
+        if (str_contains($apiVersion, '/')) {
+            [$group, $version] = explode('/', $apiVersion, 2);
             $base = "/apis/{$group}/{$version}";
         } else {
             $base = "/api/{$apiVersion}";
         }
 
         if ($isClusterScoped) {
-            return "{$base}/{$resource}";
+            return "{$base}/".rawurlencode($resource);
         }
 
-        return "{$base}/namespaces/{$namespace}/{$resource}";
+        return "{$base}/namespaces/".rawurlencode($namespace).'/'.rawurlencode($resource);
     }
 
     public function createDtoFromResponse(Response $response): ManifestData

@@ -29,7 +29,7 @@ final class CreateSecret extends Request implements HasBody
 
     public function resolveEndpoint(): string
     {
-        return "/api/v1/namespaces/{$this->namespace}/secrets";
+        return '/api/v1/namespaces/'.rawurlencode($this->namespace).'/secrets';
     }
 
     public function createDtoFromResponse(Response $response): SecretData

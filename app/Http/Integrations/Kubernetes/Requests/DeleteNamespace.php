@@ -17,6 +17,6 @@ final class DeleteNamespace extends Request
 
     public function resolveEndpoint(): string
     {
-        return "/api/v1/namespaces/{$this->name}";
+        return '/api/v1/namespaces/'.rawurlencode($this->name);
     }
 }

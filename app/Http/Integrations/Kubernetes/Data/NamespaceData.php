@@ -12,7 +12,7 @@ final readonly class NamespaceData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $response
+     * @param  array{metadata: array{name: string, uid: string, resourceVersion: string, creationTimestamp: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}, status?: array{phase?: string}}  $response
      */
     public static function fromKubernetesResponse(array $response): self
     {

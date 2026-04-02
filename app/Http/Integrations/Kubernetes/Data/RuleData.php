@@ -18,7 +18,7 @@ final readonly class RuleData
     ) {}
 
     /**
-     * @param  array<string, mixed>  $rule
+     * @param  array{apiGroups?: list<string>, resources?: list<string>, verbs?: list<string>}  $rule
      */
     public static function fromKubernetesResponse(array $rule): self
     {

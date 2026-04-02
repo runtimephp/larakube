@@ -20,7 +20,7 @@ final class GetCluster extends Request
 
     public function resolveEndpoint(): string
     {
-        return "/apis/cluster.x-k8s.io/v1beta2/namespaces/{$this->namespace}/clusters/{$this->name}";
+        return '/apis/cluster.x-k8s.io/v1beta2/namespaces/'.rawurlencode($this->namespace).'/clusters/'.rawurlencode($this->name);
     }
 
     public function createDtoFromResponse(Response $response): ClusterData
