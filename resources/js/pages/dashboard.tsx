@@ -1,5 +1,6 @@
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
+import general from '@/routes/organizations/settings/general';
 import { type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 
@@ -11,7 +12,7 @@ export default function Dashboard() {
               { title: 'Dashboard', url: `/${currentOrganization.slug}/dashboard` },
               { title: 'Clusters', url: `/${currentOrganization.slug}/clusters` },
               { title: 'Resources', url: `/${currentOrganization.slug}/resources` },
-              { title: 'Settings', url: '/settings/profile' },
+              { title: 'Settings', url: general.edit.url(currentOrganization.slug) },
           ]
         : [];
 

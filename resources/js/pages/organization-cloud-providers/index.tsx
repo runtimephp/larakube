@@ -1,7 +1,7 @@
 import InputError from '@/components/input-error';
+import { SettingsSection } from '@/components/settings-section';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -71,96 +71,96 @@ export default function OrganizationCloudProvidersPage({ organization, cloudProv
             <Head title={`${organization.name} — Cloud Providers`} />
 
             <OrganizationSettingsLayout organization={organization}>
-                <Card>
-                    <CardHeader className="flex flex-row items-start justify-between gap-4">
-                        <div>
-                            <CardTitle>Cloud Providers</CardTitle>
-                            <CardDescription>Manage the infrastructure providers connected to this organization.</CardDescription>
+                <SettingsSection title="Cloud Providers" description="Manage the infrastructure providers connected to this organization.">
+                    <div className="p-6">
+                        <div className="mb-4 flex items-center justify-between">
+                            <p className="text-muted-foreground text-[13px]">
+                                {cloudProviders.length === 0
+                                    ? 'No cloud providers connected yet.'
+                                    : `${cloudProviders.length} provider${cloudProviders.length === 1 ? '' : 's'} connected.`}
+                            </p>
+                            {can.manage && (
+                                <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button size="sm">
+                                            <Plus className="size-4" />
+                                            Add provider
+                                        </Button>
+                                    </DialogTrigger>
+
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Add cloud provider</DialogTitle>
+                                            <DialogDescription>
+                                                Connect a cloud provider by entering a name, selecting a type, and providing an API token.
+                                            </DialogDescription>
+                                        </DialogHeader>
+
+                                        <form id="add-provider-form" onSubmit={submitAdd} className="space-y-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="name">Name</Label>
+                                                <Input
+                                                    id="name"
+                                                    placeholder="My Hetzner account"
+                                                    value={addForm.data.name}
+                                                    onChange={(e) => addForm.setData('name', e.target.value)}
+                                                    disabled={addForm.processing}
+                                                />
+                                                <InputError message={addForm.errors.name} />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="type">Provider</Label>
+                                                <Select
+                                                    value={addForm.data.type}
+                                                    onValueChange={(value) => addForm.setData('type', value)}
+                                                    disabled={addForm.processing}
+                                                >
+                                                    <SelectTrigger id="type">
+                                                        <SelectValue placeholder="Select a provider" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="hetzner">Hetzner</SelectItem>
+                                                        <SelectItem value="digital_ocean">DigitalOcean</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <InputError message={addForm.errors.type} />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="api_token">API token</Label>
+                                                <Input
+                                                    id="api_token"
+                                                    type="password"
+                                                    placeholder="Paste your API token"
+                                                    value={addForm.data.api_token}
+                                                    onChange={(e) => addForm.setData('api_token', e.target.value)}
+                                                    disabled={addForm.processing}
+                                                />
+                                                <InputError message={addForm.errors.api_token} />
+                                            </div>
+                                        </form>
+
+                                        <DialogFooter>
+                                            <Button variant="outline" onClick={() => setAddDialogOpen(false)} disabled={addForm.processing}>
+                                                Cancel
+                                            </Button>
+                                            <Button type="submit" form="add-provider-form" disabled={addForm.processing}>
+                                                {addForm.processing && <LoaderCircle className="size-4 animate-spin" />}
+                                                Connect provider
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
                         </div>
 
-                        {can.manage && (
-                            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button size="sm">
-                                        <Plus className="size-4" />
-                                        Add provider
-                                    </Button>
-                                </DialogTrigger>
-
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Add cloud provider</DialogTitle>
-                                        <DialogDescription>
-                                            Connect a cloud provider by entering a name, selecting a type, and providing an API token.
-                                        </DialogDescription>
-                                    </DialogHeader>
-
-                                    <form id="add-provider-form" onSubmit={submitAdd} className="space-y-4">
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="name">Name</Label>
-                                            <Input
-                                                id="name"
-                                                placeholder="My Hetzner account"
-                                                value={addForm.data.name}
-                                                onChange={(e) => addForm.setData('name', e.target.value)}
-                                                disabled={addForm.processing}
-                                            />
-                                            <InputError message={addForm.errors.name} />
-                                        </div>
-
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="type">Provider</Label>
-                                            <Select
-                                                value={addForm.data.type}
-                                                onValueChange={(value) => addForm.setData('type', value)}
-                                                disabled={addForm.processing}
-                                            >
-                                                <SelectTrigger id="type">
-                                                    <SelectValue placeholder="Select a provider" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="hetzner">Hetzner</SelectItem>
-                                                    <SelectItem value="digital_ocean">DigitalOcean</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <InputError message={addForm.errors.type} />
-                                        </div>
-
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="api_token">API token</Label>
-                                            <Input
-                                                id="api_token"
-                                                type="password"
-                                                placeholder="Paste your API token"
-                                                value={addForm.data.api_token}
-                                                onChange={(e) => addForm.setData('api_token', e.target.value)}
-                                                disabled={addForm.processing}
-                                            />
-                                            <InputError message={addForm.errors.api_token} />
-                                        </div>
-                                    </form>
-
-                                    <DialogFooter>
-                                        <Button variant="outline" onClick={() => setAddDialogOpen(false)} disabled={addForm.processing}>
-                                            Cancel
-                                        </Button>
-                                        <Button type="submit" form="add-provider-form" disabled={addForm.processing}>
-                                            {addForm.processing && <LoaderCircle className="size-4 animate-spin" />}
-                                            Connect provider
-                                        </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        )}
-                    </CardHeader>
-
-                    <CardContent>
                         {cloudProviders.length === 0 ? (
                             <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-                                {status === 'cloud-provider-deleted' ? 'Provider removed.' : 'No cloud providers connected yet.'}
+                                {status === 'cloud-provider-deleted' ? 'Provider removed.' : 'Connect your first cloud provider to get started.'}
                             </div>
                         ) : (
-                            <ul className="divide-y">
+                            <ul className="divide-border divide-y">
                                 {cloudProviders.map((provider) => (
                                     <li key={provider.id} className="flex items-center justify-between py-3">
                                         <div className="flex items-center gap-3">
@@ -192,8 +192,8 @@ export default function OrganizationCloudProvidersPage({ organization, cloudProv
                         {status === 'cloud-provider-created' && cloudProviders.length > 0 && (
                             <p className="text-muted-foreground mt-4 text-sm">Provider connected successfully.</p>
                         )}
-                    </CardContent>
-                </Card>
+                    </div>
+                </SettingsSection>
             </OrganizationSettingsLayout>
 
             {/* Delete confirmation dialog */}

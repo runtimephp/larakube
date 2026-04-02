@@ -101,59 +101,70 @@ export function AppTopBar({ tabs }: { tabs?: TabItem[] }) {
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
 
     return (
-        <div className="border-border bg-background border-b">
-            {/* Main bar */}
-            <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
-                {/* Logo */}
-                <Link href={currentOrganization ? `/${currentOrganization.slug}/dashboard` : '/dashboard'} className="flex items-center gap-2 shrink-0">
-                    <div className="bg-foreground text-background flex size-7 items-center justify-center rounded-md">
-                        <AppLogoIcon className="size-4 fill-current" />
+        <div className="relative sticky top-0 z-40 w-full">
+            <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur">
+                {/* Main bar */}
+                <div className="mx-auto flex h-14 max-w-[1920px] items-center gap-3 px-4 sm:px-6">
+                    {/* Logo */}
+                    <Link
+                        href={currentOrganization ? `/${currentOrganization.slug}/dashboard` : '/dashboard'}
+                        className="flex shrink-0 items-center gap-2"
+                    >
+                        <div className="bg-foreground text-background flex size-7 items-center justify-center rounded-md">
+                            <AppLogoIcon className="size-4 fill-current" />
+                        </div>
+                        <span className="text-sm font-semibold">Kuven</span>
+                    </Link>
+
+                    {/* Org switcher */}
+                    {currentOrganization && organizations && <OrgSwitcher currentOrganization={currentOrganization} organizations={organizations} />}
+
+                    {/* Spacer */}
+                    <div className="flex-1" />
+
+                    {/* User avatar */}
+                    <UserAvatar />
+                </div>
+
+                {/* Tabs row */}
+                {tabs && tabs.length > 0 && (
+                    <div className="mx-auto flex max-w-[1920px] items-end gap-0 px-4 sm:px-6">
+                        {tabs.map((tab, index) => {
+                            const isActive = currentPath === tab.url || currentPath.startsWith(tab.url + '/');
+                            return (
+                                <Link
+                                    key={tab.url}
+                                    href={tab.url}
+                                    prefetch
+                                    className={cn(
+                                        'relative px-3 py-2.5 text-sm transition-colors',
+                                        index === 0 && 'pl-0',
+                                        isActive ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground',
+                                    )}
+                                >
+                                    {tab.title}
+                                    {isActive && (
+                                        <span
+                                            className={cn(
+                                                'bg-foreground absolute right-3 bottom-0 h-0.5 rounded-t-full',
+                                                index === 0 ? 'left-0' : 'left-3',
+                                            )}
+                                        />
+                                    )}
+                                </Link>
+                            );
+                        })}
                     </div>
-                    <span className="text-sm font-semibold">Kuven</span>
-                </Link>
-
-                {/* Separator */}
-                <span className="text-border select-none">/</span>
-
-                {/* Org switcher */}
-                {currentOrganization && organizations && (
-                    <OrgSwitcher currentOrganization={currentOrganization} organizations={organizations} />
                 )}
-
-                {/* Spacer */}
-                <div className="flex-1" />
-
-                {/* User avatar */}
-                <UserAvatar />
             </div>
 
-
-            {/* Tabs row */}
-            {tabs && tabs.length > 0 && (
-                <div className="flex items-end gap-0 px-4 sm:px-6">
-                    {tabs.map((tab) => {
-                        const isActive = currentPath === tab.url || currentPath.startsWith(tab.url + '/');
-                        return (
-                            <Link
-                                key={tab.url}
-                                href={tab.url}
-                                prefetch
-                                className={cn(
-                                    'relative px-3 py-2.5 text-sm transition-colors',
-                                    isActive
-                                        ? 'text-foreground font-medium'
-                                        : 'text-muted-foreground hover:text-foreground',
-                                )}
-                            >
-                                {tab.title}
-                                {isActive && (
-                                    <span className="bg-foreground absolute right-3 bottom-0 left-3 h-0.5 rounded-t-full" />
-                                )}
-                            </Link>
-                        );
-                    })}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[calc(100%-1px)] z-20 bg-white px-2">
+                <div className="relative z-20 w-full">
+                    <div className="h-2 overflow-hidden">
+                        <div className="border-border h-3 rounded-t-lg border-x border-t bg-white" />
+                    </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

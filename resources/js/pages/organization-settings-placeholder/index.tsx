@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SettingsSection } from '@/components/settings-section';
 import AppLayout from '@/layouts/app-layout';
 import OrganizationSettingsLayout from '@/layouts/organization-settings-layout';
 import { type Organization } from '@/types';
@@ -28,26 +28,20 @@ export default function OrganizationSettingsPlaceholderPage({ organization, sect
             <Head title={`${organization.name} ${section.title}`} />
 
             <OrganizationSettingsLayout organization={organization}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{section.title}</CardTitle>
-                        <CardDescription>{section.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {typeof stats?.connected === 'number' ? (
-                                <div className="rounded-lg border p-4">
-                                    <p className="text-sm font-medium">Connected providers</p>
-                                    <p className="text-3xl font-semibold">{stats.connected}</p>
-                                </div>
-                            ) : null}
-
-                            <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-sm">
-                                This section is planned next and now has a stable route, submenu entry, and navigation access point.
+                <SettingsSection title={section.title} description={section.description}>
+                    <div className="p-6">
+                        {typeof stats?.connected === 'number' ? (
+                            <div className="mb-4 rounded-lg border p-4">
+                                <p className="text-sm font-medium">Connected providers</p>
+                                <p className="text-3xl font-semibold">{stats.connected}</p>
                             </div>
+                        ) : null}
+
+                        <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-sm">
+                            This section is planned next and now has a stable route, submenu entry, and navigation access point.
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </SettingsSection>
             </OrganizationSettingsLayout>
         </AppLayout>
     );
