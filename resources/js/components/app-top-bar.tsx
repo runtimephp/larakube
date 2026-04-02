@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
@@ -121,10 +122,10 @@ export function AppTopBar({ tabs }: { tabs?: TabItem[] }) {
                         {/* Search */}
                         <div className="relative w-64">
                             <Search className="text-muted-foreground/40 absolute left-3 top-1/2 size-3.5 -translate-y-1/2" />
-                            <input
+                            <Input
                                 type="text"
                                 placeholder="Search resources or settings..."
-                                className="bg-card border-border/15 text-foreground placeholder:text-muted-foreground/40 focus:ring-primary/30 focus:border-primary/30 w-full rounded-md border py-2 pl-9 pr-3 text-xs transition-all focus:ring-1 focus:outline-none"
+                                className="h-9 bg-card pl-9 text-xs"
                             />
                         </div>
 

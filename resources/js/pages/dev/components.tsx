@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAppearance } from '@/hooks/use-appearance';
 import { Head } from '@inertiajs/react';
@@ -190,6 +191,15 @@ export default function Components() {
                         <div className="grid gap-2">
                             <Label htmlFor="disabled-input">Disabled</Label>
                             <Input id="disabled-input" placeholder="Cannot edit" disabled />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="textarea-default">Textarea</Label>
+                            <Textarea id="textarea-default" placeholder="Enter a longer description..." />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="textarea-error">Textarea with error</Label>
+                            <Textarea id="textarea-error" placeholder="Invalid content" className="border-destructive" />
+                            <p className="text-destructive text-sm">Description is too long.</p>
                         </div>
                     </div>
                 </Section>
