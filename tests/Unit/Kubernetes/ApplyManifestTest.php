@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Integrations\Kubernetes\Data\ManifestData;
 use App\Http\Integrations\Kubernetes\Data\ResourceMetadata;
 use App\Http\Integrations\Kubernetes\KubernetesConnector;
+use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
+use App\Http\Integrations\Kubernetes\Manifests\NamespaceManifest;
 use App\Http\Integrations\Kubernetes\Requests\ApplyManifest;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
@@ -76,11 +78,9 @@ it('resolves the correct endpoint for api group resources', function (): void {
 });
 
 it('resolves the correct endpoint for cluster-scoped resources', function (): void {
-    $manifest = [
-        'apiVersion' => 'v1',
-        'kind' => 'Namespace',
-        'metadata' => ['name' => 'my-namespace'],
-    ];
+    $manifest = new NamespaceManifest(
+        metadata: new ManifestMetadata(name: 'my-namespace'),
+    );
 
     $request = new ApplyManifest($manifest);
 
@@ -97,4 +97,27 @@ it('uses explicit resource name when provided', function (): void {
     $request = new ApplyManifest($manifest, resource: 'hetznerclusters');
 
     expect($request->resolveEndpoint())->toBe('/apis/infrastructure.cluster.x-k8s.io/v1beta1/namespaces/kuven-org-123/hetznerclusters');
+});
+
+it('applies a typed manifest to the kubernetes cluster', function (): void {
+    $connector = new KubernetesConnector(
+        server: 'https://127.0.0.1:60517',
+        token: 'test-token',
+        verifySsl: false,
+    );
+
+    $mockClient = new MockClient([
+        ApplyManifest::class => MockResponse::fixture('kubernetes/apply-manifest'),
+    ]);
+
+    $connector->withMockClient($mockClient);
+
+    $manifest = new NamespaceManifest(
+        metadata: new ManifestMetadata(name: 'kuven-test-ns'),
+    );
+
+    $response = $connector->send(new ApplyManifest($manifest));
+
+    expect($response->dtoOrFail())
+        ->toBeInstanceOf(ManifestData::class);
 });

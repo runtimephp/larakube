@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Integrations\Kubernetes\Requests;
 
 use App\Http\Integrations\Kubernetes\Data\ServiceAccountData;
+use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
+use App\Http\Integrations\Kubernetes\Manifests\ServiceAccountManifest;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -37,13 +39,11 @@ final class CreateServiceAccount extends Request implements HasBody
      */
     protected function defaultBody(): array
     {
-        return [
-            'apiVersion' => 'v1',
-            'kind' => 'ServiceAccount',
-            'metadata' => [
-                'name' => $this->name,
-                'namespace' => $this->namespace,
-            ],
-        ];
+        return new ServiceAccountManifest(
+            metadata: new ManifestMetadata(
+                name: $this->name,
+                namespace: $this->namespace,
+            ),
+        )->toArray();
     }
 }

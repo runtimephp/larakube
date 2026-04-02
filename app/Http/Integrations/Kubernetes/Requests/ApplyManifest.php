@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Integrations\Kubernetes\Requests;
 
+use App\Http\Integrations\Kubernetes\Contracts\ManifestContract;
 use App\Http\Integrations\Kubernetes\Data\ManifestData;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
@@ -30,18 +31,25 @@ final class ApplyManifest extends Request implements HasBody
      * @param  string|null  $resource  Explicit plural resource name (e.g. 'machinedeployments'). When null, derived as lowercase(kind)+'s'.
      */
     public function __construct(
-        private readonly array $manifest,
+        private readonly array|ManifestContract $manifest,
         private readonly ?string $resource = null,
     ) {}
 
     public function resolveEndpoint(): string
     {
-        $apiVersion = $this->manifest['apiVersion'];
-        $kind = $this->manifest['kind'];
-        $namespace = $this->manifest['metadata']['namespace'] ?? null;
-        $resource = $this->resource ?? mb_strtolower($kind).'s';
-
-        $isClusterScoped = in_array($kind, self::CLUSTER_SCOPED_KINDS, true) || $namespace === null;
+        if ($this->manifest instanceof ManifestContract) {
+            $apiVersion = $this->manifest->apiVersion()->value;
+            $kind = $this->manifest->kind()->value;
+            $namespace = $this->manifest->namespace();
+            $resource = $this->resource ?? $this->manifest->resource();
+            $isClusterScoped = $this->manifest->isClusterScoped();
+        } else {
+            $apiVersion = $this->manifest['apiVersion'];
+            $kind = $this->manifest['kind'];
+            $namespace = $this->manifest['metadata']['namespace'] ?? null;
+            $resource = $this->resource ?? mb_strtolower($kind).'s';
+            $isClusterScoped = in_array($kind, self::CLUSTER_SCOPED_KINDS, true) || $namespace === null;
+        }
 
         if (str_contains($apiVersion, '/')) {
             [$group, $version] = explode('/', $apiVersion, 2);
@@ -54,7 +62,7 @@ final class ApplyManifest extends Request implements HasBody
             return "{$base}/".rawurlencode($resource);
         }
 
-        return "{$base}/namespaces/".rawurlencode($namespace).'/'.rawurlencode($resource);
+        return "{$base}/namespaces/".rawurlencode((string) $namespace).'/'.rawurlencode($resource);
     }
 
     public function createDtoFromResponse(Response $response): ManifestData
@@ -67,6 +75,10 @@ final class ApplyManifest extends Request implements HasBody
      */
     protected function defaultBody(): array
     {
+        if ($this->manifest instanceof ManifestContract) {
+            return $this->manifest->toArray();
+        }
+
         return $this->manifest;
     }
 }
