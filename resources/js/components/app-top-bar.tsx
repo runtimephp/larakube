@@ -1,13 +1,12 @@
-import AppLogoIcon from '@/components/app-logo-icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { create, switchMethod } from '@/routes/organizations';
 import { type Organization, type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import { Bell, Check, ChevronsUpDown, Plus, Search } from 'lucide-react';
 
 export interface TabItem {
     title: string;
@@ -37,35 +36,35 @@ function OrgSwitcher({ currentOrganization, organizations }: { currentOrganizati
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button className="hover:bg-accent flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium transition-colors">
-                    <OrganizationAvatar organization={currentOrganization} />
-                    <span>{currentOrganization.name}</span>
+                <button className="flex items-center gap-2 rounded-md border border-border/15 px-3 py-1.5 transition-colors hover:bg-accent">
+                    <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Org</span>
+                    <span className="text-sm font-semibold">{currentOrganization.name}</span>
                     <ChevronsUpDown className="text-muted-foreground size-3.5" />
                 </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" sideOffset={8} className="min-w-52">
                 <p className="text-muted-foreground px-2 py-1.5 text-xs font-medium">Organizations</p>
                 {organizations.map((organization) => (
-                    <button
+                    <DropdownMenuItem
                         key={organization.id}
                         onClick={() => switchOrganization(organization)}
-                        className="hover:bg-accent flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm"
+                        className="cursor-pointer gap-2"
                     >
                         <OrganizationAvatar organization={organization} />
-                        <span className="flex-1 truncate text-left">{organization.name}</span>
+                        <span className="flex-1 truncate">{organization.name}</span>
                         {organization.id === currentOrganization.id && <Check className="size-4" />}
-                    </button>
+                    </DropdownMenuItem>
                 ))}
-                <div className="my-1 h-px bg-neutral-100 dark:bg-neutral-800" />
-                <button
+                <div className="my-1 h-px bg-border" />
+                <DropdownMenuItem
                     onClick={() => router.visit(create.url())}
-                    className="hover:bg-accent flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm"
+                    className="cursor-pointer gap-2"
                 >
                     <div className="bg-background flex size-5 items-center justify-center rounded border">
                         <Plus className="size-3" />
                     </div>
                     <span>Create organization</span>
-                </button>
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -76,23 +75,21 @@ function UserAvatar() {
     const getInitials = useInitials();
 
     return (
-        <div className="flex items-center gap-1">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <button className="hover:ring-border rounded-full transition-all hover:ring-2 hover:ring-offset-1">
-                        <Avatar className="size-8">
-                            <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                            <AvatarFallback className="bg-neutral-200 text-xs text-black dark:bg-neutral-700 dark:text-white">
-                                {getInitials(auth.user.name)}
-                            </AvatarFallback>
-                        </Avatar>
-                    </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={8} className="min-w-56">
-                    <UserMenuContent user={auth.user} />
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <button className="size-8 overflow-hidden rounded-md border border-border/15 transition-transform active:scale-95">
+                    <Avatar className="size-full rounded-md">
+                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                        <AvatarFallback className="bg-muted text-muted-foreground rounded-md text-xs">
+                            {getInitials(auth.user.name)}
+                        </AvatarFallback>
+                    </Avatar>
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" sideOffset={8} className="min-w-56">
+                <UserMenuContent user={auth.user} />
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
 
@@ -101,35 +98,51 @@ export function AppTopBar({ tabs }: { tabs?: TabItem[] }) {
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
 
     return (
-        <div className="relative sticky top-0 z-40 w-full">
-            <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur">
-                {/* Main bar */}
-                <div className="mx-auto flex h-14 max-w-[1920px] items-center gap-3 px-4 sm:px-6">
-                    {/* Logo */}
-                    <Link
-                        href={currentOrganization ? `/${currentOrganization.slug}/dashboard` : '/dashboard'}
-                        className="flex shrink-0 items-center gap-2"
-                    >
-                        <div className="bg-foreground text-background flex size-7 items-center justify-center rounded-md">
-                            <AppLogoIcon className="size-4 fill-current" />
+        <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-[20px]">
+            <div className="mx-auto flex max-w-[1920px] flex-col px-6 sm:px-12">
+                {/* Row 1: Brand, Org Switcher, Search, Notifications, Avatar */}
+                <div className="flex items-center justify-between py-4 border-b border-border/10">
+                    <div className="flex items-center gap-10">
+                        {/* Brand */}
+                        <Link
+                            href={currentOrganization ? `/${currentOrganization.slug}/dashboard` : '/dashboard'}
+                            className="font-headline text-primary text-2xl font-black tracking-tighter"
+                        >
+                            Kuven
+                        </Link>
+
+                        {/* Org switcher */}
+                        {currentOrganization && organizations && (
+                            <OrgSwitcher currentOrganization={currentOrganization} organizations={organizations} />
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-5">
+                        {/* Search */}
+                        <div className="relative w-64">
+                            <Search className="text-muted-foreground/40 absolute left-3 top-1/2 size-3.5 -translate-y-1/2" />
+                            <input
+                                type="text"
+                                placeholder="Search resources or settings..."
+                                className="bg-card border-border/15 text-foreground placeholder:text-muted-foreground/40 focus:ring-primary/30 focus:border-primary/30 w-full rounded-md border py-2 pl-9 pr-3 text-xs transition-all focus:ring-1 focus:outline-none"
+                            />
                         </div>
-                        <span className="text-sm font-semibold">Kuven</span>
-                    </Link>
 
-                    {/* Org switcher */}
-                    {currentOrganization && organizations && <OrgSwitcher currentOrganization={currentOrganization} organizations={organizations} />}
+                        {/* Notifications */}
+                        <button className="text-muted-foreground hover:text-primary relative rounded-md p-1.5 transition-colors">
+                            <Bell className="size-[22px]" />
+                            <span className="ring-background absolute top-1.5 right-1.5 size-1.5 rounded-full bg-primary ring-2" />
+                        </button>
 
-                    {/* Spacer */}
-                    <div className="flex-1" />
-
-                    {/* User avatar */}
-                    <UserAvatar />
+                        {/* User avatar */}
+                        <UserAvatar />
+                    </div>
                 </div>
 
-                {/* Tabs row */}
+                {/* Row 2: Navigation tabs */}
                 {tabs && tabs.length > 0 && (
-                    <div className="mx-auto flex max-w-[1920px] items-end gap-0 px-4 sm:px-6">
-                        {tabs.map((tab, index) => {
+                    <nav className="flex items-center gap-10 py-3">
+                        {tabs.map((tab) => {
                             const isActive = currentPath === tab.url || currentPath.startsWith(tab.url + '/');
                             return (
                                 <Link
@@ -137,34 +150,19 @@ export function AppTopBar({ tabs }: { tabs?: TabItem[] }) {
                                     href={tab.url}
                                     prefetch
                                     className={cn(
-                                        'relative px-3 py-2.5 text-sm transition-colors',
-                                        index === 0 && 'pl-0',
-                                        isActive ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground',
+                                        'text-xs font-medium uppercase tracking-wider transition-colors duration-200',
+                                        isActive
+                                            ? 'text-primary border-b-2 border-primary pb-2.5 -mb-3 font-bold'
+                                            : 'text-muted-foreground/70 hover:text-primary',
                                     )}
                                 >
                                     {tab.title}
-                                    {isActive && (
-                                        <span
-                                            className={cn(
-                                                'bg-foreground absolute right-3 bottom-0 h-0.5 rounded-t-full',
-                                                index === 0 ? 'left-0' : 'left-3',
-                                            )}
-                                        />
-                                    )}
                                 </Link>
                             );
                         })}
-                    </div>
+                    </nav>
                 )}
             </div>
-
-            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[calc(100%-1px)] z-20 bg-white px-2">
-                <div className="relative z-20 w-full">
-                    <div className="h-2 overflow-hidden">
-                        <div className="border-border h-3 rounded-t-lg border-x border-t bg-white" />
-                    </div>
-                </div>
-            </div>
-        </div>
+        </header>
     );
 }

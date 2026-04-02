@@ -48,7 +48,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <div className="px-2 py-1.5">
                 <div className="flex items-center justify-between">
                     <span className="text-muted-foreground text-sm">Theme</span>
-                    <div className="flex items-center gap-0.5 rounded-md bg-neutral-100 p-0.5 dark:bg-neutral-800">
+                    <div className="flex items-center gap-0.5 rounded-md bg-secondary p-0.5">
                         {appearanceTabs.map(({ value, icon: Icon, label }) => (
                             <button
                                 key={value}
@@ -57,8 +57,8 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                                 className={cn(
                                     'flex items-center rounded px-2 py-1 transition-colors',
                                     appearance === value
-                                        ? 'bg-white shadow-xs dark:bg-neutral-700 dark:text-neutral-100'
-                                        : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
+                                        ? 'bg-background text-foreground shadow-xs'
+                                        : 'text-muted-foreground hover:text-foreground',
                                 )}
                             >
                                 <Icon className="size-3.5" />

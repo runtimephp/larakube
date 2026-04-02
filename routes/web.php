@@ -67,5 +67,9 @@ Route::middleware(['auth', EnsureOrganizationMembership::class])
         Route::patch('settings/logo', [OrganizationLogoController::class, 'update'])->name('organizations.logo.update');
     });
 
+if (app()->environment('local')) {
+    Route::get('/dev/components', fn () => Inertia::render('dev/components'))->name('dev.components');
+}
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

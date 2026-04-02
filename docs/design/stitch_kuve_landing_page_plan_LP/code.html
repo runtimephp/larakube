@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-on-surface": "#2a3043",
+              "secondary-container": "#3626ce",
+              "surface-container-lowest": "#070d1f",
+              "error-container": "#93000a",
+              "surface-tint": "#d0bcff",
+              "on-tertiary": "#482900",
+              "on-secondary": "#1d00a5",
+              "on-primary": "#3c0091",
+              "tertiary-container": "#ca801e",
+              "surface-bright": "#33394c",
+              "secondary-fixed": "#e2dfff",
+              "surface": "#0c1324",
+              "on-secondary-fixed": "#0f0069",
+              "secondary-fixed-dim": "#c3c0ff",
+              "surface-container-high": "#23293c",
+              "tertiary-fixed": "#ffdcbb",
+              "on-error-container": "#ffdad6",
+              "on-error": "#690005",
+              "surface-container-highest": "#2e3447",
+              "outline-variant": "#494454",
+              "on-background": "#dce1fb",
+              "background": "#0c1324",
+              "error": "#ffb4ab",
+              "on-surface": "#dce1fb",
+              "on-secondary-fixed-variant": "#3323cc",
+              "surface-container": "#191f31",
+              "outline": "#958ea0",
+              "tertiary-fixed-dim": "#ffb869",
+              "secondary": "#c3c0ff",
+              "primary": "#d0bcff",
+              "on-surface-variant": "#cbc3d7",
+              "tertiary": "#ffb869",
+              "inverse-primary": "#6d3bd7",
+              "surface-dim": "#0c1324",
+              "on-tertiary-fixed": "#2c1700",
+              "primary-container": "#a078ff",
+              "on-primary-fixed-variant": "#5516be",
+              "on-primary-fixed": "#23005c",
+              "inverse-surface": "#dce1fb",
+              "surface-container-low": "#151b2d",
+              "surface-variant": "#2e3447",
+              "on-primary-container": "#340080",
+              "on-tertiary-container": "#3f2300",
+              "on-secondary-container": "#b3b1ff",
+              "primary-fixed-dim": "#d0bcff",
+              "primary-fixed": "#e9ddff",
+              "on-tertiary-fixed-variant": "#673d00"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+      }
+      .glass-card {
+        background: rgba(21, 27, 45, 0.7);
+        backdrop-filter: blur(20px);
+      }
+      .ghost-border {
+        border: 1px solid rgba(73, 68, 84, 0.15);
+      }
+      .hero-gradient {
+        background: radial-gradient(circle at 50% 50%, rgba(208, 188, 255, 0.08) 0%, transparent 70%);
+      }
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+      .cursor-blink {
+        animation: blink 1s infinite;
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 antialiased">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#0c1324]/70 backdrop-blur-xl border-b border-[#494454]/15 shadow-[0_8px_32px_rgba(208,188,255,0.06)]">
+<div class="flex justify-between items-center px-8 h-16 max-w-full mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-gradient-to-br from-primary to-primary-container rounded-lg flex items-center justify-center">
+<svg class="w-5 h-5 text-on-primary" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.3l6 3.7v7l-6 3.7-6-3.7V8l6-3.7zM11 11v5h2v-5h3l-4-4-4 4h3z"></path>
+</svg>
+</div>
+<div class="text-2xl font-bold tracking-tighter text-[#d0bcff] font-headline">
+                    Kuven
+                </div>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#cbc3d7] hover:text-[#d0bcff] transition-colors font-headline tracking-tight" href="#">Product</a>
+<a class="text-[#cbc3d7] hover:text-[#d0bcff] transition-colors font-headline tracking-tight" href="#">Solutions</a>
+<a class="text-[#cbc3d7] hover:text-[#d0bcff] transition-colors font-headline tracking-tight" href="#">Docs</a>
+<a class="text-[#cbc3d7] hover:text-[#d0bcff] transition-colors font-headline tracking-tight" href="#">Pricing</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#cbc3d7] hover:text-[#d0bcff] transition-colors text-sm font-medium active:scale-95 duration-200">Sign In</button>
+<button class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-5 py-2 rounded-lg font-semibold text-sm active:scale-95 duration-200 shadow-lg shadow-primary/10">
+                    Get Started
+                </button>
+</div>
+</div>
+</nav>
+<main class="relative pt-16 overflow-hidden">
+<!-- Hero Section -->
+<section class="relative min-h-[921px] flex flex-col items-center justify-center px-6 hero-gradient">
+<div class="max-w-5xl mx-auto text-center z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary-fixed-dim text-xs font-bold tracking-widest uppercase mb-8">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    Next Generation Developer Experience
+                </div>
+<h1 class="font-headline text-5xl md:text-8xl font-extrabold tracking-tighter text-on-surface mb-6 leading-[1.1]">
+                    The Universal Vessel <br/> <span class="text-primary">for Your Cloud</span>
+</h1>
+<p class="text-on-surface-variant text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed">
+                    Scale Laravel, Go, Node (Next.js &amp; Vue), and Python on K8s with zero YAML. Kuven abstracts complexity into a unified control plane for high-velocity engineering.
+                </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+<button class="w-full sm:w-auto px-8 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-xl font-bold text-lg active:scale-95 transition-all shadow-xl shadow-primary/20">
+                        Get Started
+                    </button>
+<button class="w-full sm:w-auto px-8 py-4 ghost-border bg-surface-container-low/50 text-primary-fixed-dim rounded-xl font-bold text-lg hover:bg-surface-container transition-all active:scale-95">
+                        Read Docs
+                    </button>
+</div>
+</div>
+<!-- Service Catalog Preview -->
+<div class="mt-24 w-full max-w-6xl mx-auto px-4 perspective-1000">
+<div class="glass-card ghost-border rounded-xl p-6 shadow-2xl relative overflow-hidden group">
+<div class="flex items-center justify-between mb-8 border-b border-outline-variant/15 pb-4">
+<div class="flex items-center gap-4">
+<div class="flex gap-1.5">
+<div class="w-3 h-3 rounded-full bg-error/40"></div>
+<div class="w-3 h-3 rounded-full bg-tertiary/40"></div>
+<div class="w-3 h-3 rounded-full bg-primary/40"></div>
+</div>
+<span class="text-on-surface-variant text-sm font-medium font-label uppercase tracking-widest opacity-60">Service Catalog / Production Cluster</span>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-highest/50 px-3 py-1 rounded-lg ghost-border">
+<span class="material-symbols-outlined text-primary text-sm">search</span>
+<span class="text-xs text-on-surface-variant">Search apps &amp; resources...</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- App 1 -->
+<div class="bg-surface-container-low p-4 rounded-lg border border-transparent hover:border-primary/20 transition-all">
+<div class="flex justify-between items-start mb-3">
+<div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-xl">api</span>
+</div>
+<div class="px-2 py-0.5 rounded bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-tighter">Running</div>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface mb-1">auth-service</h3>
+<p class="text-on-surface-variant text-[10px] mb-3">Laravel • us-east-1</p>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[94%]"></div>
+</div>
+</div>
+<!-- App 2 -->
+<div class="bg-surface-container-low p-4 rounded-lg border border-transparent hover:border-primary/20 transition-all">
+<div class="flex justify-between items-start mb-3">
+<div class="w-8 h-8 rounded bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-xl">view_quilt</span>
+</div>
+<div class="px-2 py-0.5 rounded bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-tighter">Running</div>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface mb-1">frontend-portal</h3>
+<p class="text-on-surface-variant text-[10px] mb-3">Next.js • global-edge</p>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[88%]"></div>
+</div>
+</div>
+<!-- Resource 1 -->
+<div class="bg-surface-container-low p-4 rounded-lg border border-primary/20 bg-primary/5 transition-all">
+<div class="flex justify-between items-start mb-3">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-xl">database</span>
+</div>
+<div class="px-2 py-0.5 rounded bg-secondary/10 text-secondary text-[9px] font-bold uppercase tracking-tighter">Provisioned</div>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface mb-1">Postgres 18</h3>
+<p class="text-on-surface-variant text-[10px] mb-3">RDS Instance • us-east-1</p>
+<div class="text-[10px] text-on-surface-variant/60 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">storage</span> 500GB / 2TB Used
+</div>
+</div>
+<!-- Resource 2 -->
+<div class="bg-surface-container-low p-4 rounded-lg border border-primary/20 bg-primary/5 transition-all">
+<div class="flex justify-between items-start mb-3">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-xl">memory</span>
+</div>
+<div class="px-2 py-0.5 rounded bg-secondary/10 text-secondary text-[9px] font-bold uppercase tracking-tighter">Provisioned</div>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface mb-1">Redis Valkey</h3>
+<p class="text-on-surface-variant text-[10px] mb-3">Cache Cluster • us-east-1</p>
+<div class="text-[10px] text-on-surface-variant/60 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">bolt</span> 12ms avg latency
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Grid Section -->
+<section class="py-32 px-8 max-w-7xl mx-auto">
+<div class="text-center mb-20">
+<h2 class="font-headline text-3xl md:text-5xl font-bold tracking-tight text-on-surface mb-4">Designed for the High-Performance Architect</h2>
+<p class="text-on-surface-variant max-w-xl mx-auto">Stop wrestling with orchestration. Kuven automates the heavy lifting so you can focus on writing code that matters.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Feature 1: Universal Runtime -->
+<div class="group p-8 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all duration-300 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-8xl">terminal</span>
+</div>
+<div class="mb-6 inline-block p-3 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">all_inclusive</span>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-3">Universal Runtime</h3>
+<p class="text-on-surface-variant leading-relaxed text-sm mb-6">Deploy any stack seamlessly. Whether it's Laravel, Go, Node.js, or Python, our engine normalizes the environment for peak efficiency.</p>
+<div class="flex items-center gap-4 opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500">
+<svg class="h-6 w-auto" fill="currentColor" viewbox="0 0 24 24"><path d="M12 0L2.4 5.4v13.2L12 24l9.6-5.4V5.4L12 0zm0 2.4l7.2 4v11.2L12 21.6 4.8 17.6V6.4l7.2-4z"></path></svg>
+<svg class="h-6 w-auto" fill="currentColor" viewbox="0 0 24 24"><path d="M2 3.5v17l7-3.5 6 3.5 7-3.5v-17l-7 3.5-6-3.5-7 3.5z"></path></svg>
+<svg class="h-6 w-auto" fill="currentColor" viewbox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path></svg>
+<svg class="h-6 w-auto" fill="currentColor" viewbox="0 0 24 24"><path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"></path></svg>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="group p-8 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all duration-300 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-8xl">hub</span>
+</div>
+<div class="mb-6 inline-block p-3 rounded-lg bg-secondary/10 text-secondary">
+<span class="material-symbols-outlined text-3xl">cloud_sync</span>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-3">Automated Kube-ification</h3>
+<p class="text-on-surface-variant leading-relaxed text-sm">Don't write another line of YAML. Kuven translates your intent into production-grade Kubernetes manifest automatically.</p>
+</div>
+<!-- Feature 3 -->
+<div class="group p-8 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all duration-300 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-8xl">rocket_launch</span>
+</div>
+<div class="mb-6 inline-block p-3 rounded-lg bg-tertiary/10 text-tertiary">
+<span class="material-symbols-outlined text-3xl">bolt</span>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-3">One-Click Self-Service</h3>
+<p class="text-on-surface-variant leading-relaxed text-sm">Empower developers to provision infra, databases, and monitoring in seconds through an intuitive internal marketplace.</p>
+</div>
+</div>
+</section>
+<!-- Developer Trust Section (Terminal) -->
+<section class="py-24 bg-surface-container-lowest overflow-hidden border-y border-outline-variant/10">
+<div class="max-w-7xl mx-auto px-8 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div>
+<h2 class="font-headline text-4xl font-extrabold tracking-tight text-on-surface mb-6 leading-tight">Complexity hidden behind <br/> <span class="text-primary">a single command.</span></h2>
+<p class="text-on-surface-variant text-lg mb-8 leading-relaxed">
+                        Developer workflow shouldn't be a marathon of context switching. With the Kuven CLI, your entire cloud infrastructure is just an instruction away.
+                    </p>
+<ul class="space-y-4">
+<li class="flex items-center gap-3 text-on-surface">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span>CI/CD integration for Laravel, Go, &amp; Node</span>
+</li>
+<li class="flex items-center gap-3 text-on-surface">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span>Automatic secret management</span>
+</li>
+<li class="flex items-center gap-3 text-on-surface">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span>Instant environment branching</span>
+</li>
+</ul>
+</div>
+<div class="relative group">
+<div class="absolute -inset-1 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+<div class="relative bg-[#070d1f] rounded-xl border border-outline-variant/30 overflow-hidden shadow-2xl">
+<div class="flex items-center justify-between px-4 py-3 bg-surface-container-highest/20 border-b border-outline-variant/10">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-error/40"></div>
+<div class="w-3 h-3 rounded-full bg-tertiary/40"></div>
+<div class="w-3 h-3 rounded-full bg-primary/40"></div>
+<span class="ml-4 text-[10px] text-on-surface-variant font-mono uppercase tracking-widest opacity-40">kuven-cli — zsh</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+</button>
+</div>
+<div class="p-8 font-mono text-sm sm:text-base leading-relaxed">
+<div class="flex gap-4">
+<span class="text-primary opacity-50">$</span>
+<span class="text-on-surface">kuven init <span class="text-secondary">--template</span> nodejs</span>
+</div>
+<div class="text-on-surface-variant/60 mt-2">✓ Detecting infrastructure requirements...</div>
+<div class="text-on-surface-variant/60">✓ Provisioning RDS cluster...</div>
+<div class="flex gap-4 mt-4 items-center">
+<span class="text-primary opacity-50">$</span>
+<span class="text-on-surface">kuven deploy <span class="text-secondary">--env</span> production</span>
+<span class="w-2 h-5 bg-primary/80 cursor-blink ml-1"></span>
+</div>
+<div class="mt-4 p-4 bg-primary/5 border-l-2 border-primary">
+<div class="text-primary font-bold">DEPLOYMENT SUCCESSFUL</div>
+<div class="text-on-surface-variant text-xs mt-1">Live at: https://auth-service.kuven.app</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA Section -->
+<section class="py-32 px-8 text-center relative">
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px]"></div>
+</div>
+<div class="relative z-10 max-w-4xl mx-auto">
+<h2 class="font-headline text-4xl md:text-6xl font-extrabold tracking-tighter text-on-surface mb-8">Ready to transcend the void?</h2>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+<button class="px-10 py-5 bg-on-surface text-surface rounded-xl font-bold text-xl active:scale-95 transition-transform">
+                        Launch Your First Cluster
+                    </button>
+<button class="px-10 py-5 ghost-border text-on-surface rounded-xl font-bold text-xl hover:bg-surface-container-low active:scale-95 transition-transform">
+                        Schedule a Demo
+                    </button>
+</div>
+<p class="mt-12 text-on-surface-variant/60 font-label tracking-widest text-xs uppercase">Used by 450+ high-growth engineering teams</p>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#070d1f] border-t border-[#494454]/15 w-full py-12 px-8">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6 max-w-7xl mx-auto">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 bg-primary/20 rounded flex items-center justify-center">
+<svg class="w-3 h-3 text-primary" fill="currentColor" viewbox="0 0 24 24"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5z"></path></svg>
+</div>
+<div class="text-lg font-bold text-[#d0bcff] font-headline">Kuven</div>
+</div>
+<p class="text-[#cbc3d7]/60 text-sm font-body antialiased">© 2024 Kuven. Engineered for the Void.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="text-[#cbc3d7]/60 hover:text-[#d0bcff] transition-colors text-sm font-body flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-sm">star</span> Github Star
+                </a>
+<a class="text-[#cbc3d7]/60 hover:text-[#d0bcff] transition-colors text-sm font-body" href="#">Twitter</a>
+<a class="text-[#cbc3d7]/60 hover:text-[#d0bcff] transition-colors text-sm font-body" href="#">LinkedIn</a>
+<a class="text-[#cbc3d7]/60 hover:text-[#d0bcff] transition-colors text-sm font-body" href="#">Status</a>
+<a class="text-[#cbc3d7]/60 hover:text-[#d0bcff] transition-colors text-sm font-body" href="#">Privacy</a>
+<a class="text-[#cbc3d7]/60 hover:text-[#d0bcff] transition-colors text-sm font-body" href="#">Terms</a>
+</div>
+</div>
+</footer>
+</body></html>
