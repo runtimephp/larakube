@@ -5,6 +5,7 @@ import { SettingsField, SettingsSection } from '@/components/settings-section';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import OrganizationSettingsLayout from '@/layouts/organization-settings-layout';
 import { type Organization } from '@/types';
@@ -102,13 +103,12 @@ export default function EditOrganizationGeneralSettingsPage({ organization, can,
 
                         <SettingsField label="Description" description="A brief description of your organization." htmlFor="description">
                             <div className="w-[260px] space-y-2">
-                                <textarea
+                                <Textarea
                                     id="description"
                                     rows={4}
                                     value={detailsForm.data.description}
                                     onChange={(event) => detailsForm.setData('description', event.target.value)}
                                     disabled={!can.update || detailsForm.processing}
-                                    className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-28 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                                 <InputError message={detailsForm.errors.description} />
                             </div>
