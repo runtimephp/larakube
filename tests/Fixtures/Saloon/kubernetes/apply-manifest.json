@@ -1,0 +1,14 @@
+{
+    "statusCode": 201,
+    "headers": {
+        "Audit-Id": "e819fd23-6ccb-4374-bb9d-dd81deda919e",
+        "Cache-Control": "no-cache, private",
+        "Content-Type": "application\/json",
+        "X-Kubernetes-Pf-Flowschema-Uid": "13b9e8ce-1e35-4fc1-8fa5-1e295d17855b",
+        "X-Kubernetes-Pf-Prioritylevel-Uid": "fa699d5e-0bb1-4acc-af85-900b977e5f5a",
+        "Date": "Thu, 02 Apr 2026 18:49:19 GMT",
+        "Content-Length": "507"
+    },
+    "data": "{\"kind\":\"ConfigMap\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"cluster-config\",\"namespace\":\"kuven-test-ns\",\"uid\":\"53e0d598-2a8b-41d3-b939-294b57041b64\",\"resourceVersion\":\"4572\",\"creationTimestamp\":\"2026-04-02T18:49:19Z\",\"managedFields\":[{\"manager\":\"GuzzleHttp\",\"operation\":\"Update\",\"apiVersion\":\"v1\",\"time\":\"2026-04-02T18:49:19Z\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:data\":{\".\":{},\"f:cluster-name\":{},\"f:kubernetes-version\":{}}}}]},\"data\":{\"cluster-name\":\"my-workload-cluster\",\"kubernetes-version\":\"v1.29.0\"}}\n",
+    "context": []
+}
