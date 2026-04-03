@@ -187,3 +187,27 @@ it('applies a typed manifest to the kubernetes cluster', function (): void {
     $mockClient->assertSent(fn ($currentRequest, $currentResponse): bool => $currentRequest instanceof ApplyManifest
         && $currentResponse->getPendingRequest()->body()?->all() === $manifest->toArray());
 });
+
+it('resolves cluster-scoped endpoint for raw namespace array', function (): void {
+    $manifest = [
+        'apiVersion' => 'v1',
+        'kind' => 'Namespace',
+        'metadata' => ['name' => 'kuven-test-ns'],
+    ];
+
+    $request = new ApplyManifest($manifest);
+
+    expect($request->resolveEndpoint())->toBe('/api/v1/namespaces');
+});
+
+it('resolves cluster-scoped endpoint for raw array without namespace', function (): void {
+    $manifest = [
+        'apiVersion' => 'v1',
+        'kind' => 'CustomKind',
+        'metadata' => ['name' => 'my-resource'],
+    ];
+
+    $request = new ApplyManifest($manifest);
+
+    expect($request->resolveEndpoint())->toBe('/api/v1/customkinds');
+});
