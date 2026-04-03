@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Http\Integrations\Kubernetes\Data\RuleData;
 use App\Http\Integrations\Kubernetes\Enums\KuvenLabel;
 use App\Http\Integrations\Kubernetes\Enums\SecretType;
 use App\Http\Integrations\Kubernetes\Manifests\AnnotationSet;
 use App\Http\Integrations\Kubernetes\Manifests\LabelSet;
 use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
 use App\Http\Integrations\Kubernetes\Manifests\NamespaceManifest;
+use App\Http\Integrations\Kubernetes\Manifests\RoleBindingManifest;
+use App\Http\Integrations\Kubernetes\Manifests\RoleManifest;
 use App\Http\Integrations\Kubernetes\Manifests\SecretManifest;
 use App\Http\Integrations\Kubernetes\Manifests\SecretStringData;
 use App\Http\Integrations\Kubernetes\Manifests\ServiceAccountManifest;
@@ -159,4 +162,116 @@ it('builds a kuven app label set', function (): void {
         'kuven.io/organization' => 'org-123',
         'custom.label/key' => 'custom-value',
     ]);
+});
+
+it('serializes a role manifest', function (): void {
+    $manifest = new RoleManifest(
+        metadata: new ManifestMetadata(
+            name: 'kuven-operator',
+            namespace: 'kuven-test-ns',
+        ),
+        rules: [
+            new RuleData(
+                apiGroups: ['cluster.x-k8s.io'],
+                resources: ['*'],
+                verbs: ['*'],
+            ),
+        ],
+    );
+
+    expect($manifest->toArray())->toBe([
+        'apiVersion' => 'rbac.authorization.k8s.io/v1',
+        'kind' => 'Role',
+        'metadata' => [
+            'name' => 'kuven-operator',
+            'namespace' => 'kuven-test-ns',
+        ],
+        'rules' => [
+            [
+                'apiGroups' => ['cluster.x-k8s.io'],
+                'resources' => ['*'],
+                'verbs' => ['*'],
+            ],
+        ],
+    ]);
+});
+
+it('exposes role manifest routing metadata', function (): void {
+    $manifest = new RoleManifest(
+        metadata: new ManifestMetadata(
+            name: 'kuven-operator',
+            namespace: 'kuven-test-ns',
+        ),
+        rules: [],
+    );
+
+    expect($manifest->apiVersion()->value)->toBe('rbac.authorization.k8s.io/v1')
+        ->and($manifest->kind()->value)->toBe('Role')
+        ->and($manifest->resource())->toBe('roles')
+        ->and($manifest->namespace())->toBe('kuven-test-ns')
+        ->and($manifest->isClusterScoped())->toBeFalse();
+});
+
+it('rejects a role manifest without a namespace', function (): void {
+    expect(fn (): RoleManifest => new RoleManifest(
+        metadata: new ManifestMetadata(name: 'kuven-operator'),
+        rules: [],
+    ))->toThrow(InvalidArgumentException::class, 'Role manifests require a namespace.');
+});
+
+it('serializes a role binding manifest', function (): void {
+    $manifest = new RoleBindingManifest(
+        metadata: new ManifestMetadata(
+            name: 'kuven-operator',
+            namespace: 'kuven-test-ns',
+        ),
+        roleName: 'kuven-operator',
+        serviceAccountName: 'kuven-operator',
+    );
+
+    expect($manifest->toArray())->toBe([
+        'apiVersion' => 'rbac.authorization.k8s.io/v1',
+        'kind' => 'RoleBinding',
+        'metadata' => [
+            'name' => 'kuven-operator',
+            'namespace' => 'kuven-test-ns',
+        ],
+        'roleRef' => [
+            'apiGroup' => 'rbac.authorization.k8s.io',
+            'kind' => 'Role',
+            'name' => 'kuven-operator',
+        ],
+        'subjects' => [
+            [
+                'kind' => 'ServiceAccount',
+                'name' => 'kuven-operator',
+                'namespace' => 'kuven-test-ns',
+            ],
+        ],
+    ]);
+});
+
+it('exposes role binding manifest routing metadata', function (): void {
+    $manifest = new RoleBindingManifest(
+        metadata: new ManifestMetadata(
+            name: 'kuven-operator',
+            namespace: 'kuven-test-ns',
+        ),
+        roleName: 'kuven-operator',
+        serviceAccountName: 'kuven-operator',
+    );
+
+    expect($manifest->apiVersion()->value)->toBe('rbac.authorization.k8s.io/v1')
+        ->and($manifest->kind()->value)->toBe('RoleBinding')
+        ->and($manifest->resource())->toBe('rolebindings')
+        ->and($manifest->namespace())->toBe('kuven-test-ns')
+        ->and($manifest->isClusterScoped())->toBeFalse();
+});
+
+it('rejects a role binding manifest without a namespace', function (): void {
+    expect(fn (): RoleBindingManifest => new RoleBindingManifest(
+        metadata: new ManifestMetadata(name: 'kuven-operator'),
+        roleName: 'kuven-operator',
+        serviceAccountName: 'kuven-operator',
+    ))->toThrow(InvalidArgumentException::class, 'RoleBinding manifests require a namespace.');
 });
