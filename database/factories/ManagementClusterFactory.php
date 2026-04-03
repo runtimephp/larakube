@@ -18,7 +18,7 @@ final class ManagementClusterFactory extends Factory
     {
         return [
             'name' => 'mgmt-'.$this->faker->word(),
-            'region' => $this->faker->randomElement(['local', 'nuremberg', 'falkenstein']),
+            'region' => $this->faker->unique()->lexify('region-????'),
             'provider' => $this->faker->randomElement(['docker', 'hetzner']),
             'status' => ManagementClusterStatus::Bootstrapping,
         ];

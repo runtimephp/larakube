@@ -35,6 +35,9 @@ final class InMemoryPrerequisiteChecker implements PrerequisiteChecker
         return in_array($name, $this->available, true);
     }
 
+    /**
+     * Returns true only if the docker binary is available AND the daemon is running.
+     */
     public function isDockerRunning(): bool
     {
         return $this->dockerRunning && $this->hasBinary('docker');

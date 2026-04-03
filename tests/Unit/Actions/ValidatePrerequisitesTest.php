@@ -43,7 +43,7 @@ test('fails when docker is not running',
      * @throws Throwable
      */
     function (): void {
-        $this->checker->setAvailable(['kind', 'clusterctl', 'kubectl']);
+        $this->checker->setAvailable(['kind', 'clusterctl', 'kubectl', 'docker']);
         $this->checker->setDockerRunning(false);
 
         $result = $this->action->handle();

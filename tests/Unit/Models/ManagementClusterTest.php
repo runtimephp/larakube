@@ -44,9 +44,7 @@ test('casts attributes correctly',
      */
     function (): void {
         /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::factory()->create([
-            'status' => ManagementClusterStatus::Ready,
-        ]);
+        $cluster = ManagementCluster::factory()->ready()->create();
 
         expect($cluster->id)->toBeString()
             ->and($cluster->created_at)->toBeInstanceOf(CarbonImmutable::class)
@@ -60,9 +58,7 @@ test('encrypts kubeconfig at rest',
      */
     function (): void {
         /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::factory()->create([
-            'kubeconfig' => 'apiVersion: v1\nclusters:\n- cluster:\n    server: https://127.0.0.1:6443',
-        ]);
+        $cluster = ManagementCluster::factory()->ready()->create();
 
         $raw = DB::table('management_clusters')
             ->where('id', $cluster->id)
