@@ -13,11 +13,16 @@ interface CodeBlockProps extends React.HTMLAttributes<HTMLDivElement> {
 function CodeBlock({ className, label, action, copyable, code, children, ...props }: CodeBlockProps) {
     const [copied, setCopied] = React.useState(false);
 
-    const handleCopy = () => {
-        if (code) {
-            navigator.clipboard.writeText(code);
+    const handleCopy = async () => {
+        const text = code || (typeof children === 'string' ? children : '');
+        if (!text) return;
+
+        try {
+            await navigator.clipboard.writeText(text);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // Clipboard API not available (e.g. non-HTTPS)
         }
     };
 

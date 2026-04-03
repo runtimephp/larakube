@@ -29,6 +29,7 @@ function StepDialogHeader({ title, description, onBack }: StepDialogHeaderProps)
         <DialogHeader className="p-6 pb-4">
             {onBack && (
                 <button
+                    type="button"
                     onClick={onBack}
                     className="text-muted-foreground hover:text-foreground mb-2 inline-flex items-center gap-1 text-sm transition-colors self-start"
                 >

@@ -256,7 +256,7 @@ function FormsTab() {
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="error-input">With error</Label>
-                        <Input id="error-input" placeholder="Invalid value" className="border-destructive" />
+                        <Input id="error-input" placeholder="Invalid value" className="border-destructive" aria-invalid />
                         <p className="text-destructive text-sm">This field is required.</p>
                     </div>
                     <div className="grid gap-2">
@@ -663,7 +663,7 @@ function FeedbackTab() {
                     <div className="flex gap-4">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="outline" size="icon"><Mail className="h-4 w-4" /></Button>
+                                <Button variant="outline" size="icon" aria-label="Send notification"><Mail className="h-4 w-4" /></Button>
                             </TooltipTrigger>
                             <TooltipContent><p>Send notification</p></TooltipContent>
                         </Tooltip>
@@ -812,7 +812,7 @@ function ActionsTab() {
                             <Button size="lg">Large</Button>
                             <Button>Default</Button>
                             <Button size="sm">Small</Button>
-                            <Button size="icon"><Heart className="h-4 w-4" /></Button>
+                            <Button size="icon" aria-label="Favorite"><Heart className="h-4 w-4" /></Button>
                         </div>
                     </div>
                     <div>
