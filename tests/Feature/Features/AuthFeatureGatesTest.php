@@ -44,7 +44,7 @@ test('login page returns 404 when feature is inactive', function (): void {
 
 test('allowed email can login even when feature is inactive', function (): void {
     Feature::deactivate(LoginFeature::class);
-    config()->set('app.features.login_allowed_emails', 'francisco.barrento@gmail.com');
+    config()->set('app.features.login_allowed_emails', ['francisco.barrento@gmail.com']);
 
     /** @var User $user */
     $user = User::factory()->create([
@@ -61,7 +61,7 @@ test('allowed email can login even when feature is inactive', function (): void 
 
 test('non-allowed email cannot login when feature is inactive', function (): void {
     Feature::for('other@example.com')->deactivate(LoginFeature::class);
-    config()->set('app.features.login_allowed_emails', 'francisco.barrento@gmail.com');
+    config()->set('app.features.login_allowed_emails', ['francisco.barrento@gmail.com']);
 
     /** @var User $user */
     $user = User::factory()->create([
@@ -77,9 +77,9 @@ test('non-allowed email cannot login when feature is inactive', function (): voi
 test('login feature resolves false in production', function (): void {
     app()->detectEnvironment(fn () => 'production');
     config()->set('app.features.login', false);
-    config()->set('app.features.login_allowed_emails', '');
+    config()->set('app.features.login_allowed_emails', []);
 
-    $feature = new LoginFeature;
+    $feature = app()->make(LoginFeature::class);
 
     expect($feature->resolve())->toBeFalse();
 });
@@ -87,9 +87,9 @@ test('login feature resolves false in production', function (): void {
 test('login feature resolves true for allowed email in production', function (): void {
     app()->detectEnvironment(fn () => 'production');
     config()->set('app.features.login', false);
-    config()->set('app.features.login_allowed_emails', 'allowed@example.com');
+    config()->set('app.features.login_allowed_emails', ['allowed@example.com']);
 
-    $feature = new LoginFeature;
+    $feature = app()->make(LoginFeature::class);
 
     expect($feature->resolve('allowed@example.com'))->toBeTrue();
     expect($feature->resolve('other@example.com'))->toBeFalse();
@@ -99,7 +99,7 @@ test('login feature resolves true when config enabled in production', function (
     app()->detectEnvironment(fn () => 'production');
     config()->set('app.features.login', true);
 
-    $feature = new LoginFeature;
+    $feature = app()->make(LoginFeature::class);
 
     expect($feature->resolve())->toBeTrue();
 });
@@ -108,7 +108,7 @@ test('registration feature resolves false in production', function (): void {
     app()->detectEnvironment(fn () => 'production');
     config()->set('app.features.registration', false);
 
-    $feature = new RegistrationFeature;
+    $feature = app()->make(RegistrationFeature::class);
 
     expect($feature->resolve())->toBeFalse();
 });
@@ -117,7 +117,7 @@ test('registration feature resolves true when config enabled in production', fun
     app()->detectEnvironment(fn () => 'production');
     config()->set('app.features.registration', true);
 
-    $feature = new RegistrationFeature;
+    $feature = app()->make(RegistrationFeature::class);
 
     expect($feature->resolve())->toBeTrue();
 });

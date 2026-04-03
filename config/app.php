@@ -123,7 +123,7 @@ return [
     'features' => [
         'registration' => env('FEATURE_REGISTRATION', true),
         'login' => env('FEATURE_LOGIN', true),
-        'login_allowed_emails' => env('FEATURE_LOGIN_ALLOWED_EMAILS', ''),
+        'login_allowed_emails' => array_filter(explode(',', (string) env('FEATURE_LOGIN_ALLOWED_EMAILS', ''))),
     ],
 
     'maintenance' => [
