@@ -8,12 +8,17 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationGeneralSettingsController;
 use App\Http\Controllers\OrganizationLogoController;
 use App\Http\Controllers\SwitchOrganizationController;
+use App\Http\Controllers\WaitlistController;
 use App\Http\Middleware\EnsureOrganizationMembership;
 use App\Models\Organization;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', fn () => Inertia::render('welcome'))->name('home');
+Route::get('/', fn () => Inertia::render('welcome', [
+    'waitlistCount' => DB::table('waitlist_entries')->count(),
+]))->name('home');
+Route::post('/waitlist', [WaitlistController::class, 'store'])->name('waitlist.store');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('organizations/create', [OrganizationController::class, 'create'])->name('organizations.create');
