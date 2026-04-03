@@ -13,7 +13,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldSeparator } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group';
-import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item';
+import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '@/components/ui/item';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { Label } from '@/components/ui/label';
 import { SectionCard, SectionCardContent, SectionCardDescription, SectionCardFooter, SectionCardHeader, SectionCardTitle } from '@/components/ui/section-card';
@@ -367,12 +367,12 @@ function DataDisplayTab() {
                         <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-wider">Feature cards (LP style)</p>
                         <div className="grid gap-4 sm:grid-cols-3 max-w-3xl">
                             {[
-                                { icon: <Server className="size-6" />, color: 'primary', title: 'Universal Runtime', desc: 'Deploy any stack seamlessly. Our engine normalizes the environment for peak efficiency.' },
-                                { icon: <Cloud className="size-6" />, color: 'primary', title: 'Automated Kube-ification', desc: "Don't write another line of YAML. Kuven translates your intent into production-grade manifests." },
-                                { icon: <Bolt className="size-6" />, color: 'primary', title: 'One-Click Self-Service', desc: 'Provision infra, databases, and monitoring in seconds through an intuitive marketplace.' },
+                                { icon: <Server className="size-6" />, title: 'Universal Runtime', desc: 'Deploy any stack seamlessly. Our engine normalizes the environment for peak efficiency.' },
+                                { icon: <Cloud className="size-6" />, title: 'Automated Kube-ification', desc: "Don't write another line of YAML. Kuven translates your intent into production-grade manifests." },
+                                { icon: <Bolt className="size-6" />, title: 'One-Click Self-Service', desc: 'Provision infra, databases, and monitoring in seconds through an intuitive marketplace.' },
                             ].map((f) => (
                                 <div key={f.title} className="group relative overflow-hidden rounded-xl bg-secondary p-6 transition-all duration-300 hover:bg-accent">
-                                    <div className={`mb-4 inline-flex size-8 items-center justify-center rounded-md bg-${f.color}/10 text-${f.color}`}>
+                                    <div className="mb-4 inline-flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
                                         {f.icon}
                                     </div>
                                     <h3 className="font-headline text-base font-bold mb-2">{f.title}</h3>
