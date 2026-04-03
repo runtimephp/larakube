@@ -6,6 +6,7 @@ namespace App\Http\Integrations\Kubernetes\Requests;
 
 use App\Http\Integrations\Kubernetes\Contracts\ManifestContract;
 use App\Http\Integrations\Kubernetes\Data\ManifestData;
+use InvalidArgumentException;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -32,7 +33,11 @@ final class ServerSideApply extends Request implements HasBody
     {
         $apiVersion = $this->manifest->apiVersion()->value;
         $resource = $this->manifest->resource();
-        $name = $this->manifest->toArray()['metadata']['name'];
+        $name = $this->manifest->toArray()['metadata']['name'] ?? null;
+
+        if (! is_string($name) || $name === '') {
+            throw new InvalidArgumentException('ServerSideApply requires metadata.name.');
+        }
 
         if (str_contains($apiVersion, '/')) {
             [$group, $version] = explode('/', $apiVersion, 2);
@@ -47,7 +52,11 @@ final class ServerSideApply extends Request implements HasBody
 
         $namespace = $this->manifest->namespace();
 
-        return "{$base}/namespaces/".rawurlencode((string) $namespace).'/'.rawurlencode($resource).'/'.rawurlencode($name);
+        if ($namespace === null || $namespace === '') {
+            throw new InvalidArgumentException('ServerSideApply requires a namespace for namespaced resources.');
+        }
+
+        return "{$base}/namespaces/".rawurlencode($namespace).'/'.rawurlencode($resource).'/'.rawurlencode($name);
     }
 
     public function createDtoFromResponse(Response $response): ManifestData
