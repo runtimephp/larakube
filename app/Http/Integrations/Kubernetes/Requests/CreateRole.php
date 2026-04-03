@@ -6,6 +6,8 @@ namespace App\Http\Integrations\Kubernetes\Requests;
 
 use App\Http\Integrations\Kubernetes\Data\RoleData;
 use App\Http\Integrations\Kubernetes\Data\RuleData;
+use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
+use App\Http\Integrations\Kubernetes\Manifests\RoleManifest;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -42,14 +44,12 @@ final class CreateRole extends Request implements HasBody
      */
     protected function defaultBody(): array
     {
-        return [
-            'apiVersion' => 'rbac.authorization.k8s.io/v1',
-            'kind' => 'Role',
-            'metadata' => [
-                'name' => $this->name,
-                'namespace' => $this->namespace,
-            ],
-            'rules' => array_map(fn (RuleData $rule) => $rule->toArray(), $this->rules),
-        ];
+        return new RoleManifest(
+            metadata: new ManifestMetadata(
+                name: $this->name,
+                namespace: $this->namespace,
+            ),
+            rules: $this->rules,
+        )->toArray();
     }
 }

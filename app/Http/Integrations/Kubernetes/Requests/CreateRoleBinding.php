@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Integrations\Kubernetes\Requests;
 
 use App\Http\Integrations\Kubernetes\Data\RoleBindingData;
+use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
+use App\Http\Integrations\Kubernetes\Manifests\RoleBindingManifest;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -39,25 +41,13 @@ final class CreateRoleBinding extends Request implements HasBody
      */
     protected function defaultBody(): array
     {
-        return [
-            'apiVersion' => 'rbac.authorization.k8s.io/v1',
-            'kind' => 'RoleBinding',
-            'metadata' => [
-                'name' => $this->name,
-                'namespace' => $this->namespace,
-            ],
-            'roleRef' => [
-                'apiGroup' => 'rbac.authorization.k8s.io',
-                'kind' => 'Role',
-                'name' => $this->roleName,
-            ],
-            'subjects' => [
-                [
-                    'kind' => 'ServiceAccount',
-                    'name' => $this->serviceAccountName,
-                    'namespace' => $this->namespace,
-                ],
-            ],
-        ];
+        return new RoleBindingManifest(
+            metadata: new ManifestMetadata(
+                name: $this->name,
+                namespace: $this->namespace,
+            ),
+            roleName: $this->roleName,
+            serviceAccountName: $this->serviceAccountName,
+        )->toArray();
     }
 }
