@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Features\LoginFeature;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Pennant\Feature;
 
 final class AuthenticatedSessionController extends Controller
 {
@@ -20,6 +22,8 @@ final class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): Response
     {
+        abort_unless(Feature::active(LoginFeature::class), 404);
+
         return Inertia::render('auth/login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
@@ -31,6 +35,8 @@ final class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        abort_unless(Feature::for($request->input('email'))->active(LoginFeature::class), 404);
+
         $request->authenticate();
 
         $request->session()->regenerate();

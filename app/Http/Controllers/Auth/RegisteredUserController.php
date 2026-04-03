@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Features\RegistrationFeature;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Pennant\Feature;
 
 final class RegisteredUserController extends Controller
 {
@@ -22,6 +24,8 @@ final class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
+        abort_unless(Feature::active(RegistrationFeature::class), 404);
+
         return Inertia::render('auth/register');
     }
 
@@ -32,6 +36,8 @@ final class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        abort_unless(Feature::active(RegistrationFeature::class), 404);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,

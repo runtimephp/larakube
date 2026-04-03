@@ -120,6 +120,12 @@ return [
     |
     */
 
+    'features' => [
+        'registration' => env('FEATURE_REGISTRATION', true),
+        'login' => env('FEATURE_LOGIN', true),
+        'login_allowed_emails' => env('FEATURE_LOGIN_ALLOWED_EMAILS', ''),
+    ],
+
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
