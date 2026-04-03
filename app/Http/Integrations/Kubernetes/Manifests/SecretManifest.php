@@ -8,6 +8,7 @@ use App\Http\Integrations\Kubernetes\Contracts\ManifestContract;
 use App\Http\Integrations\Kubernetes\Enums\ApiVersion;
 use App\Http\Integrations\Kubernetes\Enums\Kind;
 use App\Http\Integrations\Kubernetes\Enums\SecretType;
+use InvalidArgumentException;
 
 final readonly class SecretManifest implements ManifestContract
 {
@@ -15,7 +16,11 @@ final readonly class SecretManifest implements ManifestContract
         public ManifestMetadata $metadata,
         public SecretStringData $data,
         public SecretType|string $type = SecretType::Opaque,
-    ) {}
+    ) {
+        if ($this->metadata->namespace === null || $this->metadata->namespace === '') {
+            throw new InvalidArgumentException('Secret manifests require a namespace.');
+        }
+    }
 
     public function apiVersion(): ApiVersion
     {
@@ -32,7 +37,7 @@ final readonly class SecretManifest implements ManifestContract
         return 'secrets';
     }
 
-    public function namespace(): ?string
+    public function namespace(): string
     {
         return $this->metadata->namespace;
     }

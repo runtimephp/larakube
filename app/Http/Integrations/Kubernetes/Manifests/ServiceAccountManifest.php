@@ -7,12 +7,17 @@ namespace App\Http\Integrations\Kubernetes\Manifests;
 use App\Http\Integrations\Kubernetes\Contracts\ManifestContract;
 use App\Http\Integrations\Kubernetes\Enums\ApiVersion;
 use App\Http\Integrations\Kubernetes\Enums\Kind;
+use InvalidArgumentException;
 
 final readonly class ServiceAccountManifest implements ManifestContract
 {
     public function __construct(
         public ManifestMetadata $metadata,
-    ) {}
+    ) {
+        if ($this->metadata->namespace === null || $this->metadata->namespace === '') {
+            throw new InvalidArgumentException('ServiceAccount manifests require a namespace.');
+        }
+    }
 
     public function apiVersion(): ApiVersion
     {
@@ -29,7 +34,7 @@ final readonly class ServiceAccountManifest implements ManifestContract
         return 'serviceaccounts';
     }
 
-    public function namespace(): ?string
+    public function namespace(): string
     {
         return $this->metadata->namespace;
     }

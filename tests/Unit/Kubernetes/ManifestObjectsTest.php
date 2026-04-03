@@ -133,6 +133,19 @@ it('supports custom secret type strings', function (): void {
     expect($manifest->toArray()['type'])->toBe('custom.type/v1');
 });
 
+it('rejects a secret manifest without a namespace', function (): void {
+    expect(fn (): SecretManifest => new SecretManifest(
+        metadata: new ManifestMetadata(name: 'my-secret'),
+        data: new SecretStringData(['key' => 'value']),
+    ))->toThrow(InvalidArgumentException::class, 'Secret manifests require a namespace.');
+});
+
+it('rejects a service account manifest without a namespace', function (): void {
+    expect(fn (): ServiceAccountManifest => new ServiceAccountManifest(
+        metadata: new ManifestMetadata(name: 'my-sa'),
+    ))->toThrow(InvalidArgumentException::class, 'ServiceAccount manifests require a namespace.');
+});
+
 it('builds a kuven app label set', function (): void {
     $labels = LabelSet::kuvenApp(name: 'kuven-api', component: 'api')
         ->with(KuvenLabel::Organization, 'org-123')
