@@ -22,9 +22,4 @@ return new class extends Migration
             $table->unique(['provider', 'region']);
         });
     }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('management_clusters');
-    }
 };
