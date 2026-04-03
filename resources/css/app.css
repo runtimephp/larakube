@@ -41,6 +41,7 @@
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
+    --color-placeholder: var(--placeholder);
 
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
@@ -168,6 +169,7 @@
     --border: #e2e8f0;
     --input: #e2e8f0;
     --ring: #6d3bd7;
+    --placeholder: #9ca3af;
     --radius: 0.375rem;
     --sidebar-background: #ffffff;
     --sidebar-foreground: #4b5563;
@@ -205,6 +207,7 @@
     --border: #494454;
     --input: #494454;
     --ring: #d0bcff;
+    --placeholder: #6b6b80;
     --sidebar-background: #050a18;
     --sidebar-foreground: #cbc3d7;
     --sidebar-primary: #d0bcff;
@@ -231,5 +234,19 @@
 
     body {
         @apply text-foreground bg-background;
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus,
+    select:-webkit-autofill,
+    select:-webkit-autofill:hover,
+    select:-webkit-autofill:focus {
+        -webkit-text-fill-color: var(--foreground);
+        -webkit-box-shadow: 0 0 0px 1000px var(--background) inset;
+        transition: background-color 5000s ease-in-out 0s;
     }
 }
