@@ -1,24 +1,25 @@
-# LaraKube
+# Kuven
 
 **A Developer Internal Portal that bridges DevOps and Developers.**
 
 Organizations provision Kubernetes infrastructure across cloud providers, while developers deploy applications Vercel and Laravel Cloud style — one PR/MR is all it takes.
 
-LaraKube removes the complexity of managing infrastructure, application deployments, build processes, security checks, and governance — so your team ships faster without compromising on reliability.
+Kuven removes the complexity of managing infrastructure, application deployments, build processes, security checks, and governance — so your team ships faster without compromising on reliability.
 
-[![Tests](https://github.com/runtimephp/larakube/actions/workflows/tests.yml/badge.svg)](https://github.com/runtimephp/larakube/actions)
+[![Tests](https://github.com/getkuven/kuven/actions/workflows/tests.yml/badge.svg)](https://github.com/getkuven/kuven/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PHP 8.4+](https://img.shields.io/badge/PHP-8.4%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/)
-[![Laravel 12](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
+[![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
 
 ---
 
 ## Features
 
 - **Multi-Cloud Providers** — Connect Hetzner, DigitalOcean, and more from a single platform
+- **Kubernetes Integration** — Typed Saloon client with structured error handling, manifest validation, and real API fixtures
 - **Organization Management** — Teams and roles with multi-tenant isolation
 - **Server Provisioning** — Create, list, sync, and manage servers across providers
-- **Web Dashboard** — Built with React, Inertia.js, and Tailwind CSS
+- **Web Dashboard** — Built with React 19, Inertia.js v3, and Tailwind CSS v4
 - **CLI Interface** — Full-featured Artisan commands for infrastructure management
 - **API Token Validation** — Tokens are verified against provider APIs on creation and encrypted at rest
 
@@ -26,8 +27,11 @@ LaraKube removes the complexity of managing infrastructure, application deployme
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Laravel 12 |
-| Frontend | React 19, Inertia.js v2, Tailwind CSS v4 |
+| Framework | Laravel 13 |
+| Frontend | React 19, Inertia.js v3, Tailwind CSS v4 |
+| Kubernetes | Saloon v4, typed manifests, structured error handling |
+| Queue | Laravel Horizon |
+| Routing | Ziggy, Laravel Wayfinder |
 | Testing | Pest 4, PHPStan (Larastan), Rector |
 | Auth | Laravel Sanctum |
 | Code Style | Laravel Pint, ESLint, Prettier |
@@ -37,13 +41,13 @@ LaraKube removes the complexity of managing infrastructure, application deployme
 - PHP 8.4+
 - Node.js 22+
 - Composer
-- SQLite (default) or MySQL/PostgreSQL
+- SQLite (default) or PostgreSQL
 
 ## Installation
 
 ```bash
-git clone https://github.com/runtimephp/larakube.git
-cd larakube
+git clone https://github.com/getkuven/kuven.git
+cd kuven
 
 composer install
 npm install
@@ -144,4 +148,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-LaraKube is open-sourced software licensed under the [MIT license](LICENSE).
+Kuven is open-sourced software licensed under the [MIT license](LICENSE).
