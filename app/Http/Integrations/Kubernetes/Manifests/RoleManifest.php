@@ -19,7 +19,7 @@ final readonly class RoleManifest implements ManifestContract
         public ManifestMetadata $metadata,
         public array $rules,
     ) {
-        if ($this->metadata->namespace === null || $this->metadata->namespace === '') {
+        if ($this->metadata->namespace === null || mb_trim($this->metadata->namespace) === '') {
             throw new InvalidArgumentException('Role manifests require a namespace.');
         }
     }

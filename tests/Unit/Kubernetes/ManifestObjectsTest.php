@@ -219,6 +219,13 @@ it('rejects a role manifest without a namespace', function (): void {
     ))->toThrow(InvalidArgumentException::class, 'Role manifests require a namespace.');
 });
 
+it('rejects a role manifest with an empty namespace', function (): void {
+    expect(fn (): RoleManifest => new RoleManifest(
+        metadata: new ManifestMetadata(name: 'kuven-operator', namespace: ''),
+        rules: [],
+    ))->toThrow(InvalidArgumentException::class, 'Role manifests require a namespace.');
+});
+
 it('serializes a role binding manifest', function (): void {
     $manifest = new RoleBindingManifest(
         metadata: new ManifestMetadata(
@@ -266,6 +273,14 @@ it('exposes role binding manifest routing metadata', function (): void {
         ->and($manifest->resource())->toBe('rolebindings')
         ->and($manifest->namespace())->toBe('kuven-test-ns')
         ->and($manifest->isClusterScoped())->toBeFalse();
+});
+
+it('rejects a role binding manifest with an empty namespace', function (): void {
+    expect(fn (): RoleBindingManifest => new RoleBindingManifest(
+        metadata: new ManifestMetadata(name: 'kuven-operator', namespace: ''),
+        roleName: 'kuven-operator',
+        serviceAccountName: 'kuven-operator',
+    ))->toThrow(InvalidArgumentException::class, 'RoleBinding manifests require a namespace.');
 });
 
 it('rejects a role binding manifest without a namespace', function (): void {

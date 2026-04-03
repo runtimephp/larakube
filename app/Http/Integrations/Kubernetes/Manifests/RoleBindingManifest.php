@@ -16,7 +16,7 @@ final readonly class RoleBindingManifest implements ManifestContract
         public string $roleName,
         public string $serviceAccountName,
     ) {
-        if ($this->metadata->namespace === null || $this->metadata->namespace === '') {
+        if ($this->metadata->namespace === null || mb_trim($this->metadata->namespace) === '') {
             throw new InvalidArgumentException('RoleBinding manifests require a namespace.');
         }
     }
