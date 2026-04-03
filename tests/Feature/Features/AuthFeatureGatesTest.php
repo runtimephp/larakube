@@ -7,42 +7,13 @@ use App\Features\RegistrationFeature;
 use App\Models\User;
 use Laravel\Pennant\Feature;
 
-test('registration page is accessible when feature is active', function (): void {
-    Feature::activate(RegistrationFeature::class);
-
-    $this->get('/register')->assertOk();
-});
-
-test('registration page returns 404 when feature is inactive', function (): void {
-    Feature::deactivate(RegistrationFeature::class);
-
-    $this->get('/register')->assertNotFound();
-});
-
-test('registration post returns 404 when feature is inactive', function (): void {
-    Feature::deactivate(RegistrationFeature::class);
-
-    $this->post('/register', [
-        'name' => 'Test',
-        'email' => 'test@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
-    ])->assertNotFound();
-});
-
-test('login page is accessible when feature is active', function (): void {
-    Feature::activate(LoginFeature::class);
+test('login page is always accessible', function (): void {
+    Feature::deactivate(LoginFeature::class);
 
     $this->get('/login')->assertOk();
 });
 
-test('login page returns 404 when feature is inactive', function (): void {
-    Feature::deactivate(LoginFeature::class);
-
-    $this->get('/login')->assertNotFound();
-});
-
-test('allowed email can login even when feature is inactive', function (): void {
+test('allowed email can login when feature is inactive', function (): void {
     Feature::deactivate(LoginFeature::class);
     config()->set('app.features.login_allowed_emails', ['francisco.barrento@gmail.com']);
 
@@ -59,7 +30,7 @@ test('allowed email can login even when feature is inactive', function (): void 
     $this->assertAuthenticated();
 });
 
-test('non-allowed email cannot login when feature is inactive', function (): void {
+test('non-allowed email gets validation error when feature is inactive', function (): void {
     Feature::for('other@example.com')->deactivate(LoginFeature::class);
     config()->set('app.features.login_allowed_emails', ['francisco.barrento@gmail.com']);
 
@@ -71,7 +42,45 @@ test('non-allowed email cannot login when feature is inactive', function (): voi
     $this->post('/login', [
         'email' => $user->email,
         'password' => 'password',
-    ])->assertNotFound();
+    ])->assertSessionHasErrors([
+        'email' => 'Login is not available yet. Join the waitlist at kuven.io for early access.',
+    ]);
+
+    $this->assertGuest();
+});
+
+test('registration page is always accessible', function (): void {
+    Feature::deactivate(RegistrationFeature::class);
+
+    $this->get('/register')->assertOk();
+});
+
+test('registration succeeds when feature is active', function (): void {
+    Feature::activate(RegistrationFeature::class);
+
+    $this->post('/register', [
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertRedirect();
+
+    $this->assertAuthenticated();
+});
+
+test('registration returns validation error when feature is inactive', function (): void {
+    Feature::deactivate(RegistrationFeature::class);
+
+    $this->post('/register', [
+        'name' => 'Test User',
+        'email' => 'test@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertSessionHasErrors([
+        'email' => 'Registration is not available yet. Join the waitlist at kuven.io for early access.',
+    ]);
+
+    $this->assertGuest();
 });
 
 test('login feature resolves false in production', function (): void {

@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Pennant\Feature;
@@ -22,20 +23,24 @@ final class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): Response
     {
-        abort_unless(Feature::active(LoginFeature::class), 404);
-
         return Inertia::render('auth/login', [
-            'canResetPassword' => Route::has('password.request'),
+            'canResetPassword' => Feature::active(LoginFeature::class) && Route::has('password.request'),
             'status' => $request->session()->get('status'),
         ]);
     }
 
     /**
      * Handle an incoming authentication request.
+     *
+     * @throws ValidationException
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        abort_unless(Feature::for($request->input('email'))->active(LoginFeature::class), 404);
+        if (! Feature::for($request->input('email'))->active(LoginFeature::class)) {
+            throw ValidationException::withMessages([
+                'email' => 'Login is not available yet. Join the waitlist at kuven.io for early access.',
+            ]);
+        }
 
         $request->authenticate();
 
