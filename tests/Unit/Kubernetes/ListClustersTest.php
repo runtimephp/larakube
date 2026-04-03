@@ -27,13 +27,9 @@ it('lists capi clusters in a namespace', function (): void {
 
     expect($clusters)
         ->toBeArray()
-        ->not->toBeEmpty();
-
-    expect($clusters[0])
-        ->toBeInstanceOf(ClusterData::class)
-        ->phase->toBeString();
-
-    expect($clusters[0]->metadata)
-        ->name->toBe('test-workload')
-        ->namespace->toBe('kuven-test-ns');
+        ->and(count($clusters))->toBeGreaterThan(0)
+        ->and($clusters[0])->toBeInstanceOf(ClusterData::class)
+        ->and($clusters[0]->phase)->toBeString()
+        ->and($clusters[0]->metadata->name)->toBe('test-workload')
+        ->and($clusters[0]->metadata->namespace)->toBe('kuven-test-ns');
 });

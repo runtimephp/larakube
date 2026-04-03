@@ -5,6 +5,3 @@ parameters:
     paths:
         - app/
     level: 5
-    ignoreErrors:
-        - identifier: instanceof.alwaysFalse
-          path: app/Http/Controllers/Settings/*

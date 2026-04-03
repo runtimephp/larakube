@@ -33,13 +33,12 @@ it('creates a secret on the kubernetes cluster', function (): void {
 
     expect($data)
         ->toBeInstanceOf(SecretData::class)
-        ->type->toBe('Opaque')
-        ->data->toBeArray()->toHaveKey('token');
-
-    expect($data->metadata)
-        ->toBeInstanceOf(ResourceMetadata::class)
-        ->name->toBe('hetzner-credentials')
-        ->namespace->toBe('kuven-test-ns')
-        ->uid->toBeString()->not->toBeEmpty()
-        ->creationTimestamp->toBeInstanceOf(CarbonImmutable::class);
+        ->and($data->type)->toBe('Opaque')
+        ->and($data->data)->toBeArray()->toHaveKey('token')
+        ->and($data->metadata)->toBeInstanceOf(ResourceMetadata::class)
+        ->and($data->metadata->name)->toBe('hetzner-credentials')
+        ->and($data->metadata->namespace)->toBe('kuven-test-ns')
+        ->and($data->metadata->uid)->toBeString()
+        ->and(mb_strlen((string) $data->metadata->uid))->toBeGreaterThan(0)
+        ->and($data->metadata->creationTimestamp)->toBeInstanceOf(CarbonImmutable::class);
 });

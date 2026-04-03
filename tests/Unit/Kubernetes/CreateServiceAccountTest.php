@@ -31,12 +31,11 @@ it('creates a service account on the kubernetes cluster', function (): void {
     $data = $response->dtoOrFail();
 
     expect($data)
-        ->toBeInstanceOf(ServiceAccountData::class);
-
-    expect($data->metadata)
-        ->toBeInstanceOf(ResourceMetadata::class)
-        ->name->toBe('kuven-operator')
-        ->namespace->toBe('kuven-test-ns')
-        ->uid->toBeString()->not->toBeEmpty()
-        ->creationTimestamp->toBeInstanceOf(CarbonImmutable::class);
+        ->toBeInstanceOf(ServiceAccountData::class)
+        ->and($data->metadata)->toBeInstanceOf(ResourceMetadata::class)
+        ->and($data->metadata->name)->toBe('kuven-operator')
+        ->and($data->metadata->namespace)->toBe('kuven-test-ns')
+        ->and($data->metadata->uid)->toBeString()
+        ->and(mb_strlen((string) $data->metadata->uid))->toBeGreaterThan(0)
+        ->and($data->metadata->creationTimestamp)->toBeInstanceOf(CarbonImmutable::class);
 });

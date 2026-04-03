@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Integrations\Kubernetes\Enums\KuvenLabel;
 use App\Http\Integrations\Kubernetes\Enums\SecretType;
 use App\Http\Integrations\Kubernetes\Manifests\AnnotationSet;
 use App\Http\Integrations\Kubernetes\Manifests\LabelSet;
@@ -130,4 +131,19 @@ it('supports custom secret type strings', function (): void {
     );
 
     expect($manifest->toArray()['type'])->toBe('custom.type/v1');
+});
+
+it('builds a kuven app label set', function (): void {
+    $labels = LabelSet::kuvenApp(name: 'kuven-api', component: 'api')
+        ->with(KuvenLabel::Organization, 'org-123')
+        ->with('custom.label/key', 'custom-value');
+
+    expect($labels->toArray())->toBe([
+        'app.kubernetes.io/name' => 'kuven-api',
+        'app.kubernetes.io/component' => 'api',
+        'app.kubernetes.io/managed-by' => 'kuven',
+        'app.kubernetes.io/part-of' => 'kuven',
+        'kuven.io/organization' => 'org-123',
+        'custom.label/key' => 'custom-value',
+    ]);
 });

@@ -46,16 +46,16 @@ it('creates a role on the kubernetes cluster', function (): void {
 
     expect($data)
         ->toBeInstanceOf(RoleData::class)
-        ->rules->toHaveCount(2);
+        ->and($data->rules)->toHaveCount(2);
 
     expect($data->rules[0])
         ->toBeInstanceOf(RuleData::class)
-        ->apiGroups->toContain('cluster.x-k8s.io')
-        ->resources->toBe(['*'])
-        ->verbs->toBe(['*']);
+        ->and($data->rules[0]->apiGroups)->toContain('cluster.x-k8s.io')
+        ->and($data->rules[0]->resources)->toBe(['*'])
+        ->and($data->rules[0]->verbs)->toBe(['*']);
 
     expect($data->metadata)
         ->toBeInstanceOf(ResourceMetadata::class)
-        ->name->toBe('kuven-operator')
-        ->namespace->toBe('kuven-test-ns');
+        ->and($data->metadata->name)->toBe('kuven-operator')
+        ->and($data->metadata->namespace)->toBe('kuven-test-ns');
 });
