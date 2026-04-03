@@ -42,3 +42,9 @@ it('creates a secret on the kubernetes cluster', function (): void {
         ->and(mb_strlen((string) $data->metadata->uid))->toBeGreaterThan(0)
         ->and($data->metadata->creationTimestamp)->toBeInstanceOf(CarbonImmutable::class);
 });
+
+it('marks secret data as sensitive parameter', function (): void {
+    $param = new ReflectionParameter([SecretData::class, '__construct'], 'data');
+
+    expect($param->getAttributes(SensitiveParameter::class))->toHaveCount(1);
+});

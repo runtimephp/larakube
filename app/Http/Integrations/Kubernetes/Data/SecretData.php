@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Integrations\Kubernetes\Data;
 
+use SensitiveParameter;
+
 final readonly class SecretData
 {
     /**
@@ -12,7 +14,7 @@ final readonly class SecretData
     public function __construct(
         public ResourceMetadata $metadata,
         public string $type,
-        public array $data = [],
+        #[SensitiveParameter] public array $data = [],
     ) {}
 
     /**
