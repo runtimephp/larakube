@@ -65,13 +65,13 @@ it('parses condition with all fields', function (): void {
         'lastTransitionTime' => '2026-04-02T18:00:00Z',
     ]);
 
-    expect($condition)
-        ->type->toBe('Available')
-        ->status->toBe('False')
-        ->reason->toBe('NotAvailable')
-        ->message->toBe('Cluster is provisioning')
-        ->lastTransitionTime->toBeInstanceOf(CarbonImmutable::class)
-        ->isTrue()->toBeFalse();
+    expect($condition->type)
+        ->toBe('Available')
+        ->and($condition->status)->toBe('False')
+        ->and($condition->reason)->toBe('NotAvailable')
+        ->and($condition->message)->toBe('Cluster is provisioning')
+        ->and($condition->lastTransitionTime)->toBeInstanceOf(CarbonImmutable::class)
+        ->and($condition->isTrue())->toBeFalse();
 });
 
 it('parses condition without optional fields', function (): void {
@@ -80,9 +80,9 @@ it('parses condition without optional fields', function (): void {
         'status' => 'True',
     ]);
 
-    expect($condition)
-        ->reason->toBeNull()
-        ->message->toBeNull()
-        ->lastTransitionTime->toBeNull()
-        ->isTrue()->toBeTrue();
+    expect($condition->reason)
+        ->toBeNull()
+        ->and($condition->message)->toBeNull()
+        ->and($condition->lastTransitionTime)->toBeNull()
+        ->and($condition->isTrue())->toBeTrue();
 });

@@ -32,14 +32,13 @@ it('gets a capi cluster from the kubernetes cluster', function (): void {
 
     expect($data)
         ->toBeInstanceOf(ClusterData::class)
-        ->phase->toBeString()
-        ->conditions->toBeArray();
-
-    expect($data->metadata)
-        ->toBeInstanceOf(ResourceMetadata::class)
-        ->name->toBe('test-workload')
-        ->namespace->toBe('kuven-test-ns')
-        ->uid->toBeString()->not->toBeEmpty();
+        ->and($data->phase)->toBeString()
+        ->and($data->conditions)->toBeArray()
+        ->and($data->metadata)->toBeInstanceOf(ResourceMetadata::class)
+        ->and($data->metadata->name)->toBe('test-workload')
+        ->and($data->metadata->namespace)->toBe('kuven-test-ns')
+        ->and($data->metadata->uid)->toBeString()
+        ->and(mb_strlen((string) $data->metadata->uid))->toBeGreaterThan(0);
 });
 
 it('exposes cluster readiness from conditions', function (): void {

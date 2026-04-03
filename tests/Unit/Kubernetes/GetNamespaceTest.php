@@ -29,12 +29,11 @@ it('gets a namespace from the kubernetes cluster', function (): void {
 
     expect($data)
         ->toBeInstanceOf(NamespaceData::class)
-        ->phase->toBe('Active');
-
-    expect($data->metadata)
-        ->toBeInstanceOf(ResourceMetadata::class)
-        ->name->toBe('kuven-test-ns')
-        ->uid->toBeString()->not->toBeEmpty()
-        ->resourceVersion->toBeString()
-        ->creationTimestamp->toBeInstanceOf(CarbonImmutable::class);
+        ->and($data->phase)->toBe('Active')
+        ->and($data->metadata)->toBeInstanceOf(ResourceMetadata::class)
+        ->and($data->metadata->name)->toBe('kuven-test-ns')
+        ->and($data->metadata->uid)->toBeString()
+        ->and(mb_strlen((string) $data->metadata->uid))->toBeGreaterThan(0)
+        ->and($data->metadata->resourceVersion)->toBeString()
+        ->and($data->metadata->creationTimestamp)->toBeInstanceOf(CarbonImmutable::class);
 });

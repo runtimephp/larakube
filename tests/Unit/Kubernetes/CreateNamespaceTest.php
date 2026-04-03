@@ -29,15 +29,14 @@ it('creates a namespace on the kubernetes cluster', function (): void {
 
     expect($data)
         ->toBeInstanceOf(NamespaceData::class)
-        ->phase->toBe('Active');
-
-    expect($data->metadata)
-        ->toBeInstanceOf(ResourceMetadata::class)
-        ->name->toBe('kuven-test-ns')
-        ->uid->toBeString()->not->toBeEmpty()
-        ->resourceVersion->toBeString()
-        ->creationTimestamp->toBeInstanceOf(CarbonImmutable::class)
-        ->namespace->toBeNull()
-        ->labels->toBeArray()->toHaveKey('kubernetes.io/metadata.name')
-        ->annotations->toBeArray();
+        ->and($data->phase)->toBe('Active')
+        ->and($data->metadata)->toBeInstanceOf(ResourceMetadata::class)
+        ->and($data->metadata->name)->toBe('kuven-test-ns')
+        ->and($data->metadata->uid)->toBeString()
+        ->and(mb_strlen((string) $data->metadata->uid))->toBeGreaterThan(0)
+        ->and($data->metadata->resourceVersion)->toBeString()
+        ->and($data->metadata->creationTimestamp)->toBeInstanceOf(CarbonImmutable::class)
+        ->and($data->metadata->namespace)->toBeNull()
+        ->and($data->metadata->labels)->toBeArray()->toHaveKey('kubernetes.io/metadata.name')
+        ->and($data->metadata->annotations)->toBeArray();
 });

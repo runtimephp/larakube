@@ -7,34 +7,32 @@ namespace App\Http\Integrations\Kubernetes\Manifests;
 use App\Http\Integrations\Kubernetes\Contracts\ManifestContract;
 use App\Http\Integrations\Kubernetes\Enums\ApiVersion;
 use App\Http\Integrations\Kubernetes\Enums\Kind;
-use App\Http\Integrations\Kubernetes\Enums\SecretType;
 use InvalidArgumentException;
 
-final readonly class SecretManifest implements ManifestContract
+final readonly class DeploymentManifest implements ManifestContract
 {
     public function __construct(
         public ManifestMetadata $metadata,
-        public SecretStringData $data,
-        public SecretType|string $type = SecretType::Opaque,
+        public DeploymentSpec $spec,
     ) {
         if ($this->metadata->namespace === null || $this->metadata->namespace === '') {
-            throw new InvalidArgumentException('Secret manifests require a namespace.');
+            throw new InvalidArgumentException('Deployment manifests require a namespace.');
         }
     }
 
     public function apiVersion(): ApiVersion
     {
-        return ApiVersion::V1;
+        return ApiVersion::AppsV1;
     }
 
     public function kind(): Kind
     {
-        return Kind::Secret;
+        return Kind::Deployment;
     }
 
     public function resource(): string
     {
-        return 'secrets';
+        return 'deployments';
     }
 
     public function namespace(): string
@@ -48,7 +46,7 @@ final readonly class SecretManifest implements ManifestContract
     }
 
     /**
-     * @return array{apiVersion: string, kind: string, metadata: array{name: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}, type: string, data: array<string, string>}
+     * @return array{apiVersion: string, kind: string, metadata: array{name: string, namespace: string, labels?: array<string, string>, annotations?: array<string, string>}, spec: array{replicas: int, selector: array{matchLabels: array<string, string>}, template: array{metadata: array{name: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}, spec: array{containers: list<array{name: string, image: string, ports?: list<array{containerPort: int, protocol: string, name?: string}>, env?: list<array{name: string, value: string}>}>, serviceAccountName?: string}}}}
      */
     public function toArray(): array
     {
@@ -56,8 +54,7 @@ final readonly class SecretManifest implements ManifestContract
             'apiVersion' => $this->apiVersion()->value,
             'kind' => $this->kind()->value,
             'metadata' => $this->metadata->toArray(),
-            'type' => $this->type instanceof SecretType ? $this->type->value : $this->type,
-            'data' => $this->data->toEncodedArray(),
+            'spec' => $this->spec->toArray(),
         ];
     }
 }

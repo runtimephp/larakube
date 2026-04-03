@@ -33,8 +33,8 @@ it('creates a role binding on the kubernetes cluster', function (): void {
 
     expect($data)
         ->toBeInstanceOf(RoleBindingData::class)
-        ->roleName->toBe('kuven-operator')
-        ->subjects->toHaveCount(1);
+        ->and($data->roleName)->toBe('kuven-operator')
+        ->and($data->subjects)->toHaveCount(1);
 
     expect($data->subjects[0])
         ->toBe([
@@ -45,6 +45,6 @@ it('creates a role binding on the kubernetes cluster', function (): void {
 
     expect($data->metadata)
         ->toBeInstanceOf(ResourceMetadata::class)
-        ->name->toBe('kuven-operator')
-        ->namespace->toBe('kuven-test-ns');
+        ->and($data->metadata->name)->toBe('kuven-operator')
+        ->and($data->metadata->namespace)->toBe('kuven-test-ns');
 });

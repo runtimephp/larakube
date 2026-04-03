@@ -27,7 +27,7 @@ final class ApplyManifest extends Request implements HasBody
     protected Method $method = Method::POST;
 
     /**
-     * @param  array{apiVersion: string, kind: string, metadata: array{name: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}, spec?: array<string, mixed>, status?: array<string, mixed>}  $manifest
+     * @param  array{apiVersion: string, kind: string, metadata: array{name: string, namespace?: string, labels?: array<string, string>, annotations?: array<string, string>}, spec?: array<string, mixed>, status?: array<string, mixed>}|ManifestContract  $manifest
      * @param  string|null  $resource  Explicit plural resource name (e.g. 'machinedeployments'). When null, derived as lowercase(kind)+'s'.
      */
     public function __construct(
