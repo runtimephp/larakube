@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Pennant\Feature;
@@ -24,19 +25,21 @@ final class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        abort_unless(Feature::active(RegistrationFeature::class), 404);
-
         return Inertia::render('auth/register');
     }
 
     /**
      * Handle an incoming registration request.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
-        abort_unless(Feature::active(RegistrationFeature::class), 404);
+        if (! Feature::active(RegistrationFeature::class)) {
+            throw ValidationException::withMessages([
+                'email' => 'Registration is not available yet. Join the waitlist at kuven.io for early access.',
+            ]);
+        }
 
         $request->validate([
             'name' => 'required|string|max:255',
