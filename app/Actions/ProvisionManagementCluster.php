@@ -50,6 +50,7 @@ final readonly class ProvisionManagementCluster
             name: $clusterName,
             provider: $data->provider,
             region: $data->region,
+            kubernetesVersion: $data->kubernetesVersion,
         ));
 
         $this->bootstrapClusterService->create($clusterName);
@@ -70,6 +71,7 @@ final readonly class ProvisionManagementCluster
             provider: $cluster->provider,
             region: $cluster->region,
             status: 'ready',
+            kubernetesVersion: $data->kubernetesVersion,
         );
     }
 }

@@ -29,6 +29,7 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
             provider: $data->provider,
             region: $data->region,
             status: ManagementClusterStatus::Bootstrapping->value,
+            kubernetesVersion: $data->kubernetesVersion,
         );
 
         $this->clusters[$cluster->id] = $cluster;
@@ -63,6 +64,7 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
             provider: $existing->provider,
             region: $existing->region,
             status: ManagementClusterStatus::Ready->value,
+            kubernetesVersion: $existing->kubernetesVersion,
         );
     }
 

@@ -30,6 +30,7 @@ test('create returns management cluster data',
                     'provider' => 'docker',
                     'region' => 'local',
                     'status' => 'bootstrapping',
+                    'kubernetes_version' => 'v1.32.3',
                 ],
             ], 201),
         ]);
@@ -38,6 +39,7 @@ test('create returns management cluster data',
             name: 'kuven-mgmt-local',
             provider: 'docker',
             region: 'local',
+            kubernetesVersion: 'v1.32.3',
         ));
 
         expect($result)
@@ -60,6 +62,7 @@ test('find by provider and region returns first matching cluster',
                         'provider' => 'docker',
                         'region' => 'local',
                         'status' => 'ready',
+                        'kubernetes_version' => 'v1.32.3',
                     ],
                 ],
             ]),

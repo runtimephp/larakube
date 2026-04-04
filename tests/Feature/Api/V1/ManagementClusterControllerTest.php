@@ -25,11 +25,12 @@ test('store creates a management cluster',
                 'name' => 'kuven-mgmt-local',
                 'provider' => 'docker',
                 'region' => 'local',
+                'kubernetes_version' => 'v1.32.3',
             ]);
 
         $response->assertCreated()
             ->assertJsonStructure([
-                'data' => ['id', 'name', 'provider', 'region', 'status'],
+                'data' => ['id', 'name', 'provider', 'region', 'status', 'kubernetes_version'],
             ])
             ->assertJsonPath('data.name', 'kuven-mgmt-local')
             ->assertJsonPath('data.provider', 'docker')
@@ -55,7 +56,7 @@ test('store validates required fields',
             ->postJson(route('api.v1.management-clusters.store'), []);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['name', 'provider', 'region']);
+            ->assertJsonValidationErrors(['name', 'provider', 'region', 'kubernetes_version']);
     });
 
 test('store requires authentication',
@@ -67,6 +68,7 @@ test('store requires authentication',
             'name' => 'kuven-mgmt-local',
             'provider' => 'docker',
             'region' => 'local',
+            'kubernetes_version' => 'v1.32.3',
         ]);
 
         $response->assertUnauthorized();
@@ -85,6 +87,7 @@ test('non-admin cannot access management clusters',
                 'name' => 'kuven-mgmt-local',
                 'provider' => 'docker',
                 'region' => 'local',
+                'kubernetes_version' => 'v1.32.3',
             ])
             ->assertForbidden();
 
