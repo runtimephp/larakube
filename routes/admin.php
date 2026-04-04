@@ -11,5 +11,6 @@ Route::middleware(['auth', 'verified'])
     ->group(function () {
         Route::prefix('management-clusters')->as('management-clusters.')->group(function () {
             Route::get('/', [ManagementClusterController::class, 'index'])->name('index');
+            Route::get('/{management_cluster}', [ManagementClusterController::class, 'show'])->name('show');
         });
     });
