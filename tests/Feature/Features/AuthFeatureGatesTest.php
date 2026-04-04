@@ -69,7 +69,7 @@ test('registration succeeds when feature is active', function (): void {
 });
 
 test('registration returns validation error when feature is inactive', function (): void {
-    Feature::deactivate(RegistrationFeature::class);
+    Feature::for('test@example.com')->deactivate(RegistrationFeature::class);
 
     $this->post('/register', [
         'name' => 'Test User',
