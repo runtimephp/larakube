@@ -1,0 +1,147 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Client\HttpManagementClusterClient;
+use App\Client\LarakubeClient;
+use App\Data\CreateManagementClusterData;
+use App\Data\ManagementClusterData;
+use Illuminate\Support\Facades\Http;
+
+beforeEach(function (): void {
+    $this->larakubeClient = new LarakubeClient(
+        baseUrl: 'http://localhost:8000',
+        token: '1|abc123',
+    );
+
+    $this->client = new HttpManagementClusterClient($this->larakubeClient);
+});
+
+test('create returns management cluster data',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Http::fake([
+            '*/api/v1/management-clusters' => Http::response([
+                'data' => [
+                    'id' => 'uuid-123',
+                    'name' => 'kuven-mgmt-local',
+                    'provider' => 'docker',
+                    'region' => 'local',
+                    'status' => 'bootstrapping',
+                ],
+            ], 201),
+        ]);
+
+        $result = $this->client->create(new CreateManagementClusterData(
+            name: 'kuven-mgmt-local',
+            provider: 'docker',
+            region: 'local',
+        ));
+
+        expect($result)
+            ->toBeInstanceOf(ManagementClusterData::class)
+            ->and($result->id)->toBe('uuid-123')
+            ->and($result->name)->toBe('kuven-mgmt-local');
+    });
+
+test('find by provider and region returns cluster data',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Http::fake([
+            '*/api/v1/management-clusters/lookup*' => Http::response([
+                'data' => [
+                    'id' => 'uuid-123',
+                    'name' => 'kuven-mgmt-local',
+                    'provider' => 'docker',
+                    'region' => 'local',
+                    'status' => 'ready',
+                ],
+            ]),
+        ]);
+
+        $result = $this->client->findByProviderAndRegion('docker', 'local');
+
+        expect($result)
+            ->toBeInstanceOf(ManagementClusterData::class)
+            ->and($result->name)->toBe('kuven-mgmt-local');
+    });
+
+test('find by provider and region returns null on 404',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Http::fake([
+            '*/api/v1/management-clusters/lookup*' => Http::response([
+                'message' => 'Not found',
+                'code' => 'not_found',
+            ], 404),
+        ]);
+
+        $result = $this->client->findByProviderAndRegion('docker', 'nonexistent');
+
+        expect($result)->toBeNull();
+    });
+
+test('find by provider and region rethrows non-404 errors',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Http::fake([
+            '*/api/v1/management-clusters/lookup*' => Http::response([
+                'message' => 'Server error',
+            ], 500),
+        ]);
+
+        expect(fn () => $this->client->findByProviderAndRegion('docker', 'local'))
+            ->toThrow(App\Exceptions\LarakubeApiException::class);
+    });
+
+test('store kubeconfig sends patch request',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Http::fake([
+            '*/api/v1/management-clusters/uuid-123/kubeconfig' => Http::response(null, 204),
+        ]);
+
+        $this->client->storeKubeconfig('uuid-123', 'apiVersion: v1');
+
+        Http::assertSent(fn ($request): bool => $request->url() === 'http://localhost:8000/api/v1/management-clusters/uuid-123/kubeconfig'
+            && $request['kubeconfig'] === 'apiVersion: v1');
+    });
+
+test('mark ready sends patch request',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Http::fake([
+            '*/api/v1/management-clusters/uuid-123/ready' => Http::response(null, 204),
+        ]);
+
+        $this->client->markReady('uuid-123');
+
+        Http::assertSent(fn ($request): bool => $request->url() === 'http://localhost:8000/api/v1/management-clusters/uuid-123/ready');
+    });
+
+test('delete sends delete request',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Http::fake([
+            '*/api/v1/management-clusters/uuid-123' => Http::response(null, 204),
+        ]);
+
+        $this->client->delete('uuid-123');
+
+        Http::assertSent(fn ($request): bool => $request->method() === 'DELETE'
+            && $request->url() === 'http://localhost:8000/api/v1/management-clusters/uuid-123');
+    });

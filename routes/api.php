@@ -5,6 +5,9 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\V1\AuthTokenController;
 use App\Http\Controllers\Api\V1\CloudProviderController;
 use App\Http\Controllers\Api\V1\InfrastructureController;
+use App\Http\Controllers\Api\V1\ManagementClusterController;
+use App\Http\Controllers\Api\V1\ManagementClusterKubeconfigController;
+use App\Http\Controllers\Api\V1\ManagementClusterReadyController;
 use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\RegisterController;
 use App\Http\Controllers\Api\V1\ServerController;
@@ -27,6 +30,16 @@ Route::prefix('v1')->as('api.v1.')->group(function (): void {
         Route::apiResource('organizations', OrganizationController::class)
             ->only(['index', 'store'])
             ->names('organizations');
+
+        Route::apiResource('management-clusters', ManagementClusterController::class)
+            ->only(['store', 'show', 'destroy'])
+            ->names('management-clusters');
+
+        Route::patch('management-clusters/{management_cluster}/kubeconfig', [ManagementClusterKubeconfigController::class, 'update'])
+            ->name('management-clusters.kubeconfig');
+
+        Route::patch('management-clusters/{management_cluster}/ready', [ManagementClusterReadyController::class, 'update'])
+            ->name('management-clusters.ready');
 
         Route::middleware(ResolveOrganization::class)->group(function (): void {
             Route::apiResource('cloud-providers', CloudProviderController::class)

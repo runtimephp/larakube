@@ -37,6 +37,16 @@ final readonly class LarakubeClient
         );
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function patch(string $path, array $data = []): Response
+    {
+        return $this->handleResponse(
+            $this->request()->patch($this->url($path), $data)
+        );
+    }
+
     public function delete(string $path): Response
     {
         return $this->handleResponse(
