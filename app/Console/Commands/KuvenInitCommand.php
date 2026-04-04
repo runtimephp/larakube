@@ -12,6 +12,7 @@ use App\Actions\MarkManagementClusterReady;
 use App\Actions\StoreManagementKubeconfig;
 use App\Actions\ValidatePrerequisites;
 use App\Actions\WriteKubeconfigToTempFile;
+use App\Contracts\KubeconfigReaderService;
 use App\Data\CreateManagementClusterData;
 use App\Queries\ManagementClusterQuery;
 use Illuminate\Console\Command;
@@ -35,6 +36,7 @@ final class KuvenInitCommand extends Command
         CreateBootstrapCluster $createBootstrapCluster,
         InstallCapiControllers $installCapiControllers,
         WriteKubeconfigToTempFile $writeKubeconfigToTempFile,
+        KubeconfigReaderService $kubeconfigReaderService,
         StoreManagementKubeconfig $storeManagementKubeconfig,
         MarkManagementClusterReady $markManagementClusterReady,
     ): int {
@@ -87,7 +89,8 @@ final class KuvenInitCommand extends Command
         $installCapiControllers->handle($provider, $kubeconfigPath);
 
         $this->components->info('Storing management cluster kubeconfig...');
-        $storeManagementKubeconfig->handle($cluster, $cluster->name);
+        $kubeconfig = $kubeconfigReaderService->read($cluster->name);
+        $storeManagementKubeconfig->handle($cluster, $kubeconfig);
 
         @unlink($kubeconfigPath);
 

@@ -4,19 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Contracts\KubeconfigReaderService;
 use App\Models\ManagementCluster;
+use SensitiveParameter;
 
-final readonly class StoreManagementKubeconfig
+final class StoreManagementKubeconfig
 {
-    public function __construct(
-        private KubeconfigReaderService $reader,
-    ) {}
-
-    public function handle(ManagementCluster $cluster, string $clusterName): void
+    public function handle(ManagementCluster $cluster, #[SensitiveParameter] string $kubeconfig): void
     {
-        $kubeconfig = $this->reader->read($clusterName);
-
-        $cluster->forceFill(['kubeconfig' => $kubeconfig])->save();
+        $cluster->update(['kubeconfig' => $kubeconfig]);
     }
 }

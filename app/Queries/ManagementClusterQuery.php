@@ -6,6 +6,7 @@ namespace App\Queries;
 
 use App\Models\ManagementCluster;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 final class ManagementClusterQuery
 {
@@ -31,6 +32,12 @@ final class ManagementClusterQuery
         $this->builder->where('region', $region);
 
         return $this;
+    }
+
+    /** @return Collection<int, ManagementCluster> */
+    public function get(): Collection
+    {
+        return $this->builder->get();
     }
 
     public function first(): ?ManagementCluster

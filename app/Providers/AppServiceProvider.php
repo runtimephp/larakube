@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Client\HttpAuthClient;
 use App\Client\HttpCloudProviderClient;
 use App\Client\HttpInfrastructureClient;
+use App\Client\HttpManagementClusterClient;
 use App\Client\HttpOrganizationClient;
 use App\Client\HttpServerClient;
 use App\Client\LarakubeClient;
@@ -17,6 +18,7 @@ use App\Contracts\CapiInstallerService;
 use App\Contracts\CloudProviderClient;
 use App\Contracts\InfrastructureClient;
 use App\Contracts\KubeconfigReaderService;
+use App\Contracts\ManagementClusterClient;
 use App\Contracts\OrganizationClient;
 use App\Contracts\PrerequisiteChecker;
 use App\Contracts\ServerClient;
@@ -62,6 +64,7 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->bind(CloudProviderClient::class, HttpCloudProviderClient::class);
         $this->app->bind(InfrastructureClient::class, HttpInfrastructureClient::class);
         $this->app->bind(ServerClient::class, HttpServerClient::class);
+        $this->app->bind(ManagementClusterClient::class, HttpManagementClusterClient::class);
 
         $this->app->bind(PrerequisiteChecker::class, ProcessPrerequisiteChecker::class);
         $this->app->bind(BootstrapClusterService::class, KindBootstrapClusterService::class);

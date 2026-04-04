@@ -53,6 +53,22 @@ This project has domain-specific skills available. You MUST activate the relevan
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
 
+## Controllers & Form Requests
+
+- Every controller method MUST have a dedicated FormRequest type-hinted as its **first parameter** — even if there are no validation rules or the request body is empty.
+- Authorization is handled in FormRequest `authorize()` methods, not in controllers. Never use `Gate::authorize()` or `$this->authorize()` in controllers.
+- Never use `$request->validate()` inline in controllers — always use a FormRequest class.
+- Never use `$request->validated('field')` to retrieve values. Always use typed accessors: `$request->string('name')->toString()`, `$request->integer('count')`, `$request->boolean('force')`, `$request->enum('status', MyEnum::class)`, `$request->float('amount')`.
+- FormRequest naming follows the controller method name: `{Method}{Model}Request`. Examples:
+  - `store()` → `StoreManagementClusterRequest`
+  - `index()` → `IndexManagementClusterRequest`
+  - `show()` → `ShowManagementClusterRequest`
+  - `destroy()` → `DestroyManagementClusterRequest`
+  - `update()` on `KubeconfigController` → `UpdateManagementClusterKubeconfigRequest`
+- Controllers only use standard resource methods: `index`, `store`, `show`, `update`, `destroy`. Custom actions go in separate controllers.
+- Never use `->save()` or `forceFill()->save()` on models. Always use `$model->update([...])` for updates and `Model::query()->create([...])` for creation.
+- Migrations never include a `down()` method.
+
 ## Verification Scripts
 
 - Do not create verification scripts or tinker when tests cover that functionality and prove they work. Unit and feature tests are more important.
@@ -124,12 +140,12 @@ This project has domain-specific skills available. You MUST activate the relevan
 - Prefer PHPDoc blocks over inline comments. Only add inline comments for exceptionally complex logic.
 - Use array shape type definitions in PHPDoc blocks.
 
-=== herd rules ===
+=== tests rules ===
 
-# Laravel Herd
+# Test Enforcement
 
-- The application is served by Laravel Herd at `https?://[kebab-case-project-dir].test`. Use the `get-absolute-url` tool to generate valid URLs. Never run commands to serve the site. It is always available.
-- Use the `herd` CLI to manage services, PHP versions, and sites (e.g. `herd sites`, `herd services:start <service>`, `herd php:list`). Run `herd list` to discover all available commands.
+- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
+- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
 
 === inertia-laravel/core rules ===
 
