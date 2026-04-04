@@ -42,7 +42,7 @@ final class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        if (! Feature::active(RegistrationFeature::class)) {
+        if (! Feature::for($request->string('email')->toString())->active(RegistrationFeature::class)) {
             throw ValidationException::withMessages([
                 'email' => 'Registration is not available yet. Join the waitlist at kuven.io for early access.',
             ]);
