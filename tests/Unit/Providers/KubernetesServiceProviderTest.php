@@ -35,3 +35,20 @@ test('resolves empty connector when no management cluster exists',
         expect($connector)->toBeInstanceOf(KubernetesConnector::class)
             ->and($connector->resolveBaseUrl())->toBe('');
     });
+
+test('resolves empty connector when kubeconfig has no server or token',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        ManagementCluster::factory()->ready()->create([
+            'kubeconfig' => 'invalid-kubeconfig-without-fields',
+        ]);
+
+        $this->app->forgetInstance(KubernetesConnector::class);
+
+        $connector = $this->app->make(KubernetesConnector::class);
+
+        expect($connector)->toBeInstanceOf(KubernetesConnector::class)
+            ->and($connector->resolveBaseUrl())->toBe('');
+    });
