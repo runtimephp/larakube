@@ -5,6 +5,9 @@ declare(strict_types=1);
 use App\Http\Integrations\Kubernetes\Data\ResourceMetadata;
 use App\Http\Integrations\Kubernetes\Data\RoleData;
 use App\Http\Integrations\Kubernetes\Data\RuleData;
+use App\Http\Integrations\Kubernetes\Enums\RbacApiGroup;
+use App\Http\Integrations\Kubernetes\Enums\RbacResource;
+use App\Http\Integrations\Kubernetes\Enums\RbacVerb;
 use App\Http\Integrations\Kubernetes\KubernetesConnector;
 use App\Http\Integrations\Kubernetes\Requests\CreateRole;
 use Saloon\Http\Faking\MockClient;
@@ -25,14 +28,14 @@ it('creates a role on the kubernetes cluster', function (): void {
 
     $rules = [
         new RuleData(
-            apiGroups: ['cluster.x-k8s.io', 'infrastructure.cluster.x-k8s.io', 'bootstrap.cluster.x-k8s.io', 'controlplane.cluster.x-k8s.io'],
-            resources: ['*'],
-            verbs: ['*'],
+            apiGroups: [RbacApiGroup::CapiCore, RbacApiGroup::CapiInfrastructure, RbacApiGroup::CapiBootstrap, RbacApiGroup::CapiControlPlane],
+            resources: [RbacResource::All],
+            verbs: [RbacVerb::All],
         ),
         new RuleData(
-            apiGroups: [''],
-            resources: ['secrets', 'configmaps'],
-            verbs: ['*'],
+            apiGroups: [RbacApiGroup::Core],
+            resources: [RbacResource::Secrets, RbacResource::ConfigMaps],
+            verbs: [RbacVerb::All],
         ),
     ];
 
@@ -50,9 +53,9 @@ it('creates a role on the kubernetes cluster', function (): void {
 
     expect($data->rules[0])
         ->toBeInstanceOf(RuleData::class)
-        ->and($data->rules[0]->apiGroups)->toContain('cluster.x-k8s.io')
-        ->and($data->rules[0]->resources)->toBe(['*'])
-        ->and($data->rules[0]->verbs)->toBe(['*']);
+        ->and($data->rules[0]->apiGroups)->toContain(RbacApiGroup::CapiCore)
+        ->and($data->rules[0]->resources)->toBe([RbacResource::All])
+        ->and($data->rules[0]->verbs)->toBe([RbacVerb::All]);
 
     expect($data->metadata)
         ->toBeInstanceOf(ResourceMetadata::class)

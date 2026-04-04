@@ -29,7 +29,7 @@ it('gets a namespace from the kubernetes cluster', function (): void {
 
     expect($data)
         ->toBeInstanceOf(NamespaceData::class)
-        ->and($data->phase)->toBe('Active')
+        ->and($data->phase)->toBe(App\Http\Integrations\Kubernetes\Enums\NamespacePhase::Active)
         ->and($data->metadata)->toBeInstanceOf(ResourceMetadata::class)
         ->and($data->metadata->name)->toBe('kuven-test-ns')
         ->and($data->metadata->uid)->toBeString()

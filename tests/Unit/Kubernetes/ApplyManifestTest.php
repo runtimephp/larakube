@@ -50,8 +50,8 @@ it('applies a manifest to the kubernetes cluster', function (): void {
 
     expect($data)
         ->toBeInstanceOf(ManifestData::class)
-        ->and($data->apiVersion)->toBe('v1')
-        ->and($data->kind)->toBe('ConfigMap')
+        ->and($data->apiVersion)->toBe(App\Http\Integrations\Kubernetes\Enums\ApiVersion::V1)
+        ->and($data->kind)->toBe(App\Http\Integrations\Kubernetes\Enums\Kind::ConfigMap)
         ->and($data->metadata)->toBeInstanceOf(ResourceMetadata::class)
         ->and($data->metadata->name)->toBe('cluster-config')
         ->and($data->metadata->namespace)->toBe('kuven-test-ns')

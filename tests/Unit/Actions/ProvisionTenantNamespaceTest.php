@@ -3,26 +3,39 @@
 declare(strict_types=1);
 
 use App\Actions\ProvisionTenantNamespace;
-use App\Http\Integrations\Kubernetes\KubernetesConnector;
-use App\Http\Integrations\Kubernetes\Requests\CreateNamespace;
-use App\Http\Integrations\Kubernetes\Requests\CreateRole;
-use App\Http\Integrations\Kubernetes\Requests\CreateRoleBinding;
-use App\Http\Integrations\Kubernetes\Requests\CreateServiceAccount;
+use App\Contracts\NamespaceService;
+use App\Contracts\NetworkPolicyService;
+use App\Contracts\ResourceQuotaService;
+use App\Contracts\RoleBindingService;
+use App\Contracts\RoleService;
+use App\Contracts\ServiceAccountService;
 use App\Models\Organization;
-use Saloon\Http\Faking\MockClient;
-use Saloon\Http\Faking\MockResponse;
+use App\Services\InMemory\InMemoryNamespaceService;
+use App\Services\InMemory\InMemoryNetworkPolicyService;
+use App\Services\InMemory\InMemoryResourceQuotaService;
+use App\Services\InMemory\InMemoryRoleBindingService;
+use App\Services\InMemory\InMemoryRoleService;
+use App\Services\InMemory\InMemoryServiceAccountService;
 
 beforeEach(function (): void {
-    $this->connector = new KubernetesConnector(
-        server: 'https://127.0.0.1:60517',
-        token: 'test-token',
-        verifySsl: false,
-    );
+    $this->namespaceService = new InMemoryNamespaceService;
+    $this->serviceAccountService = new InMemoryServiceAccountService;
+    $this->roleService = new InMemoryRoleService;
+    $this->roleBindingService = new InMemoryRoleBindingService;
+    $this->networkPolicyService = new InMemoryNetworkPolicyService;
+    $this->resourceQuotaService = new InMemoryResourceQuotaService;
 
-    $this->action = app(ProvisionTenantNamespace::class);
+    $this->app->instance(NamespaceService::class, $this->namespaceService);
+    $this->app->instance(ServiceAccountService::class, $this->serviceAccountService);
+    $this->app->instance(RoleService::class, $this->roleService);
+    $this->app->instance(RoleBindingService::class, $this->roleBindingService);
+    $this->app->instance(NetworkPolicyService::class, $this->networkPolicyService);
+    $this->app->instance(ResourceQuotaService::class, $this->resourceQuotaService);
+
+    $this->action = $this->app->make(ProvisionTenantNamespace::class);
 });
 
-test('provisions namespace, service account, role, and role binding',
+test('provisions all 6 kubernetes resources for a tenant namespace',
     /**
      * @throws Throwable
      */
@@ -30,22 +43,14 @@ test('provisions namespace, service account, role, and role binding',
         /** @var Organization $organization */
         $organization = Organization::factory()->create();
 
-        $mockClient = new MockClient([
-            CreateNamespace::class => MockResponse::fixture('kubernetes/create-namespace'),
-            CreateServiceAccount::class => MockResponse::fixture('kubernetes/create-service-account'),
-            CreateRole::class => MockResponse::fixture('kubernetes/create-role'),
-            CreateRoleBinding::class => MockResponse::fixture('kubernetes/create-role-binding'),
-        ]);
+        $this->action->handle($organization);
 
-        $this->connector->withMockClient($mockClient);
-
-        $this->action->handle($this->connector, $organization);
-
-        $mockClient->assertSentCount(4);
-        $mockClient->assertSent(CreateNamespace::class);
-        $mockClient->assertSent(CreateServiceAccount::class);
-        $mockClient->assertSent(CreateRole::class);
-        $mockClient->assertSent(CreateRoleBinding::class);
+        expect($this->namespaceService->namespaces())->toHaveCount(1)
+            ->and($this->serviceAccountService->accounts())->toHaveCount(1)
+            ->and($this->roleService->roles())->toHaveCount(1)
+            ->and($this->roleBindingService->bindings())->toHaveCount(1)
+            ->and($this->networkPolicyService->policies())->toHaveCount(1)
+            ->and($this->resourceQuotaService->quotas())->toHaveCount(1);
     });
 
 test('builds namespace name from organization id',
@@ -56,16 +61,26 @@ test('builds namespace name from organization id',
         /** @var Organization $organization */
         $organization = Organization::factory()->create();
 
-        $mockClient = new MockClient([
-            CreateNamespace::class => MockResponse::fixture('kubernetes/create-namespace'),
-            CreateServiceAccount::class => MockResponse::fixture('kubernetes/create-service-account'),
-            CreateRole::class => MockResponse::fixture('kubernetes/create-role'),
-            CreateRoleBinding::class => MockResponse::fixture('kubernetes/create-role-binding'),
-        ]);
+        $this->action->handle($organization);
 
-        $this->connector->withMockClient($mockClient);
+        expect($this->namespaceService->namespaces()[0])->toBe("kuven-org-{$organization->id}");
+    });
 
-        $this->action->handle($this->connector, $organization);
+test('all resources use the correct namespace',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
 
-        $mockClient->assertSent(CreateNamespace::class);
+        $this->action->handle($organization);
+
+        $expectedNamespace = "kuven-org-{$organization->id}";
+
+        expect($this->serviceAccountService->accounts()[0]['namespace'])->toBe($expectedNamespace)
+            ->and($this->roleService->roles()[0]['namespace'])->toBe($expectedNamespace)
+            ->and($this->roleBindingService->bindings()[0]['namespace'])->toBe($expectedNamespace)
+            ->and($this->networkPolicyService->policies()[0]['namespace'])->toBe($expectedNamespace)
+            ->and($this->resourceQuotaService->quotas()[0]['namespace'])->toBe($expectedNamespace);
     });

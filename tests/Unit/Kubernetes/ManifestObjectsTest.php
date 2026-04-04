@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 use App\Http\Integrations\Kubernetes\Data\RuleData;
 use App\Http\Integrations\Kubernetes\Enums\KuvenLabel;
+use App\Http\Integrations\Kubernetes\Enums\RbacApiGroup;
+use App\Http\Integrations\Kubernetes\Enums\RbacResource;
+use App\Http\Integrations\Kubernetes\Enums\RbacVerb;
 use App\Http\Integrations\Kubernetes\Enums\SecretType;
 use App\Http\Integrations\Kubernetes\Manifests\AnnotationSet;
 use App\Http\Integrations\Kubernetes\Manifests\LabelSet;
 use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
 use App\Http\Integrations\Kubernetes\Manifests\NamespaceManifest;
+use App\Http\Integrations\Kubernetes\Manifests\NetworkPolicyManifest;
+use App\Http\Integrations\Kubernetes\Manifests\ResourceQuotaManifest;
 use App\Http\Integrations\Kubernetes\Manifests\RoleBindingManifest;
 use App\Http\Integrations\Kubernetes\Manifests\RoleManifest;
 use App\Http\Integrations\Kubernetes\Manifests\SecretManifest;
@@ -172,9 +177,9 @@ it('serializes a role manifest', function (): void {
         ),
         rules: [
             new RuleData(
-                apiGroups: ['cluster.x-k8s.io'],
-                resources: ['*'],
-                verbs: ['*'],
+                apiGroups: [RbacApiGroup::CapiCore],
+                resources: [RbacResource::All],
+                verbs: [RbacVerb::All],
             ),
         ],
     );
@@ -289,4 +294,95 @@ it('rejects a role binding manifest without a namespace', function (): void {
         roleName: 'kuven-operator',
         serviceAccountName: 'kuven-operator',
     ))->toThrow(InvalidArgumentException::class, 'RoleBinding manifests require a namespace.');
+});
+
+it('serializes a network policy manifest', function (): void {
+    $manifest = new NetworkPolicyManifest(
+        metadata: new ManifestMetadata(
+            name: 'default-deny',
+            namespace: 'kuven-org-123',
+        ),
+    );
+
+    $array = $manifest->toArray();
+
+    expect($array['apiVersion'])->toBe('networking.k8s.io/v1')
+        ->and($array['kind'])->toBe('NetworkPolicy')
+        ->and($array['metadata'])->toBe(['name' => 'default-deny', 'namespace' => 'kuven-org-123'])
+        ->and($array['spec']['podSelector'])->toEqual((object) [])
+        ->and($array['spec']['policyTypes'])->toBe(['Ingress', 'Egress']);
+});
+
+it('exposes network policy manifest routing metadata', function (): void {
+    $manifest = new NetworkPolicyManifest(
+        metadata: new ManifestMetadata(
+            name: 'default-deny',
+            namespace: 'kuven-org-123',
+        ),
+    );
+
+    expect($manifest->apiVersion()->value)->toBe('networking.k8s.io/v1')
+        ->and($manifest->kind()->value)->toBe('NetworkPolicy')
+        ->and($manifest->resource())->toBe('networkpolicies')
+        ->and($manifest->namespace())->toBe('kuven-org-123')
+        ->and($manifest->isClusterScoped())->toBeFalse();
+});
+
+it('rejects a network policy manifest without a namespace', function (): void {
+    expect(fn (): NetworkPolicyManifest => new NetworkPolicyManifest(
+        metadata: new ManifestMetadata(name: 'default-deny'),
+    ))->toThrow(InvalidArgumentException::class, 'NetworkPolicy manifests require a namespace.');
+});
+
+it('serializes a resource quota manifest', function (): void {
+    $manifest = new ResourceQuotaManifest(
+        metadata: new ManifestMetadata(
+            name: 'tenant-quota',
+            namespace: 'kuven-org-123',
+        ),
+        hard: [
+            'count/clusters.cluster.x-k8s.io' => '10',
+            'count/machinedeployments.cluster.x-k8s.io' => '50',
+            'count/secrets' => '100',
+        ],
+    );
+
+    expect($manifest->toArray())->toBe([
+        'apiVersion' => 'v1',
+        'kind' => 'ResourceQuota',
+        'metadata' => [
+            'name' => 'tenant-quota',
+            'namespace' => 'kuven-org-123',
+        ],
+        'spec' => [
+            'hard' => [
+                'count/clusters.cluster.x-k8s.io' => '10',
+                'count/machinedeployments.cluster.x-k8s.io' => '50',
+                'count/secrets' => '100',
+            ],
+        ],
+    ]);
+});
+
+it('exposes resource quota manifest routing metadata', function (): void {
+    $manifest = new ResourceQuotaManifest(
+        metadata: new ManifestMetadata(
+            name: 'tenant-quota',
+            namespace: 'kuven-org-123',
+        ),
+        hard: [],
+    );
+
+    expect($manifest->apiVersion()->value)->toBe('v1')
+        ->and($manifest->kind()->value)->toBe('ResourceQuota')
+        ->and($manifest->resource())->toBe('resourcequotas')
+        ->and($manifest->namespace())->toBe('kuven-org-123')
+        ->and($manifest->isClusterScoped())->toBeFalse();
+});
+
+it('rejects a resource quota manifest without a namespace', function (): void {
+    expect(fn (): ResourceQuotaManifest => new ResourceQuotaManifest(
+        metadata: new ManifestMetadata(name: 'tenant-quota'),
+        hard: [],
+    ))->toThrow(InvalidArgumentException::class, 'ResourceQuota manifests require a namespace.');
 });
