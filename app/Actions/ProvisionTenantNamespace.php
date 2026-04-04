@@ -4,61 +4,47 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Http\Integrations\Kubernetes\Data\RuleData;
-use App\Http\Integrations\Kubernetes\KubernetesConnector;
-use App\Http\Integrations\Kubernetes\Requests\CreateNamespace;
-use App\Http\Integrations\Kubernetes\Requests\CreateRole;
-use App\Http\Integrations\Kubernetes\Requests\CreateRoleBinding;
-use App\Http\Integrations\Kubernetes\Requests\CreateServiceAccount;
+use App\Contracts\NamespaceService;
+use App\Contracts\NetworkPolicyService;
+use App\Contracts\ResourceQuotaService;
+use App\Contracts\RoleBindingService;
+use App\Contracts\RoleService;
+use App\Contracts\ServiceAccountService;
+use App\Data\TenantQuotaData;
+use App\Http\Integrations\Kubernetes\Enums\KuvenResource;
 use App\Models\Organization;
 
-final class ProvisionTenantNamespace
+final readonly class ProvisionTenantNamespace
 {
-    private const SERVICE_ACCOUNT_NAME = 'kuven-operator';
+    public function __construct(
+        private NamespaceService $namespaceService,
+        private ServiceAccountService $serviceAccountService,
+        private RoleService $roleService,
+        private RoleBindingService $roleBindingService,
+        private NetworkPolicyService $networkPolicyService,
+        private ResourceQuotaService $resourceQuotaService,
+        private BuildCapiRbacRules $buildCapiRbacRules,
+    ) {}
 
-    private const ROLE_NAME = 'kuven-operator';
-
-    public function handle(KubernetesConnector $connector, Organization $organization): void
+    public function handle(Organization $organization): void
     {
         $namespace = "kuven-org-{$organization->id}";
 
-        $connector->send(new CreateNamespace($namespace));
+        $this->namespaceService->create($namespace);
 
-        $connector->send(new CreateServiceAccount(
-            name: self::SERVICE_ACCOUNT_NAME,
-            namespace: $namespace,
-        ));
+        $this->serviceAccountService->create(KuvenResource::Operator->value, $namespace);
 
-        $connector->send(new CreateRole(
-            name: self::ROLE_NAME,
-            namespace: $namespace,
-            rules: $this->capiRules(),
-        ));
+        $this->roleService->create(KuvenResource::Operator->value, $namespace, $this->buildCapiRbacRules->handle());
 
-        $connector->send(new CreateRoleBinding(
-            name: self::ROLE_NAME,
-            namespace: $namespace,
-            roleName: self::ROLE_NAME,
-            serviceAccountName: self::SERVICE_ACCOUNT_NAME,
-        ));
-    }
+        $this->roleBindingService->create(
+            KuvenResource::Operator->value,
+            $namespace,
+            KuvenResource::Operator->value,
+            KuvenResource::Operator->value,
+        );
 
-    /**
-     * @return list<RuleData>
-     */
-    private function capiRules(): array
-    {
-        return [
-            new RuleData(
-                apiGroups: ['cluster.x-k8s.io', 'infrastructure.cluster.x-k8s.io', 'bootstrap.cluster.x-k8s.io', 'controlplane.cluster.x-k8s.io'],
-                resources: ['*'],
-                verbs: ['*'],
-            ),
-            new RuleData(
-                apiGroups: [''],
-                resources: ['secrets', 'configmaps'],
-                verbs: ['*'],
-            ),
-        ];
+        $this->networkPolicyService->applyDefaultDeny(KuvenResource::DefaultDenyPolicy->value, $namespace);
+
+        $this->resourceQuotaService->apply(KuvenResource::TenantQuota->value, $namespace, new TenantQuotaData);
     }
 }

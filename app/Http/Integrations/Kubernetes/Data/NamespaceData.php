@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Integrations\Kubernetes\Data;
 
+use App\Http\Integrations\Kubernetes\Enums\NamespacePhase;
+
 final readonly class NamespaceData
 {
     public function __construct(
         public ResourceMetadata $metadata,
-        public string $phase,
+        public NamespacePhase $phase,
     ) {}
 
     /**
@@ -18,7 +20,7 @@ final readonly class NamespaceData
     {
         return new self(
             metadata: ResourceMetadata::fromKubernetesResponse($response['metadata']),
-            phase: $response['status']['phase'] ?? 'Active',
+            phase: NamespacePhase::from($response['status']['phase'] ?? 'Active'),
         );
     }
 }

@@ -8,5 +8,6 @@ enum ApiVersion: string
 {
     case V1 = 'v1';
     case AppsV1 = 'apps/v1';
+    case NetworkingV1 = 'networking.k8s.io/v1';
     case RbacAuthorizationV1 = 'rbac.authorization.k8s.io/v1';
 }
