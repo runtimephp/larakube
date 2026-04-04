@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\PlatformRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -33,7 +34,15 @@ final class UserFactory extends Factory
             'password' => self::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'current_organization_id' => null,
+            'platform_role' => PlatformRole::Member,
         ];
+    }
+
+    public function admin(): self
+    {
+        return $this->state([
+            'platform_role' => PlatformRole::Admin,
+        ]);
     }
 
     /**
