@@ -60,3 +60,49 @@ test('a guest is redirected to login when accessing management clusters', functi
     $this->get(route('admin.management-clusters.index'))
         ->assertRedirect(route('login'));
 });
+
+test('a platform administrator can view a single management cluster', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    /** @var ManagementCluster $cluster */
+    $cluster = ManagementCluster::factory()->ready()->create([
+        'name' => 'mgmt-production',
+        'provider' => 'hetzner',
+        'region' => 'eu-central',
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.management-clusters.show', $cluster))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('admin/management-clusters/show')
+            ->where('cluster.id', $cluster->id)
+            ->where('cluster.name', 'mgmt-production')
+            ->where('cluster.provider', 'hetzner')
+            ->where('cluster.region', 'eu-central')
+            ->where('cluster.status', ManagementClusterStatus::Ready->value)
+            ->where('cluster.kubernetes_version', 'v1.32.3')
+            ->has('cluster.created_at')
+        );
+});
+
+test('a non-platform administrator is forbidden from viewing a management cluster', function () {
+    /** @var User $user */
+    $user = User::factory()->create(['platform_role' => PlatformRole::Member]);
+
+    /** @var ManagementCluster $cluster */
+    $cluster = ManagementCluster::factory()->ready()->create();
+
+    $this->actingAs($user)
+        ->get(route('admin.management-clusters.show', $cluster))
+        ->assertForbidden();
+});
+
+test('a guest is redirected to login when viewing a management cluster', function () {
+    /** @var ManagementCluster $cluster */
+    $cluster = ManagementCluster::factory()->ready()->create();
+
+    $this->get(route('admin.management-clusters.show', $cluster))
+        ->assertRedirect(route('login'));
+});

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { SiDigitalocean, SiDocker, SiHetzner, SiKubernetes } from '@icons-pack/react-simple-icons';
 import { Cloud, Layers, MapPin, MoreHorizontal, Settings, Terminal, Trash2 } from 'lucide-react';
 
@@ -86,9 +86,10 @@ export default function Index({ clusters }: ManagementClustersPageProps) {
                 ) : (
                     <div className="flex flex-col gap-3">
                         {clusters.map((cluster) => (
-                            <div
+                            <Link
                                 key={cluster.id}
-                                className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/30"
+                                href={`/admin/management-clusters/${cluster.id}`}
+                                className="block rounded-lg border bg-card p-4 transition-colors hover:bg-muted/30"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -143,7 +144,7 @@ export default function Index({ clusters }: ManagementClustersPageProps) {
                                         0 tenant clusters
                                     </span>
                                 </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 )}
