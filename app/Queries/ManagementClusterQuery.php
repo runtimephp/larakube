@@ -39,9 +39,4 @@ final class ManagementClusterQuery
     {
         return $this->builder->get();
     }
-
-    public function first(): ?ManagementCluster
-    {
-        return $this->builder->first();
-    }
 }

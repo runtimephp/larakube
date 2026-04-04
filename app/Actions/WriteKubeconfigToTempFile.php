@@ -9,12 +9,12 @@ use App\Contracts\KubeconfigReaderService;
 final readonly class WriteKubeconfigToTempFile
 {
     public function __construct(
-        private KubeconfigReaderService $reader,
+        private KubeconfigReaderService $kubeconfigReaderService,
     ) {}
 
     public function handle(string $clusterName): string
     {
-        $kubeconfig = $this->reader->read($clusterName);
+        $kubeconfig = $this->kubeconfigReaderService->read($clusterName);
         $path = sys_get_temp_dir()."/{$clusterName}-kubeconfig";
 
         file_put_contents($path, $kubeconfig);

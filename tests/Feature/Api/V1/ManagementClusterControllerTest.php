@@ -2,8 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Contracts\BootstrapClusterService;
 use App\Models\ManagementCluster;
 use App\Models\User;
+use App\Services\InMemory\InMemoryBootstrapClusterService;
+
+beforeEach(function (): void {
+    $this->bootstrapService = new InMemoryBootstrapClusterService;
+    $this->app->instance(BootstrapClusterService::class, $this->bootstrapService);
+});
 
 test('store creates a management cluster',
     /**
@@ -137,7 +144,7 @@ test('show returns a management cluster by id',
             ->assertJsonPath('data.name', 'kuven-mgmt-local');
     });
 
-test('destroy deletes a management cluster',
+test('destroy deletes a management cluster and its bootstrap cluster',
     /**
      * @throws Throwable
      */
@@ -146,7 +153,11 @@ test('destroy deletes a management cluster',
         $user = User::factory()->create();
 
         /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::factory()->create();
+        $cluster = ManagementCluster::factory()->create([
+            'name' => 'kuven-mgmt-local',
+        ]);
+
+        $this->bootstrapService->addCluster($cluster->name);
 
         $response = $this->actingAs($user, 'sanctum')
             ->deleteJson(route('api.v1.management-clusters.destroy', $cluster));
@@ -154,6 +165,7 @@ test('destroy deletes a management cluster',
         $response->assertNoContent();
 
         $this->assertDatabaseMissing('management_clusters', ['id' => $cluster->id]);
+        expect($this->bootstrapService->exists('kuven-mgmt-local'))->toBeFalse();
     });
 
 test('kubeconfig update stores encrypted kubeconfig',

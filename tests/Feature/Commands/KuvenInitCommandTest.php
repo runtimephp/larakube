@@ -2,32 +2,49 @@
 
 declare(strict_types=1);
 
+use App\Actions\LoginUser;
+use App\Client\InMemoryManagementClusterClient;
+use App\Console\Services\SessionManager;
 use App\Contracts\BootstrapClusterService;
 use App\Contracts\CapiInstallerService;
 use App\Contracts\KubeconfigReaderService;
+use App\Contracts\ManagementClusterClient;
 use App\Contracts\PrerequisiteChecker;
-use App\Enums\ManagementClusterStatus;
-use App\Models\ManagementCluster;
+use App\Data\CreateManagementClusterData;
+use App\Models\User;
 use App\Services\InMemory\InMemoryBootstrapClusterService;
 use App\Services\InMemory\InMemoryCapiInstallerService;
 use App\Services\InMemory\InMemoryKubeconfigReaderService;
 use App\Services\InMemory\InMemoryPrerequisiteChecker;
 
 beforeEach(function (): void {
+    $this->app->singleton(SessionManager::class);
+
     $this->prereqs = new InMemoryPrerequisiteChecker;
     $this->prereqs->setAvailable(['kind', 'clusterctl', 'kubectl', 'docker']);
 
     $this->bootstrap = new InMemoryBootstrapClusterService;
-
     $this->capi = new InMemoryCapiInstallerService;
 
     $this->kubeconfig = new InMemoryKubeconfigReaderService;
     $this->kubeconfig->setKubeconfig('kuven-mgmt-local', 'apiVersion: v1\nclusters: []');
 
+    $this->clusterClient = new InMemoryManagementClusterClient;
+
     $this->app->instance(PrerequisiteChecker::class, $this->prereqs);
     $this->app->instance(BootstrapClusterService::class, $this->bootstrap);
     $this->app->instance(CapiInstallerService::class, $this->capi);
     $this->app->instance(KubeconfigReaderService::class, $this->kubeconfig);
+    $this->app->instance(ManagementClusterClient::class, $this->clusterClient);
+
+    /** @var User $user */
+    $user = User::factory()->create([
+        'email' => 'operator@kuven.io',
+        'password' => 'password',
+    ]);
+
+    $userData = app(LoginUser::class)->handle('operator@kuven.io', 'password');
+    app(SessionManager::class)->setUser($userData);
 });
 
 test('bootstraps a local management cluster',
@@ -36,15 +53,13 @@ test('bootstraps a local management cluster',
      */
     function (): void {
         $this->artisan('kuven:init', ['--provider' => 'docker'])
+            ->expectsOutputToContain('is ready')
             ->assertSuccessful();
 
-        /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::query()->sole();
+        $cluster = $this->clusterClient->findByProviderAndRegion('docker', 'local');
 
-        expect($cluster->provider)->toBe('docker')
-            ->and($cluster->region)->toBe('local')
-            ->and($cluster->status)->toBe(ManagementClusterStatus::Ready)
-            ->and($cluster->kubeconfig)->not->toBeNull();
+        expect($cluster)->not->toBeNull()
+            ->and($cluster->status)->toBe('ready');
     });
 
 test('aborts when management cluster already exists',
@@ -52,10 +67,11 @@ test('aborts when management cluster already exists',
      * @throws Throwable
      */
     function (): void {
-        ManagementCluster::factory()->ready()->create([
-            'provider' => 'docker',
-            'region' => 'local',
-        ]);
+        $this->clusterClient->create(new CreateManagementClusterData(
+            name: 'kuven-mgmt-local',
+            provider: 'docker',
+            region: 'local',
+        ));
 
         $this->artisan('kuven:init', ['--provider' => 'docker'])
             ->expectsOutputToContain('already exists')
@@ -67,23 +83,17 @@ test('re-bootstraps with force flag',
      * @throws Throwable
      */
     function (): void {
-        $existing = ManagementCluster::factory()->ready()->create([
-            'name' => 'kuven-mgmt-local',
-            'provider' => 'docker',
-            'region' => 'local',
-        ]);
+        $existing = $this->clusterClient->create(new CreateManagementClusterData(
+            name: 'kuven-mgmt-local',
+            provider: 'docker',
+            region: 'local',
+        ));
 
         $this->bootstrap->addCluster($existing->name);
 
         $this->artisan('kuven:init', ['--provider' => 'docker', '--force' => true])
+            ->expectsOutputToContain('is ready')
             ->assertSuccessful();
-
-        expect(ManagementCluster::query()->count())->toBe(1);
-
-        /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::query()->sole();
-
-        expect($cluster->status)->toBe(ManagementClusterStatus::Ready);
     });
 
 test('aborts when prerequisites are missing',
@@ -96,8 +106,6 @@ test('aborts when prerequisites are missing',
         $this->artisan('kuven:init', ['--provider' => 'docker'])
             ->expectsOutputToContain('clusterctl')
             ->assertFailed();
-
-        expect(ManagementCluster::query()->count())->toBe(0);
     });
 
 test('uses custom region when provided',
@@ -110,10 +118,10 @@ test('uses custom region when provided',
         $this->artisan('kuven:init', ['--provider' => 'docker', '--region' => 'nuremberg'])
             ->assertSuccessful();
 
-        /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::query()->sole();
+        $cluster = $this->clusterClient->findByProviderAndRegion('docker', 'nuremberg');
 
-        expect($cluster->region)->toBe('nuremberg');
+        expect($cluster)->not->toBeNull()
+            ->and($cluster->region)->toBe('nuremberg');
     });
 
 test('aborts when provider option is missing',
@@ -123,5 +131,17 @@ test('aborts when provider option is missing',
     function (): void {
         $this->artisan('kuven:init')
             ->expectsOutputToContain('--provider option is required')
+            ->assertFailed();
+    });
+
+test('requires authentication',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        app(SessionManager::class)->clear();
+
+        $this->artisan('kuven:init', ['--provider' => 'docker'])
+            ->expectsOutputToContain('not logged in')
             ->assertFailed();
     });
