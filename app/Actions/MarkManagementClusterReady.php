@@ -11,8 +11,6 @@ final class MarkManagementClusterReady
 {
     public function handle(ManagementCluster $cluster): void
     {
-        $cluster->query()
-            ->whereKey($cluster->getKey())
-            ->update(['status' => ManagementClusterStatus::Ready]);
+        $cluster->update(['status' => ManagementClusterStatus::Ready]);
     }
 }
