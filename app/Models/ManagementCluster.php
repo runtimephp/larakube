@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read string $provider
  * @property-read string|null $kubeconfig
  * @property-read ManagementClusterStatus $status
+ * @property-read string $kubernetes_version
  */
 final class ManagementCluster extends Model
 {

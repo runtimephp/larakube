@@ -21,6 +21,7 @@ final class ManagementClusterFactory extends Factory
             'region' => $this->faker->unique()->lexify('region-????'),
             'provider' => $this->faker->randomElement(['docker', 'hetzner']),
             'status' => ManagementClusterStatus::Bootstrapping,
+            'kubernetes_version' => 'v1.32.3',
         ];
     }
 
@@ -28,6 +29,7 @@ final class ManagementClusterFactory extends Factory
     {
         return $this->state([
             'status' => ManagementClusterStatus::Ready,
+            'kubernetes_version' => 'v1.32.3',
             'kubeconfig' => 'apiVersion: v1\nclusters:\n- cluster:\n    server: https://127.0.0.1:6443',
         ]);
     }

@@ -44,6 +44,7 @@ test('provisions a management cluster end to end',
         $result = $this->action->handle(new ProvisionManagementClusterData(
             provider: 'docker',
             region: 'local',
+            kubernetesVersion: 'v1.32.3',
             force: false,
         ));
 
@@ -62,12 +63,14 @@ test('throws when cluster already exists and force is false',
         $this->action->handle(new ProvisionManagementClusterData(
             provider: 'docker',
             region: 'local',
+            kubernetesVersion: 'v1.32.3',
             force: false,
         ));
 
         expect(fn () => $this->action->handle(new ProvisionManagementClusterData(
             provider: 'docker',
             region: 'local',
+            kubernetesVersion: 'v1.32.3',
             force: false,
         )))->toThrow(RuntimeException::class, 'already exists');
     });
@@ -80,6 +83,7 @@ test('re-provisions with force flag',
         $first = $this->action->handle(new ProvisionManagementClusterData(
             provider: 'docker',
             region: 'local',
+            kubernetesVersion: 'v1.32.3',
             force: false,
         ));
 
@@ -88,6 +92,7 @@ test('re-provisions with force flag',
         $second = $this->action->handle(new ProvisionManagementClusterData(
             provider: 'docker',
             region: 'local',
+            kubernetesVersion: 'v1.32.3',
             force: true,
         ));
 
@@ -105,6 +110,7 @@ test('throws when prerequisites are missing',
         expect(fn () => $this->action->handle(new ProvisionManagementClusterData(
             provider: 'docker',
             region: 'local',
+            kubernetesVersion: 'v1.32.3',
             force: false,
         )))->toThrow(RuntimeException::class, 'clusterctl');
     });

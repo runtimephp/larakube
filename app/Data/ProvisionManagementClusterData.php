@@ -9,6 +9,7 @@ final readonly class ProvisionManagementClusterData
     public function __construct(
         public string $provider,
         public string $region,
+        public string $kubernetesVersion,
         public bool $force = false,
     ) {}
 }

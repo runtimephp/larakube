@@ -37,6 +37,7 @@ test('creates from array',
             'provider' => 'hetzner',
             'region' => 'nuremberg',
             'status' => 'bootstrapping',
+            'kubernetes_version' => 'v1.32.3',
         ]);
 
         expect($data->id)->toBe('uuid-123')
@@ -57,6 +58,7 @@ test('converts to array',
             provider: 'docker',
             region: 'local',
             status: 'ready',
+            kubernetesVersion: 'v1.32.3',
         );
 
         expect($data->toArray())->toBe([
@@ -65,5 +67,6 @@ test('converts to array',
             'provider' => 'docker',
             'region' => 'local',
             'status' => 'ready',
+            'kubernetes_version' => 'v1.32.3',
         ]);
     });

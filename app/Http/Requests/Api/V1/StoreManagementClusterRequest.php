@@ -23,6 +23,7 @@ final class StoreManagementClusterRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'provider' => ['required', 'string', 'max:255'],
             'region' => ['required', 'string', 'max:255'],
+            'kubernetes_version' => ['required', 'string', 'max:255'],
         ];
     }
 }

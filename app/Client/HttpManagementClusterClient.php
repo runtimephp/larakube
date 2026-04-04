@@ -20,6 +20,7 @@ final readonly class HttpManagementClusterClient implements ManagementClusterCli
             'name' => $data->name,
             'provider' => $data->provider,
             'region' => $data->region,
+            'kubernetes_version' => $data->kubernetesVersion,
         ]);
 
         return ManagementClusterData::fromArray($response->json('data'));

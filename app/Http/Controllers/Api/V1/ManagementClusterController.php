@@ -45,6 +45,7 @@ final class ManagementClusterController
                 name: $request->string('name')->toString(),
                 provider: $request->string('provider')->toString(),
                 region: $request->string('region')->toString(),
+                kubernetesVersion: $request->string('kubernetes_version')->toString(),
             ),
         );
 
