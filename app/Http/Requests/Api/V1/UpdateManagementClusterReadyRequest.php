@@ -6,7 +6,7 @@ namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class StoreKubeconfigRequest extends FormRequest
+final class UpdateManagementClusterReadyRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -18,8 +18,6 @@ final class StoreKubeconfigRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'kubeconfig' => ['required', 'string'],
-        ];
+        return [];
     }
 }

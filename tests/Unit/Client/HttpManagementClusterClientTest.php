@@ -46,19 +46,21 @@ test('create returns management cluster data',
             ->and($result->name)->toBe('kuven-mgmt-local');
     });
 
-test('find by provider and region returns cluster data',
+test('find by provider and region returns first matching cluster',
     /**
      * @throws Throwable
      */
     function (): void {
         Http::fake([
-            '*/api/v1/management-clusters/lookup*' => Http::response([
+            '*/api/v1/management-clusters?*' => Http::response([
                 'data' => [
-                    'id' => 'uuid-123',
-                    'name' => 'kuven-mgmt-local',
-                    'provider' => 'docker',
-                    'region' => 'local',
-                    'status' => 'ready',
+                    [
+                        'id' => 'uuid-123',
+                        'name' => 'kuven-mgmt-local',
+                        'provider' => 'docker',
+                        'region' => 'local',
+                        'status' => 'ready',
+                    ],
                 ],
             ]),
         ]);
@@ -70,36 +72,20 @@ test('find by provider and region returns cluster data',
             ->and($result->name)->toBe('kuven-mgmt-local');
     });
 
-test('find by provider and region returns null on 404',
+test('find by provider and region returns null when empty',
     /**
      * @throws Throwable
      */
     function (): void {
         Http::fake([
-            '*/api/v1/management-clusters/lookup*' => Http::response([
-                'message' => 'Not found',
-                'code' => 'not_found',
-            ], 404),
+            '*/api/v1/management-clusters?*' => Http::response([
+                'data' => [],
+            ]),
         ]);
 
         $result = $this->client->findByProviderAndRegion('docker', 'nonexistent');
 
         expect($result)->toBeNull();
-    });
-
-test('find by provider and region rethrows non-404 errors',
-    /**
-     * @throws Throwable
-     */
-    function (): void {
-        Http::fake([
-            '*/api/v1/management-clusters/lookup*' => Http::response([
-                'message' => 'Server error',
-            ], 500),
-        ]);
-
-        expect(fn () => $this->client->findByProviderAndRegion('docker', 'local'))
-            ->toThrow(App\Exceptions\LarakubeApiException::class);
     });
 
 test('store kubeconfig sends patch request',

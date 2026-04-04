@@ -6,7 +6,7 @@ namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class LookupManagementClusterRequest extends FormRequest
+final class StoreManagementClusterRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -19,8 +19,9 @@ final class LookupManagementClusterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'provider' => ['required', 'string'],
-            'region' => ['required', 'string'],
+            'name' => ['required', 'string', 'max:255'],
+            'provider' => ['required', 'string', 'max:255'],
+            'region' => ['required', 'string', 'max:255'],
         ];
     }
 }

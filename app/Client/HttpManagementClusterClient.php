@@ -27,18 +27,16 @@ final readonly class HttpManagementClusterClient implements ManagementClusterCli
 
     public function findByProviderAndRegion(string $provider, string $region): ?ManagementClusterData
     {
-        try {
-            $query = http_build_query(['provider' => $provider, 'region' => $region]);
-            $response = $this->client->get("/api/v1/management-clusters/lookup?{$query}");
+        $query = http_build_query(['provider' => $provider, 'region' => $region]);
+        $response = $this->client->get("/api/v1/management-clusters?{$query}");
 
-            return ManagementClusterData::fromArray($response->json('data'));
-        } catch (\App\Exceptions\LarakubeApiException $e) {
-            if ($e->getCode() === 404) {
-                return null;
-            }
+        $data = $response->json('data');
 
-            throw $e;
+        if ($data === []) {
+            return null;
         }
+
+        return ManagementClusterData::fromArray($data[0]);
     }
 
     public function storeKubeconfig(string $id, string $kubeconfig): void

@@ -65,7 +65,7 @@ test('store requires authentication',
         $response->assertUnauthorized();
     });
 
-test('show finds management cluster by provider and region',
+test('index lists management clusters filtered by provider and region',
     /**
      * @throws Throwable
      */
@@ -79,18 +79,24 @@ test('show finds management cluster by provider and region',
             'region' => 'local',
         ]);
 
+        ManagementCluster::factory()->create([
+            'provider' => 'hetzner',
+            'region' => 'nuremberg',
+        ]);
+
         $response = $this->actingAs($user, 'sanctum')
-            ->getJson(route('api.v1.management-clusters.lookup', [
+            ->getJson(route('api.v1.management-clusters.index', [
                 'provider' => 'docker',
                 'region' => 'local',
             ]));
 
         $response->assertOk()
-            ->assertJsonPath('data.name', 'kuven-mgmt-local')
-            ->assertJsonPath('data.status', 'ready');
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'kuven-mgmt-local')
+            ->assertJsonPath('data.0.status', 'ready');
     });
 
-test('show returns 404 when cluster not found',
+test('index returns empty array when no clusters match',
     /**
      * @throws Throwable
      */
@@ -99,12 +105,36 @@ test('show returns 404 when cluster not found',
         $user = User::factory()->create();
 
         $response = $this->actingAs($user, 'sanctum')
-            ->getJson(route('api.v1.management-clusters.lookup', [
+            ->getJson(route('api.v1.management-clusters.index', [
                 'provider' => 'docker',
                 'region' => 'nonexistent',
             ]));
 
-        $response->assertNotFound();
+        $response->assertOk()
+            ->assertJsonCount(0, 'data');
+    });
+
+test('show returns a management cluster by id',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        /** @var ManagementCluster $cluster */
+        $cluster = ManagementCluster::factory()->ready()->create([
+            'name' => 'kuven-mgmt-local',
+            'provider' => 'docker',
+            'region' => 'local',
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson(route('api.v1.management-clusters.show', $cluster));
+
+        $response->assertOk()
+            ->assertJsonPath('data.id', $cluster->id)
+            ->assertJsonPath('data.name', 'kuven-mgmt-local');
     });
 
 test('destroy deletes a management cluster',
