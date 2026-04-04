@@ -14,6 +14,7 @@ final readonly class ManagementClusterData
         public string $provider,
         public string $region,
         public string $status,
+        public string $kubernetesVersion,
     ) {}
 
     public static function fromModel(ManagementCluster $cluster): self
@@ -24,11 +25,12 @@ final readonly class ManagementClusterData
             provider: $cluster->provider,
             region: $cluster->region,
             status: $cluster->status->value,
+            kubernetesVersion: $cluster->kubernetes_version,
         );
     }
 
     /**
-     * @param  array{id: string, name: string, provider: string, region: string, status: string}  $data
+     * @param  array{id: string, name: string, provider: string, region: string, status: string, kubernetes_version: string}  $data
      */
     public static function fromArray(array $data): self
     {
@@ -38,11 +40,12 @@ final readonly class ManagementClusterData
             provider: $data['provider'],
             region: $data['region'],
             status: $data['status'],
+            kubernetesVersion: $data['kubernetes_version'],
         );
     }
 
     /**
-     * @return array{id: string, name: string, provider: string, region: string, status: string}
+     * @return array{id: string, name: string, provider: string, region: string, status: string, kubernetes_version: string}
      */
     public function toArray(): array
     {
@@ -52,6 +55,7 @@ final readonly class ManagementClusterData
             'provider' => $this->provider,
             'region' => $this->region,
             'status' => $this->status,
+            'kubernetes_version' => $this->kubernetesVersion,
         ];
     }
 }

@@ -10,5 +10,6 @@ final readonly class CreateManagementClusterData
         public string $name,
         public string $provider,
         public string $region,
+        public string $kubernetesVersion,
     ) {}
 }

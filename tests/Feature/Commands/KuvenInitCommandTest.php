@@ -71,6 +71,7 @@ test('aborts when management cluster already exists',
             name: 'kuven-mgmt-local',
             provider: 'docker',
             region: 'local',
+            kubernetesVersion: 'v1.32.3',
         ));
 
         $this->artisan('kuven:init', ['--provider' => 'docker'])
@@ -87,6 +88,7 @@ test('re-bootstraps with force flag',
             name: 'kuven-mgmt-local',
             provider: 'docker',
             region: 'local',
+            kubernetesVersion: 'v1.32.3',
         ));
 
         $this->bootstrap->addCluster($existing->name);

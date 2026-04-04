@@ -16,6 +16,7 @@ final class CreateManagementCluster
             'name' => $data->name,
             'provider' => $data->provider,
             'region' => $data->region,
+            'kubernetes_version' => $data->kubernetesVersion,
             'status' => ManagementClusterStatus::Bootstrapping,
         ]);
     }

@@ -24,6 +24,8 @@ final class ManagementClusterResource extends JsonResource
             'provider' => $this->provider,
             'region' => $this->region,
             'status' => $this->status->value,
+            'kubernetes_version' => $this->kubernetes_version,
+            'created_at' => $this->created_at->toIso8601String(),
         ];
     }
 }

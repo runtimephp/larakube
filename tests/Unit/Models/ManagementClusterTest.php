@@ -88,5 +88,6 @@ test('to array has all fields in correct order',
                 'provider',
                 'kubeconfig',
                 'status',
+                'kubernetes_version',
             ]);
     });

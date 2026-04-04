@@ -15,6 +15,7 @@ final class KuvenInitCommand extends AuthenticatedCommand
     protected $signature = 'kuven:init
         {--provider= : Infrastructure provider (docker, hetzner)}
         {--region=local : Region for the management cluster}
+        {--kubernetes-version=v1.32.3 : Kubernetes version for the management cluster}
         {--force : Re-bootstrap even if a management cluster already exists}';
 
     /** @var string */
@@ -34,9 +35,13 @@ final class KuvenInitCommand extends AuthenticatedCommand
         $region = $this->option('region');
 
         try {
+            /** @var string $kubernetesVersion */
+            $kubernetesVersion = $this->option('kubernetes-version');
+
             $cluster = $provisionManagementCluster->handle(new ProvisionManagementClusterData(
                 provider: $provider,
                 region: $region,
+                kubernetesVersion: $kubernetesVersion,
                 force: (bool) $this->option('force'),
             ));
 
