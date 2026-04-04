@@ -95,7 +95,7 @@ function UserAvatar() {
 }
 
 export function AppTopBar({ tabs }: { tabs?: TabItem[] }) {
-    const { currentOrganization, organizations } = usePage<SharedData>().props;
+    const { auth, currentOrganization, organizations } = usePage<SharedData>().props;
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
 
     return (
@@ -119,6 +119,21 @@ export function AppTopBar({ tabs }: { tabs?: TabItem[] }) {
                     </div>
 
                     <div className="flex items-center gap-5">
+                        {/* Admin link */}
+                        {auth.user.platform_role === 'admin' && (
+                            <Link
+                                href="/admin/management-clusters"
+                                className={cn(
+                                    'text-xs font-medium uppercase tracking-wider transition-colors duration-200',
+                                    currentPath.startsWith('/admin')
+                                        ? 'text-primary font-bold'
+                                        : 'text-muted-foreground/70 hover:text-primary',
+                                )}
+                            >
+                                Admin
+                            </Link>
+                        )}
+
                         {/* Search */}
                         <div className="relative w-64">
                             <Search className="text-muted-foreground/40 absolute left-3 top-1/2 size-3.5 -translate-y-1/2" />
