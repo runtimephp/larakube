@@ -12,10 +12,18 @@ use App\Client\HttpServerClient;
 use App\Client\LarakubeClient;
 use App\Console\Services\SessionManager;
 use App\Contracts\AuthClient;
+use App\Contracts\BootstrapClusterService;
+use App\Contracts\CapiInstallerService;
 use App\Contracts\CloudProviderClient;
 use App\Contracts\InfrastructureClient;
+use App\Contracts\KubeconfigReaderService;
 use App\Contracts\OrganizationClient;
+use App\Contracts\PrerequisiteChecker;
 use App\Contracts\ServerClient;
+use App\Services\ClusterctlCapiInstallerService;
+use App\Services\KindBootstrapClusterService;
+use App\Services\KindKubeconfigReaderService;
+use App\Services\ProcessPrerequisiteChecker;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
@@ -54,6 +62,11 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->bind(CloudProviderClient::class, HttpCloudProviderClient::class);
         $this->app->bind(InfrastructureClient::class, HttpInfrastructureClient::class);
         $this->app->bind(ServerClient::class, HttpServerClient::class);
+
+        $this->app->bind(PrerequisiteChecker::class, ProcessPrerequisiteChecker::class);
+        $this->app->bind(BootstrapClusterService::class, KindBootstrapClusterService::class);
+        $this->app->bind(CapiInstallerService::class, ClusterctlCapiInstallerService::class);
+        $this->app->bind(KubeconfigReaderService::class, KindKubeconfigReaderService::class);
     }
 
     /**
