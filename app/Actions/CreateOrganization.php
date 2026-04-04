@@ -34,7 +34,7 @@ final readonly class CreateOrganization
                 $this->switchOrganization->handle($owner, $organization);
             }
 
-            ProvisionTenantNamespaceJob::dispatch($organization);
+            DB::afterCommit(fn () => ProvisionTenantNamespaceJob::dispatch($organization));
 
             return $organization;
         });

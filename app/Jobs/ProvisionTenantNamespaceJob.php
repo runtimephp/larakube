@@ -15,6 +15,10 @@ final class ProvisionTenantNamespaceJob implements ShouldQueue
 {
     use Queueable;
 
+    public int $tries = 3;
+
+    public int $backoff = 30;
+
     public function __construct(
         public Organization $organization,
     ) {
@@ -23,12 +27,15 @@ final class ProvisionTenantNamespaceJob implements ShouldQueue
 
     public function handle(ProvisionTenantNamespace $provisionTenantNamespace): void
     {
-        try {
-            $provisionTenantNamespace->handle($this->organization);
+        $provisionTenantNamespace->handle($this->organization);
 
-            Log::info("[{$this->organization->name}] Tenant namespace provisioned successfully.");
-        } catch (Throwable $e) {
-            Log::error("[{$this->organization->name}] Tenant namespace provisioning failed: {$e->getMessage()}");
-        }
+        Log::info("[{$this->organization->name}] Tenant namespace provisioned successfully.");
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error("[{$this->organization->name}] Tenant namespace provisioning failed: {$exception->getMessage()}", [
+            'exception' => $exception,
+        ]);
     }
 }

@@ -51,7 +51,29 @@ test('provisions tenant namespace for organization',
             ->and($this->namespaceService->namespaces()[0])->toBe("kuven-org-{$organization->id}");
     });
 
-test('logs error and does not throw on failure',
+test('throws on failure so laravel can retry',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
+
+        $this->app->instance(NamespaceService::class, new class implements NamespaceService
+        {
+            public function create(string $name): NamespaceData
+            {
+                throw new RuntimeException('Management cluster unreachable');
+            }
+        });
+
+        $job = new ProvisionTenantNamespaceJob($organization);
+
+        expect(fn () => $job->handle(app(ProvisionTenantNamespace::class)))
+            ->toThrow(RuntimeException::class, 'Management cluster unreachable');
+    });
+
+test('logs error on final failure',
     /**
      * @throws Throwable
      */
@@ -63,18 +85,22 @@ test('logs error and does not throw on failure',
             ->once()
             ->withArgs(fn (string $message): bool => str_contains($message, 'failed'));
 
-        $this->app->instance(NamespaceService::class, new class implements NamespaceService
-        {
-            public function create(string $name): NamespaceData
-            {
-                throw new RuntimeException('Management cluster unreachable');
-            }
-        });
+        $job = new ProvisionTenantNamespaceJob($organization);
+        $job->failed(new RuntimeException('Management cluster unreachable'));
+    });
+
+test('retries up to 3 times with 30 second backoff',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var Organization $organization */
+        $organization = Organization::factory()->create();
 
         $job = new ProvisionTenantNamespaceJob($organization);
-        $job->handle(app(ProvisionTenantNamespace::class));
 
-        expect(true)->toBeTrue();
+        expect($job->tries)->toBe(3)
+            ->and($job->backoff)->toBe(30);
     });
 
 test('job is dispatched to kubernetes queue',
