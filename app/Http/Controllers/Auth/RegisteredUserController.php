@@ -35,17 +35,17 @@ final class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        if (! Feature::active(RegistrationFeature::class)) {
-            throw ValidationException::withMessages([
-                'email' => 'Registration is not available yet. Join the waitlist at kuven.io for early access.',
-            ]);
-        }
-
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+        if (! Feature::active(RegistrationFeature::class, $request->string('email')->toString())) {
+            throw ValidationException::withMessages([
+                'email' => 'Registration is not available yet. Join the waitlist at kuven.io for early access.',
+            ]);
+        }
 
         $user = User::create([
             'name' => $request->name,
