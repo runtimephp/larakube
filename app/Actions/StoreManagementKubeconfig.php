@@ -11,6 +11,6 @@ final class StoreManagementKubeconfig
 {
     public function handle(ManagementCluster $cluster, #[SensitiveParameter] string $kubeconfig): void
     {
-        $cluster->forceFill(['kubeconfig' => $kubeconfig])->save();
+        $cluster->update(['kubeconfig' => $kubeconfig]);
     }
 }
