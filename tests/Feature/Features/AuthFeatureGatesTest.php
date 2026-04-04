@@ -141,4 +141,3 @@ test('registration feature resolves true for allowed email in production', funct
     expect($feature->resolve('allowed@example.com'))->toBeTrue();
     expect($feature->resolve('other@example.com'))->toBeFalse();
 });
-
