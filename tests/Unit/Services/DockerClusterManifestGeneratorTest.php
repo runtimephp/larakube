@@ -3,6 +3,15 @@
 declare(strict_types=1);
 
 use App\Data\CreateClusterManifestData;
+use App\Http\Integrations\Kubernetes\Contracts\ManifestContract;
+use App\Http\Integrations\Kubernetes\Enums\ApiVersion;
+use App\Http\Integrations\Kubernetes\Enums\Kind;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\ClusterManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\Docker\DockerClusterManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\Docker\DockerMachineTemplateManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\KubeadmConfigTemplateManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\KubeadmControlPlaneManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\MachineDeploymentManifest;
 use App\Services\DockerClusterManifestGenerator;
 
 beforeEach(function (): void {
@@ -23,15 +32,33 @@ test('generates all required capi manifests for docker provider',
             workerCount: 2,
         ));
 
-        $kinds = array_column($manifests, 'kind');
-
         expect($manifests)->toHaveCount(7)
-            ->and($kinds)->toContain('Cluster')
-            ->and($kinds)->toContain('DockerCluster')
-            ->and($kinds)->toContain('KubeadmControlPlane')
-            ->and($kinds)->toContain('DockerMachineTemplate')
-            ->and($kinds)->toContain('MachineDeployment')
-            ->and($kinds)->toContain('KubeadmConfigTemplate');
+            ->and($manifests[0])->toBeInstanceOf(ClusterManifest::class)
+            ->and($manifests[1])->toBeInstanceOf(DockerClusterManifest::class)
+            ->and($manifests[2])->toBeInstanceOf(KubeadmControlPlaneManifest::class)
+            ->and($manifests[3])->toBeInstanceOf(DockerMachineTemplateManifest::class)
+            ->and($manifests[4])->toBeInstanceOf(MachineDeploymentManifest::class)
+            ->and($manifests[5])->toBeInstanceOf(DockerMachineTemplateManifest::class)
+            ->and($manifests[6])->toBeInstanceOf(KubeadmConfigTemplateManifest::class);
+    });
+
+test('all manifests implement ManifestContract',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $manifests = $this->generator->generate(new CreateClusterManifestData(
+            name: 'my-cluster',
+            namespace: 'kuven-org-123',
+            provider: 'docker',
+            kubernetesVersion: 'v1.30.2',
+            controlPlaneCount: 1,
+            workerCount: 1,
+        ));
+
+        foreach ($manifests as $manifest) {
+            expect($manifest)->toBeInstanceOf(ManifestContract::class);
+        }
     });
 
 test('sets correct namespace on all manifests',
@@ -49,11 +76,11 @@ test('sets correct namespace on all manifests',
         ));
 
         foreach ($manifests as $manifest) {
-            expect($manifest['metadata']['namespace'])->toBe('kuven-org-456');
+            expect($manifest->namespace())->toBe('kuven-org-456');
         }
     });
 
-test('sets correct kubernetes version',
+test('sets correct kubernetes version on control plane',
     /**
      * @throws Throwable
      */
@@ -67,9 +94,10 @@ test('sets correct kubernetes version',
             workerCount: 1,
         ));
 
-        $controlPlane = collect($manifests)->firstWhere('kind', 'KubeadmControlPlane');
+        /** @var KubeadmControlPlaneManifest $controlPlane */
+        $controlPlane = collect($manifests)->first(fn (ManifestContract $m): bool => $m->kind() === Kind::KubeadmControlPlane);
 
-        expect($controlPlane['spec']['version'])->toBe('v1.30.2');
+        expect($controlPlane->spec->version)->toBe('v1.30.2');
     });
 
 test('sets correct control plane replica count',
@@ -86,9 +114,10 @@ test('sets correct control plane replica count',
             workerCount: 1,
         ));
 
-        $controlPlane = collect($manifests)->firstWhere('kind', 'KubeadmControlPlane');
+        /** @var KubeadmControlPlaneManifest $controlPlane */
+        $controlPlane = collect($manifests)->first(fn (ManifestContract $m): bool => $m->kind() === Kind::KubeadmControlPlane);
 
-        expect($controlPlane['spec']['replicas'])->toBe(3);
+        expect($controlPlane->spec->replicas)->toBe(3);
     });
 
 test('sets correct worker replica count',
@@ -105,7 +134,30 @@ test('sets correct worker replica count',
             workerCount: 5,
         ));
 
-        $machineDeployment = collect($manifests)->firstWhere('kind', 'MachineDeployment');
+        /** @var MachineDeploymentManifest $machineDeployment */
+        $machineDeployment = collect($manifests)->first(fn (ManifestContract $m): bool => $m->kind() === Kind::MachineDeployment);
 
-        expect($machineDeployment['spec']['replicas'])->toBe(5);
+        expect($machineDeployment->spec->replicas)->toBe(5);
+    });
+
+test('cluster manifest references correct infrastructure and control plane',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $manifests = $this->generator->generate(new CreateClusterManifestData(
+            name: 'my-cluster',
+            namespace: 'kuven-org-123',
+            provider: 'docker',
+            kubernetesVersion: 'v1.30.2',
+            controlPlaneCount: 1,
+            workerCount: 1,
+        ));
+
+        /** @var ClusterManifest $cluster */
+        $cluster = $manifests[0];
+
+        expect($cluster->spec->infrastructureRef->kind)->toBe(Kind::DockerCluster)
+            ->and($cluster->spec->infrastructureRef->apiVersion)->toBe(ApiVersion::CapiInfrastructureV1Beta1)
+            ->and($cluster->spec->controlPlaneRef->kind)->toBe(Kind::KubeadmControlPlane);
     });

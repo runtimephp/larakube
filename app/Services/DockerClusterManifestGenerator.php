@@ -6,6 +6,19 @@ namespace App\Services;
 
 use App\Contracts\ClusterManifestGenerator;
 use App\Data\CreateClusterManifestData;
+use App\Http\Integrations\Kubernetes\Enums\ApiVersion;
+use App\Http\Integrations\Kubernetes\Enums\Kind;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\ClusterManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\ClusterSpec;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\Docker\DockerClusterManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\Docker\DockerMachineTemplateManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\KubeadmConfigTemplateManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\KubeadmControlPlaneManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\KubeadmControlPlaneSpec;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\MachineDeploymentManifest;
+use App\Http\Integrations\Kubernetes\Manifests\Capi\MachineDeploymentSpec;
+use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
+use App\Http\Integrations\Kubernetes\Manifests\ObjectReference;
 
 final class DockerClusterManifestGenerator implements ClusterManifestGenerator
 {
@@ -14,234 +27,45 @@ final class DockerClusterManifestGenerator implements ClusterManifestGenerator
         $name = $createClusterManifestData->name;
         $namespace = $createClusterManifestData->namespace;
         $version = $createClusterManifestData->kubernetesVersion;
-        $cpCount = $createClusterManifestData->controlPlaneCount;
-        $workerCount = $createClusterManifestData->workerCount;
 
         return [
-            $this->cluster($name, $namespace),
-            $this->dockerCluster($name, $namespace),
-            $this->kubeadmControlPlane($name, $namespace, $version, $cpCount),
-            $this->controlPlaneMachineTemplate($name, $namespace),
-            $this->machineDeployment($name, $namespace, $version, $workerCount),
-            $this->workerMachineTemplate($name, $namespace),
-            $this->kubeadmConfigTemplate($name, $namespace),
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function cluster(string $name, string $namespace): array
-    {
-        return [
-            'apiVersion' => 'cluster.x-k8s.io/v1beta1',
-            'kind' => 'Cluster',
-            'metadata' => [
-                'name' => $name,
-                'namespace' => $namespace,
-            ],
-            'spec' => [
-                'clusterNetwork' => [
-                    'pods' => ['cidrBlocks' => ['192.168.0.0/16']],
-                    'services' => ['cidrBlocks' => ['10.128.0.0/12']],
-                ],
-                'controlPlaneRef' => [
-                    'apiVersion' => 'controlplane.cluster.x-k8s.io/v1beta1',
-                    'kind' => 'KubeadmControlPlane',
-                    'name' => "{$name}-control-plane",
-                ],
-                'infrastructureRef' => [
-                    'apiVersion' => 'infrastructure.cluster.x-k8s.io/v1beta1',
-                    'kind' => 'DockerCluster',
-                    'name' => $name,
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function dockerCluster(string $name, string $namespace): array
-    {
-        return [
-            'apiVersion' => 'infrastructure.cluster.x-k8s.io/v1beta1',
-            'kind' => 'DockerCluster',
-            'metadata' => [
-                'name' => $name,
-                'namespace' => $namespace,
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function kubeadmControlPlane(string $name, string $namespace, string $version, int $replicas): array
-    {
-        return [
-            'apiVersion' => 'controlplane.cluster.x-k8s.io/v1beta1',
-            'kind' => 'KubeadmControlPlane',
-            'metadata' => [
-                'name' => "{$name}-control-plane",
-                'namespace' => $namespace,
-            ],
-            'spec' => [
-                'replicas' => $replicas,
-                'version' => $version,
-                'machineTemplate' => [
-                    'infrastructureRef' => [
-                        'apiVersion' => 'infrastructure.cluster.x-k8s.io/v1beta1',
-                        'kind' => 'DockerMachineTemplate',
-                        'name' => "{$name}-control-plane",
-                    ],
-                ],
-                'kubeadmConfigSpec' => [
-                    'clusterConfiguration' => [
-                        'controllerManager' => [
-                            'extraArgs' => [
-                                'enable-hostpath-provisioner' => 'true',
-                            ],
-                        ],
-                    ],
-                    'initConfiguration' => [
-                        'nodeRegistration' => [
-                            'kubeletExtraArgs' => [
-                                'eviction-hard' => 'nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%',
-                            ],
-                        ],
-                    ],
-                    'joinConfiguration' => [
-                        'nodeRegistration' => [
-                            'kubeletExtraArgs' => [
-                                'eviction-hard' => 'nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%',
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function controlPlaneMachineTemplate(string $name, string $namespace): array
-    {
-        return [
-            'apiVersion' => 'infrastructure.cluster.x-k8s.io/v1beta1',
-            'kind' => 'DockerMachineTemplate',
-            'metadata' => [
-                'name' => "{$name}-control-plane",
-                'namespace' => $namespace,
-            ],
-            'spec' => [
-                'template' => [
-                    'spec' => [
-                        'extraMounts' => [
-                            [
-                                'containerPath' => '/var/run/docker.sock',
-                                'hostPath' => '/var/run/docker.sock',
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function machineDeployment(string $name, string $namespace, string $version, int $replicas): array
-    {
-        return [
-            'apiVersion' => 'cluster.x-k8s.io/v1beta1',
-            'kind' => 'MachineDeployment',
-            'metadata' => [
-                'name' => "{$name}-md-0",
-                'namespace' => $namespace,
-            ],
-            'spec' => [
-                'clusterName' => $name,
-                'replicas' => $replicas,
-                'selector' => [
-                    'matchLabels' => (object) [],
-                ],
-                'template' => [
-                    'spec' => [
-                        'version' => $version,
-                        'clusterName' => $name,
-                        'bootstrap' => [
-                            'configRef' => [
-                                'apiVersion' => 'bootstrap.cluster.x-k8s.io/v1beta1',
-                                'kind' => 'KubeadmConfigTemplate',
-                                'name' => "{$name}-md-0",
-                            ],
-                        ],
-                        'infrastructureRef' => [
-                            'apiVersion' => 'infrastructure.cluster.x-k8s.io/v1beta1',
-                            'kind' => 'DockerMachineTemplate',
-                            'name' => "{$name}-md-0",
-                        ],
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function workerMachineTemplate(string $name, string $namespace): array
-    {
-        return [
-            'apiVersion' => 'infrastructure.cluster.x-k8s.io/v1beta1',
-            'kind' => 'DockerMachineTemplate',
-            'metadata' => [
-                'name' => "{$name}-md-0",
-                'namespace' => $namespace,
-            ],
-            'spec' => [
-                'template' => [
-                    'spec' => [
-                        'extraMounts' => [
-                            [
-                                'containerPath' => '/var/run/docker.sock',
-                                'hostPath' => '/var/run/docker.sock',
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function kubeadmConfigTemplate(string $name, string $namespace): array
-    {
-        return [
-            'apiVersion' => 'bootstrap.cluster.x-k8s.io/v1beta1',
-            'kind' => 'KubeadmConfigTemplate',
-            'metadata' => [
-                'name' => "{$name}-md-0",
-                'namespace' => $namespace,
-            ],
-            'spec' => [
-                'template' => [
-                    'spec' => [
-                        'joinConfiguration' => [
-                            'nodeRegistration' => [
-                                'kubeletExtraArgs' => [
-                                    'eviction-hard' => 'nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
+            new ClusterManifest(
+                metadata: new ManifestMetadata(name: $name, namespace: $namespace),
+                spec: new ClusterSpec(
+                    controlPlaneRef: new ObjectReference(ApiVersion::CapiControlPlaneV1Beta1, Kind::KubeadmControlPlane, "{$name}-control-plane"),
+                    infrastructureRef: new ObjectReference(ApiVersion::CapiInfrastructureV1Beta1, Kind::DockerCluster, $name),
+                ),
+            ),
+            new DockerClusterManifest(
+                metadata: new ManifestMetadata(name: $name, namespace: $namespace),
+            ),
+            new KubeadmControlPlaneManifest(
+                metadata: new ManifestMetadata(name: "{$name}-control-plane", namespace: $namespace),
+                spec: new KubeadmControlPlaneSpec(
+                    replicas: $createClusterManifestData->controlPlaneCount,
+                    version: $version,
+                    infrastructureRef: new ObjectReference(ApiVersion::CapiInfrastructureV1Beta1, Kind::DockerMachineTemplate, "{$name}-control-plane"),
+                ),
+            ),
+            new DockerMachineTemplateManifest(
+                metadata: new ManifestMetadata(name: "{$name}-control-plane", namespace: $namespace),
+            ),
+            new MachineDeploymentManifest(
+                metadata: new ManifestMetadata(name: "{$name}-md-0", namespace: $namespace),
+                spec: new MachineDeploymentSpec(
+                    clusterName: $name,
+                    replicas: $createClusterManifestData->workerCount,
+                    version: $version,
+                    bootstrapConfigRef: new ObjectReference(ApiVersion::CapiBootstrapV1Beta1, Kind::KubeadmConfigTemplate, "{$name}-md-0"),
+                    infrastructureRef: new ObjectReference(ApiVersion::CapiInfrastructureV1Beta1, Kind::DockerMachineTemplate, "{$name}-md-0"),
+                ),
+            ),
+            new DockerMachineTemplateManifest(
+                metadata: new ManifestMetadata(name: "{$name}-md-0", namespace: $namespace),
+            ),
+            new KubeadmConfigTemplateManifest(
+                metadata: new ManifestMetadata(name: "{$name}-md-0", namespace: $namespace),
+            ),
         ];
     }
 }
