@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Data\CreateOrganizationData;
 use App\Enums\OrganizationRole;
+use App\Jobs\ProvisionTenantNamespaceJob;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,8 @@ final readonly class CreateOrganization
                 $organization->users()->attach($owner, ['role' => OrganizationRole::Owner]);
                 $this->switchOrganization->handle($owner, $organization);
             }
+
+            ProvisionTenantNamespaceJob::dispatch($organization);
 
             return $organization;
         });
