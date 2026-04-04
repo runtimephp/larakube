@@ -4,20 +4,12 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Actions\CreateBootstrapCluster;
-use App\Actions\CreateManagementCluster;
-use App\Actions\DeleteManagementCluster;
-use App\Actions\InstallCapiControllers;
-use App\Actions\MarkManagementClusterReady;
-use App\Actions\StoreManagementKubeconfig;
-use App\Actions\ValidatePrerequisites;
-use App\Actions\WriteKubeconfigToTempFile;
-use App\Contracts\KubeconfigReaderService;
-use App\Data\CreateManagementClusterData;
-use App\Queries\ManagementClusterQuery;
-use Illuminate\Console\Command;
+use App\Actions\ProvisionManagementCluster;
+use App\Data\ProvisionManagementClusterData;
+use App\Exceptions\LarakubeApiException;
+use RuntimeException;
 
-final class KuvenInitCommand extends Command
+final class KuvenInitCommand extends AuthenticatedCommand
 {
     /** @var string */
     protected $signature = 'kuven:init
@@ -28,18 +20,8 @@ final class KuvenInitCommand extends Command
     /** @var string */
     protected $description = 'Bootstrap a CAPI management cluster';
 
-    public function handle(
-        ManagementClusterQuery $managementClusterQuery,
-        ValidatePrerequisites $validatePrerequisites,
-        CreateManagementCluster $createManagementCluster,
-        DeleteManagementCluster $deleteManagementCluster,
-        CreateBootstrapCluster $createBootstrapCluster,
-        InstallCapiControllers $installCapiControllers,
-        WriteKubeconfigToTempFile $writeKubeconfigToTempFile,
-        KubeconfigReaderService $kubeconfigReaderService,
-        StoreManagementKubeconfig $storeManagementKubeconfig,
-        MarkManagementClusterReady $markManagementClusterReady,
-    ): int {
+    public function handleCommand(ProvisionManagementCluster $provisionManagementCluster): int
+    {
         $provider = $this->option('provider');
 
         if (! is_string($provider) || $provider === '') {
@@ -51,53 +33,20 @@ final class KuvenInitCommand extends Command
         /** @var string $region */
         $region = $this->option('region');
 
-        $force = (bool) $this->option('force');
+        try {
+            $cluster = $provisionManagementCluster->handle(new ProvisionManagementClusterData(
+                provider: $provider,
+                region: $region,
+                force: (bool) $this->option('force'),
+            ));
 
-        $existing = ($managementClusterQuery)()->byProvider($provider)->byRegion($region)->first();
+            $this->components->info("Management cluster [{$cluster->name}] is ready.");
 
-        if ($existing && ! $force) {
-            $this->components->error("Management cluster for provider [{$provider}] in region [{$region}] already exists. Use --force to re-bootstrap.");
-
-            return self::FAILURE;
-        }
-
-        if ($existing) {
-            $deleteManagementCluster->handle($existing);
-        }
-
-        $result = $validatePrerequisites->handle();
-
-        if (! $result->ok) {
-            $this->components->error('Missing prerequisites: '.implode(', ', $result->missing));
+            return self::SUCCESS;
+        } catch (LarakubeApiException|RuntimeException $e) {
+            $this->components->error($e->getMessage());
 
             return self::FAILURE;
         }
-
-        $cluster = $createManagementCluster->handle(new CreateManagementClusterData(
-            name: "kuven-mgmt-{$region}",
-            provider: $provider,
-            region: $region,
-        ));
-
-        $this->components->info('Creating bootstrap cluster...');
-        $createBootstrapCluster->handle($cluster->name);
-
-        $this->components->info('Writing kubeconfig...');
-        $kubeconfigPath = $writeKubeconfigToTempFile->handle($cluster->name);
-
-        $this->components->info('Installing CAPI controllers...');
-        $installCapiControllers->handle($provider, $kubeconfigPath);
-
-        $this->components->info('Storing management cluster kubeconfig...');
-        $kubeconfig = $kubeconfigReaderService->read($cluster->name);
-        $storeManagementKubeconfig->handle($cluster, $kubeconfig);
-
-        @unlink($kubeconfigPath);
-
-        $markManagementClusterReady->handle($cluster);
-
-        $this->components->info("Management cluster [{$cluster->name}] is ready.");
-
-        return self::SUCCESS;
     }
 }
