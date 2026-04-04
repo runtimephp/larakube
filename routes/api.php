@@ -32,8 +32,11 @@ Route::prefix('v1')->as('api.v1.')->group(function (): void {
             ->names('organizations');
 
         Route::apiResource('management-clusters', ManagementClusterController::class)
-            ->only(['store', 'show', 'destroy'])
+            ->only(['store', 'destroy'])
             ->names('management-clusters');
+
+        Route::get('management-clusters/lookup', [ManagementClusterController::class, 'show'])
+            ->name('management-clusters.lookup');
 
         Route::patch('management-clusters/{management_cluster}/kubeconfig', [ManagementClusterKubeconfigController::class, 'update'])
             ->name('management-clusters.kubeconfig');

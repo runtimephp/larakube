@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Client\InMemoryManagementClusterClient;
 use App\Data\CreateManagementClusterData;
+use App\Exceptions\LarakubeApiException;
 
 beforeEach(function (): void {
     $this->client = new InMemoryManagementClusterClient;
@@ -104,4 +105,31 @@ test('delete removes cluster',
 
         expect($this->client->findByProviderAndRegion('docker', 'local'))->toBeNull()
             ->and($this->client->getKubeconfig($cluster->id))->toBeNull();
+    });
+
+test('throws on store kubeconfig for unknown cluster',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        expect(fn () => $this->client->storeKubeconfig('nonexistent', 'kubeconfig'))
+            ->toThrow(LarakubeApiException::class, 'Management cluster not found.');
+    });
+
+test('throws on mark ready for unknown cluster',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        expect(fn () => $this->client->markReady('nonexistent'))
+            ->toThrow(LarakubeApiException::class, 'Management cluster not found.');
+    });
+
+test('throws on delete for unknown cluster',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        expect(fn () => $this->client->delete('nonexistent'))
+            ->toThrow(LarakubeApiException::class, 'Management cluster not found.');
     });

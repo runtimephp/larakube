@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Client;
 
 use App\Contracts\ManagementClusterClient;
+use App\Data\ApiErrorData;
 use App\Data\CreateManagementClusterData;
 use App\Data\ManagementClusterData;
+use App\Enums\ApiErrorCode;
 use App\Enums\ManagementClusterStatus;
+use App\Exceptions\LarakubeApiException;
 use Illuminate\Support\Str;
 
 final class InMemoryManagementClusterClient implements ManagementClusterClient
@@ -46,31 +49,39 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
 
     public function storeKubeconfig(string $id, string $kubeconfig): void
     {
+        $this->requireCluster($id);
         $this->kubeconfigs[$id] = $kubeconfig;
     }
 
     public function markReady(string $id): void
     {
-        $existing = $this->clusters[$id] ?? null;
+        $existing = $this->requireCluster($id);
 
-        if ($existing) {
-            $this->clusters[$id] = new ManagementClusterData(
-                id: $existing->id,
-                name: $existing->name,
-                provider: $existing->provider,
-                region: $existing->region,
-                status: ManagementClusterStatus::Ready->value,
-            );
-        }
+        $this->clusters[$id] = new ManagementClusterData(
+            id: $existing->id,
+            name: $existing->name,
+            provider: $existing->provider,
+            region: $existing->region,
+            status: ManagementClusterStatus::Ready->value,
+        );
     }
 
     public function delete(string $id): void
     {
+        $this->requireCluster($id);
         unset($this->clusters[$id], $this->kubeconfigs[$id]);
     }
 
     public function getKubeconfig(string $id): ?string
     {
         return $this->kubeconfigs[$id] ?? null;
+    }
+
+    private function requireCluster(string $id): ManagementClusterData
+    {
+        return $this->clusters[$id] ?? throw new LarakubeApiException(new ApiErrorData(
+            message: 'Management cluster not found.',
+            code: ApiErrorCode::NotFound,
+        ));
     }
 }

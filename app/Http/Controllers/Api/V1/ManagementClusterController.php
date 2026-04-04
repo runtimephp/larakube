@@ -8,11 +8,11 @@ use App\Actions\CreateManagementCluster;
 use App\Actions\DeleteManagementCluster;
 use App\Data\CreateManagementClusterData;
 use App\Http\Requests\Api\V1\CreateManagementClusterRequest;
+use App\Http\Requests\Api\V1\LookupManagementClusterRequest;
 use App\Http\Resources\ManagementClusterResource;
 use App\Models\ManagementCluster;
 use App\Queries\ManagementClusterQuery;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 final class ManagementClusterController
 {
@@ -34,12 +34,12 @@ final class ManagementClusterController
     }
 
     public function show(
-        Request $request,
+        LookupManagementClusterRequest $request,
         ManagementClusterQuery $managementClusterQuery,
     ): JsonResponse {
         $cluster = ($managementClusterQuery)()
-            ->byProvider($request->query('provider'))
-            ->byRegion($request->query('region'))
+            ->byProvider($request->validated('provider'))
+            ->byRegion($request->validated('region'))
             ->first();
 
         if (! $cluster) {

@@ -80,8 +80,7 @@ test('show finds management cluster by provider and region',
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
-            ->getJson(route('api.v1.management-clusters.show', [
-                'management_cluster' => 'lookup',
+            ->getJson(route('api.v1.management-clusters.lookup', [
                 'provider' => 'docker',
                 'region' => 'local',
             ]));
@@ -100,8 +99,7 @@ test('show returns 404 when cluster not found',
         $user = User::factory()->create();
 
         $response = $this->actingAs($user, 'sanctum')
-            ->getJson(route('api.v1.management-clusters.show', [
-                'management_cluster' => 'lookup',
+            ->getJson(route('api.v1.management-clusters.lookup', [
                 'provider' => 'docker',
                 'region' => 'nonexistent',
             ]));

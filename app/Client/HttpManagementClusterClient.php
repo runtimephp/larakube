@@ -28,7 +28,8 @@ final readonly class HttpManagementClusterClient implements ManagementClusterCli
     public function findByProviderAndRegion(string $provider, string $region): ?ManagementClusterData
     {
         try {
-            $response = $this->client->get("/api/v1/management-clusters/lookup?provider={$provider}&region={$region}");
+            $query = http_build_query(['provider' => $provider, 'region' => $region]);
+            $response = $this->client->get("/api/v1/management-clusters/lookup?{$query}");
 
             return ManagementClusterData::fromArray($response->json('data'));
         } catch (\App\Exceptions\LarakubeApiException $e) {
