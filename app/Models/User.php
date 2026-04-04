@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Concerns\HasOrganizations;
+use App\Enums\PlatformRole;
 use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Collection;
@@ -21,6 +22,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read string $password
  * @property-read string $remember_token
  * @property-read string|null $current_organization_id
+ * @property-read PlatformRole $platform_role
  * @property-read CarbonImmutable|null $email_verified_at
  * @property-read CarbonImmutable $created_at
  * @property-read CarbonImmutable $updated_at
@@ -64,6 +66,7 @@ final class User extends Authenticatable
             'name' => 'string',
             'email' => 'string',
             'current_organization_id' => 'string',
+            'platform_role' => PlatformRole::class,
             'email_verified_at' => 'immutable_datetime',
             'password' => 'hashed',
             'remember_token' => 'string',

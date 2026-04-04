@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\PlatformRole;
 use App\Features\RegistrationFeature;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -48,9 +49,10 @@ final class RegisteredUserController extends Controller
         }
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $request->string('name')->toString(),
+            'email' => $request->string('email')->toString(),
+            'password' => Hash::make($request->string('password')->toString()),
+            'platform_role' => PlatformRole::Member,
         ]);
 
         event(new Registered($user));

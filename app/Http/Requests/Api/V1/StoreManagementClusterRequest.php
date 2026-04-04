@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Models\ManagementCluster;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class StoreManagementClusterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('create', ManagementCluster::class);
     }
 
     /**

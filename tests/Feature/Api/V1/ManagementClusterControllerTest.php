@@ -18,7 +18,7 @@ test('store creates a management cluster',
      */
     function (): void {
         /** @var User $user */
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.management-clusters.store'), [
@@ -49,7 +49,7 @@ test('store validates required fields',
      */
     function (): void {
         /** @var User $user */
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.management-clusters.store'), []);
@@ -72,13 +72,34 @@ test('store requires authentication',
         $response->assertUnauthorized();
     });
 
-test('index lists management clusters filtered by provider and region',
+test('non-admin cannot access management clusters',
     /**
      * @throws Throwable
      */
     function (): void {
         /** @var User $user */
         $user = User::factory()->create();
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson(route('api.v1.management-clusters.store'), [
+                'name' => 'kuven-mgmt-local',
+                'provider' => 'docker',
+                'region' => 'local',
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($user, 'sanctum')
+            ->getJson(route('api.v1.management-clusters.index'))
+            ->assertForbidden();
+    });
+
+test('index lists management clusters filtered by provider and region',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->admin()->create();
 
         ManagementCluster::factory()->ready()->create([
             'name' => 'kuven-mgmt-local',
@@ -109,7 +130,7 @@ test('index returns empty array when no clusters match',
      */
     function (): void {
         /** @var User $user */
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $response = $this->actingAs($user, 'sanctum')
             ->getJson(route('api.v1.management-clusters.index', [
@@ -127,7 +148,7 @@ test('show returns a management cluster by id',
      */
     function (): void {
         /** @var User $user */
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         /** @var ManagementCluster $cluster */
         $cluster = ManagementCluster::factory()->ready()->create([
@@ -150,7 +171,7 @@ test('destroy deletes a management cluster and its bootstrap cluster',
      */
     function (): void {
         /** @var User $user */
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         /** @var ManagementCluster $cluster */
         $cluster = ManagementCluster::factory()->create([
@@ -174,7 +195,7 @@ test('kubeconfig update stores encrypted kubeconfig',
      */
     function (): void {
         /** @var User $user */
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         /** @var ManagementCluster $cluster */
         $cluster = ManagementCluster::factory()->create();
@@ -197,7 +218,7 @@ test('ready update marks cluster as ready',
      */
     function (): void {
         /** @var User $user */
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         /** @var ManagementCluster $cluster */
         $cluster = ManagementCluster::factory()->create();
