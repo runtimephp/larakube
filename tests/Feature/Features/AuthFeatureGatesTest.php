@@ -130,3 +130,14 @@ test('registration feature resolves true when config enabled in production', fun
 
     expect($feature->resolve())->toBeTrue();
 });
+
+test('registration feature resolves true for allowed email in production', function (): void {
+    app()->detectEnvironment(fn () => 'production');
+    config()->set('app.features.registration', false);
+    config()->set('app.features.registration_allowed_emails', ['allowed@example.com']);
+
+    $feature = app()->make(RegistrationFeature::class);
+
+    expect($feature->resolve('allowed@example.com'))->toBeTrue();
+    expect($feature->resolve('other@example.com'))->toBeFalse();
+});

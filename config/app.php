@@ -122,6 +122,7 @@ return [
 
     'features' => [
         'registration' => env('FEATURE_REGISTRATION', true),
+        'registration_allowed_emails' => array_filter(explode(',', (string) env('FEATURE_REGISTRATION_ALLOWED_EMAILS', ''))),
         'login' => env('FEATURE_LOGIN', true),
         'login_allowed_emails' => array_filter(explode(',', (string) env('FEATURE_LOGIN_ALLOWED_EMAILS', ''))),
     ],
