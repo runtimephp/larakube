@@ -10,7 +10,6 @@ use App\Contracts\KubeconfigReaderService;
 use App\Contracts\ManagementClusterClient;
 use App\Contracts\PrerequisiteChecker;
 use App\Data\ProvisionManagementClusterData;
-use App\Exceptions\LarakubeApiException;
 use App\Services\InMemory\InMemoryBootstrapClusterService;
 use App\Services\InMemory\InMemoryCapiInstallerService;
 use App\Services\InMemory\InMemoryKubeconfigReaderService;
@@ -70,7 +69,7 @@ test('throws when cluster already exists and force is false',
             provider: 'docker',
             region: 'local',
             force: false,
-        )))->toThrow(LarakubeApiException::class, 'already exists');
+        )))->toThrow(RuntimeException::class, 'already exists');
     });
 
 test('re-provisions with force flag',

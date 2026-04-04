@@ -8,12 +8,9 @@ use App\Contracts\BootstrapClusterService;
 use App\Contracts\CapiInstallerService;
 use App\Contracts\KubeconfigReaderService;
 use App\Contracts\ManagementClusterClient;
-use App\Data\ApiErrorData;
 use App\Data\CreateManagementClusterData;
 use App\Data\ManagementClusterData;
 use App\Data\ProvisionManagementClusterData;
-use App\Enums\ApiErrorCode;
-use App\Exceptions\LarakubeApiException;
 use RuntimeException;
 
 final readonly class ProvisionManagementCluster
@@ -24,6 +21,8 @@ final readonly class ProvisionManagementCluster
         private BootstrapClusterService $bootstrapClusterService,
         private CapiInstallerService $capiInstallerService,
         private KubeconfigReaderService $kubeconfigReaderService,
+        private WriteKubeconfigToTempFile $writeKubeconfigToTempFile,
+        private CleanupTempKubeconfig $cleanupTempKubeconfig,
     ) {}
 
     public function handle(ProvisionManagementClusterData $data): ManagementClusterData
@@ -31,10 +30,7 @@ final readonly class ProvisionManagementCluster
         $existing = $this->managementClusterClient->findByProviderAndRegion($data->provider, $data->region);
 
         if ($existing && ! $data->force) {
-            throw new LarakubeApiException(new ApiErrorData(
-                message: "Management cluster for provider [{$data->provider}] in region [{$data->region}] already exists.",
-                code: ApiErrorCode::ValidationFailed,
-            ));
+            throw new RuntimeException("Management cluster for provider [{$data->provider}] in region [{$data->region}] already exists.");
         }
 
         if ($existing) {
@@ -58,15 +54,13 @@ final readonly class ProvisionManagementCluster
 
         $this->bootstrapClusterService->create($clusterName);
 
-        $kubeconfig = $this->kubeconfigReaderService->read($clusterName);
-
-        $kubeconfigPath = sys_get_temp_dir()."/{$clusterName}-kubeconfig";
-        file_put_contents($kubeconfigPath, $kubeconfig);
+        $kubeconfigPath = $this->writeKubeconfigToTempFile->handle($clusterName);
 
         $this->capiInstallerService->init($data->provider, $kubeconfigPath);
 
-        @unlink($kubeconfigPath);
+        $this->cleanupTempKubeconfig->handle($kubeconfigPath);
 
+        $kubeconfig = $this->kubeconfigReaderService->read($clusterName);
         $this->managementClusterClient->storeKubeconfig($cluster->id, $kubeconfig);
         $this->managementClusterClient->markReady($cluster->id);
 
