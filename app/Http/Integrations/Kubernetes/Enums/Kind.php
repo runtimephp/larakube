@@ -11,6 +11,8 @@ enum Kind: string
     case Deployment = 'Deployment';
     case DockerCluster = 'DockerCluster';
     case DockerMachineTemplate = 'DockerMachineTemplate';
+    case HetznerCluster = 'HetznerCluster';
+    case HetznerMachineTemplate = 'HetznerMachineTemplate';
     case KubeadmConfigTemplate = 'KubeadmConfigTemplate';
     case KubeadmControlPlane = 'KubeadmControlPlane';
     case MachineDeployment = 'MachineDeployment';
