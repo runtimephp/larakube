@@ -77,12 +77,17 @@ function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: strin
     );
 }
 
+const adminTabs = [
+    { title: 'Management Clusters', url: '/admin/management-clusters' },
+    { title: 'Settings', url: '/admin/settings/providers' },
+];
+
 export default function Show({ cluster }: ShowManagementClusterPageProps) {
     const currentSection = 'overview';
     const providerConfig = PROVIDER_CONFIG[cluster.provider];
 
     return (
-        <AppLayout>
+        <AppLayout tabs={adminTabs}>
             <Head title={cluster.name} />
             <div className="flex items-start justify-center px-7">
                 {/* Left sidebar */}

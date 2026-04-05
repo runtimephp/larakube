@@ -21,6 +21,7 @@ final class DatabaseSeeder extends Seeder
             'platform_role' => PlatformRole::Admin,
         ]);
 
+        $this->call(ProviderSeeder::class);
         $this->call(ManagementClusterSeeder::class);
     }
 }

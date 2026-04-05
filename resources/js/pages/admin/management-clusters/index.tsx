@@ -59,9 +59,14 @@ function ProviderLogo({ provider }: { provider: string }) {
     );
 }
 
+const adminTabs = [
+    { title: 'Management Clusters', url: '/admin/management-clusters' },
+    { title: 'Settings', url: '/admin/settings/providers' },
+];
+
 export default function Index({ clusters }: ManagementClustersPageProps) {
     return (
-        <AppLayout>
+        <AppLayout tabs={adminTabs}>
             <Head title="Management Clusters" />
             <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-4 sm:p-6">
                 <div>
