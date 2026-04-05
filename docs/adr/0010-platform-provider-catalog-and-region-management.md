@@ -12,7 +12,7 @@ adr:
 
 ## Context
 
-Kuven supports multiple cloud providers (Hetzner, DigitalOcean, AWS, Vultr, Akamai) and a local Docker provider for development. Each provider offers regions (datacenters) where resources are deployed — servers, clusters, networks, firewalls.
+Kuven currently supports Hetzner and DigitalOcean as cloud providers, with planned support for AWS, Vultr, and Akamai. For local development, Docker replaces the existing Multipass provider (used for CAPI-based kind clusters instead of VM-based local provisioning). Each provider offers regions (datacenters) where resources are deployed — servers, clusters, networks, firewalls.
 
 The current architecture has three problems:
 
@@ -34,7 +34,7 @@ Introduce a **Provider** model at the platform level and rename the existing `Cl
 
 - **CloudAccount** (organization-level, renamed from CloudProvider): Represents an organization's credentials for a provider. References a Provider via foreign key (replacing the `CloudProviderType` enum). Fields: name, provider_id (FK), api_token (encrypted), is_verified.
 
-The foreign key from CloudAccount to Provider enforces that organizations can only connect accounts for providers the platform has configured and activated. The `CloudProviderType` enum is removed — the Provider model replaces it.
+The foreign key from CloudAccount to Provider enforces that organizations can only connect accounts for providers the platform has configured and activated. The `CloudProviderType` enum is removed — the Provider model's slug replaces it for provider identification. The enum's behavioral methods (`sshUser()`, `dnsServers()`, `bastionSpec()`, `controlPlaneSpec()`, `workerSpec()`) are legacy from the pre-CAPI 17-step provisioning pipeline (superseded by ADR-0005) and will be removed alongside the Infrastructure model in Phase 3.
 
 ### Platform-level region catalog
 
@@ -64,8 +64,8 @@ The `Infrastructure` model is removed. Under CAPI, each workload cluster gets it
 ### Phased rollout
 
 - **Phase 1**: Provider model, PlatformRegion model, admin UI, Hetzner region sync, ManagementCluster FKs
-- **Phase 2**: Rename CloudProvider → CloudAccount, add provider_id FK, drop CloudProviderType enum, org settings becomes "Provider Accounts"
-- **Phase 3**: Remove Infrastructure model, resources belong to KubernetesCluster directly
+- **Phase 2**: Rename CloudProvider → CloudAccount, add provider_id FK, drop CloudProviderType enum, org settings becomes "Provider Accounts". Migrate org-level `Region` model to reference `PlatformRegion` and drop the `regions` table, resolving the `platform_regions` naming workaround.
+- **Phase 3**: Remove Infrastructure model and its legacy provisioning code (including `CloudProviderType` enum methods), resources belong to KubernetesCluster directly
 
 ## Consequences
 
@@ -82,7 +82,7 @@ The `Infrastructure` model is removed. Under CAPI, each workload cluster gets it
 ### Negative
 
 - **Migration effort** — three-phase rollout touches models, migrations, controllers, tests, and frontend across the stack
-- **Temporary naming** — `platform_regions` table and `PlatformRegion` model are awkward names needed to avoid collision with the existing `regions` table until Phase 2 resolves it
+- **Temporary naming** — `platform_regions` table and `PlatformRegion` model are awkward names needed to avoid collision with the existing org-level `regions` table. Phase 2 migrates the org-level Region model and drops the old `regions` table, at which point `platform_regions` can be renamed to `regions`
 - **CloudManager interaction** — ADR-0009's CloudManager resolves drivers by provider type. The driver resolution must adapt from the `CloudProviderType` enum to the Provider model's slug. This is a minor change but touches the Manager pattern
 - **Seeder vs production gap** — local dev uses seeders to create providers; production uses the admin UI. The same data, two different creation paths
 
