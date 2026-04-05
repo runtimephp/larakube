@@ -2,12 +2,14 @@
 
 namespace Tests;
 
+use App\Contracts\ManifestService;
 use App\Contracts\NamespaceService;
 use App\Contracts\NetworkPolicyService;
 use App\Contracts\ResourceQuotaService;
 use App\Contracts\RoleBindingService;
 use App\Contracts\RoleService;
 use App\Contracts\ServiceAccountService;
+use App\Services\InMemory\InMemoryManifestService;
 use App\Services\InMemory\InMemoryNamespaceService;
 use App\Services\InMemory\InMemoryNetworkPolicyService;
 use App\Services\InMemory\InMemoryResourceQuotaService;
@@ -25,6 +27,7 @@ abstract class TestCase extends BaseTestCase
         $sessionsPath = sys_get_temp_dir().'/larakube-sessions-'.getmypid().'-'.uniqid();
         config()->set('larakube.sessions_path', $sessionsPath);
 
+        $this->app->instance(ManifestService::class, new InMemoryManifestService);
         $this->app->instance(NamespaceService::class, new InMemoryNamespaceService);
         $this->app->instance(ServiceAccountService::class, new InMemoryServiceAccountService);
         $this->app->instance(RoleService::class, new InMemoryRoleService);
