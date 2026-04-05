@@ -53,3 +53,21 @@ test('spec serializes with custom ssh key',
             'sshKeys' => ['hcloud' => ['my-key']],
         ]);
     });
+
+test('spec rejects empty controlPlaneRegion',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        expect(fn () => new HetznerClusterSpec(controlPlaneRegion: '', sshKeyName: 'key'))
+            ->toThrow(InvalidArgumentException::class);
+    });
+
+test('spec rejects empty sshKeyName',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        expect(fn () => new HetznerClusterSpec(controlPlaneRegion: 'nbg1', sshKeyName: ''))
+            ->toThrow(InvalidArgumentException::class);
+    });
