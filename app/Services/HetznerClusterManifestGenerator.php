@@ -50,7 +50,7 @@ final class HetznerClusterManifestGenerator implements ClusterManifestGenerator
             ),
             new HetznerClusterManifest(
                 metadata: new ManifestMetadata(name: $name, namespace: $namespace),
-                spec: new HetznerClusterSpec(controlPlaneRegion: $region),
+                spec: new HetznerClusterSpec(controlPlaneRegion: $region, sshKeyName: $name),
             ),
             new KubeadmControlPlaneManifest(
                 metadata: new ManifestMetadata(name: "{$name}-control-plane", namespace: $namespace),

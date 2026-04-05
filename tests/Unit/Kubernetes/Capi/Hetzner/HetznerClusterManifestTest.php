@@ -15,7 +15,7 @@ test('serializes and exposes routing metadata',
     function (): void {
         $manifest = new HetznerClusterManifest(
             metadata: new ManifestMetadata(name: 'prod-cluster', namespace: 'kuven-org-123'),
-            spec: new HetznerClusterSpec(controlPlaneRegion: 'nuremberg'),
+            spec: new HetznerClusterSpec(controlPlaneRegion: 'nuremberg', sshKeyName: 'prod-cluster'),
         );
 
         expect($manifest->apiVersion())->toBe(ApiVersion::CapiInfrastructureV1Beta1)
@@ -24,7 +24,7 @@ test('serializes and exposes routing metadata',
             ->and($manifest->namespace())->toBe('kuven-org-123')
             ->and($manifest->isClusterScoped())->toBeFalse()
             ->and($manifest->toArray()['spec']['controlPlaneRegion'])->toBe('nuremberg')
-            ->and($manifest->toArray()['spec']['sshKeys']['hcloud'])->toBe(['kuven']);
+            ->and($manifest->toArray()['spec']['sshKeys']['hcloud'])->toBe(['prod-cluster']);
     });
 
 test('rejects missing namespace',
@@ -34,7 +34,7 @@ test('rejects missing namespace',
     function (): void {
         expect(fn () => new HetznerClusterManifest(
             metadata: new ManifestMetadata(name: 'x'),
-            spec: new HetznerClusterSpec(controlPlaneRegion: 'nbg1'),
+            spec: new HetznerClusterSpec(controlPlaneRegion: 'nbg1', sshKeyName: 'x'),
         ))->toThrow(InvalidArgumentException::class);
     });
 
