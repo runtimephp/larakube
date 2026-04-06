@@ -106,6 +106,21 @@ test('store kubeconfig sends patch request',
             && $request['kubeconfig'] === 'apiVersion: v1');
     });
 
+test('store ssh private key sends patch request',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        Http::fake([
+            '*/api/v1/management-clusters/uuid-123/ssh-key' => Http::response(null, 204),
+        ]);
+
+        $this->client->storeSshPrivateKey('uuid-123', 'fake-private-key');
+
+        Http::assertSent(fn ($request): bool => $request->url() === 'http://localhost:8000/api/v1/management-clusters/uuid-123/ssh-key'
+            && $request['ssh_private_key'] === 'fake-private-key');
+    });
+
 test('mark ready sends patch request',
     /**
      * @throws Throwable

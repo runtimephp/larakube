@@ -15,5 +15,6 @@ final readonly class CreateClusterManifestData
         public int $workerCount,
         public ?string $region = null,
         public ?string $machineType = null,
+        public ?string $hcloudToken = null,
     ) {}
 }

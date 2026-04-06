@@ -28,6 +28,11 @@ interface ManagementClusterClient
     /**
      * @throws LarakubeApiException
      */
+    public function storeSshPrivateKey(string $id, string $sshPrivateKey): void;
+
+    /**
+     * @throws LarakubeApiException
+     */
     public function markReady(string $id): void;
 
     /**

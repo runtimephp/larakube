@@ -10,14 +10,14 @@ use App\Http\Integrations\Kubernetes\Enums\Kind;
 use App\Http\Integrations\Kubernetes\Manifests\ManifestMetadata;
 use InvalidArgumentException;
 
-final readonly class HetznerMachineTemplateManifest implements ManifestContract
+final readonly class HCloudMachineTemplateManifest implements ManifestContract
 {
     public function __construct(
         public ManifestMetadata $metadata,
-        public HetznerMachineTemplateSpec $spec,
+        public HCloudMachineTemplateSpec $spec,
     ) {
         if ($this->metadata->namespace === null || mb_trim($this->metadata->namespace) === '') {
-            throw new InvalidArgumentException('HetznerMachineTemplate manifests require a namespace.');
+            throw new InvalidArgumentException('HCloudMachineTemplate manifests require a namespace.');
         }
     }
 
@@ -28,12 +28,12 @@ final readonly class HetznerMachineTemplateManifest implements ManifestContract
 
     public function kind(): Kind
     {
-        return Kind::HetznerMachineTemplate;
+        return Kind::HCloudMachineTemplate;
     }
 
     public function resource(): string
     {
-        return 'hetznermachinetemplates';
+        return 'hcloudmachinetemplates';
     }
 
     public function namespace(): string

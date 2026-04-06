@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Integrations\Kubernetes\Manifests\Capi\Hetzner;
 
-final readonly class HetznerMachineTemplateSpec
+final readonly class HCloudMachineTemplateSpec
 {
     public function __construct(
-        public string $serverType,
+        public string $type,
+        public string $imageName = 'ubuntu-24.04',
     ) {}
 
     /**
@@ -18,7 +19,8 @@ final readonly class HetznerMachineTemplateSpec
         return [
             'template' => [
                 'spec' => [
-                    'serverType' => $this->serverType,
+                    'type' => $this->type,
+                    'imageName' => $this->imageName,
                 ],
             ],
         ];

@@ -8,12 +8,20 @@ use InvalidArgumentException;
 
 final readonly class HetznerClusterSpec
 {
+    /**
+     * @param  list<string>  $controlPlaneRegions
+     */
     public function __construct(
-        public string $controlPlaneRegion,
-        public string $sshKeyName,
+        public array $controlPlaneRegions,
+        public string $hetznerSecretName,
+        public ?string $sshKeyName = null,
     ) {
-        if (mb_trim($this->controlPlaneRegion) === '' || mb_trim($this->sshKeyName) === '') {
-            throw new InvalidArgumentException('HetznerClusterSpec requires controlPlaneRegion and sshKeyName.');
+        if ($this->controlPlaneRegions === []) {
+            throw new InvalidArgumentException('HetznerClusterSpec requires at least one controlPlaneRegion.');
+        }
+
+        if (mb_trim($this->hetznerSecretName) === '') {
+            throw new InvalidArgumentException('HetznerClusterSpec requires hetznerSecretName.');
         }
     }
 
@@ -22,11 +30,30 @@ final readonly class HetznerClusterSpec
      */
     public function toArray(): array
     {
-        return [
-            'controlPlaneRegion' => $this->controlPlaneRegion,
+        $region = $this->controlPlaneRegions[0];
+
+        $spec = [
+            'controlPlaneRegions' => $this->controlPlaneRegions,
+            'controlPlaneLoadBalancer' => [
+                'region' => $region,
+            ],
+            'hetznerSecretRef' => [
+                'key' => [
+                    'hcloudToken' => 'hcloud',
+                    'hetznerRobotUser' => 'robot-user',
+                    'hetznerRobotPassword' => 'robot-password',
+                ],
+                'name' => $this->hetznerSecretName,
+            ],
             'sshKeys' => [
-                'hcloud' => [$this->sshKeyName],
+                'hcloud' => [],
             ],
         ];
+
+        if ($this->sshKeyName !== null) {
+            $spec['sshKeys']['hcloud'] = [['name' => $this->sshKeyName]];
+        }
+
+        return $spec;
     }
 }

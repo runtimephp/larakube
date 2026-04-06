@@ -21,6 +21,9 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
     /** @var array<string, string> */
     private array $kubeconfigs = [];
 
+    /** @var array<string, string> */
+    private array $sshKeys = [];
+
     public function create(CreateManagementClusterData $data): ManagementClusterData
     {
         $cluster = new ManagementClusterData(
@@ -54,6 +57,12 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
         $this->kubeconfigs[$id] = $kubeconfig;
     }
 
+    public function storeSshPrivateKey(string $id, string $sshPrivateKey): void
+    {
+        $this->requireCluster($id);
+        $this->sshKeys[$id] = $sshPrivateKey;
+    }
+
     public function markReady(string $id): void
     {
         $existing = $this->requireCluster($id);
@@ -71,7 +80,7 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
     public function delete(string $id): void
     {
         $this->requireCluster($id);
-        unset($this->clusters[$id], $this->kubeconfigs[$id]);
+        unset($this->clusters[$id], $this->kubeconfigs[$id], $this->sshKeys[$id]);
     }
 
     public function getKubeconfig(string $id): ?string

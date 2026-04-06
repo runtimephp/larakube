@@ -10,7 +10,10 @@ final readonly class KubeadmConfigTemplateSpec
      * @param  array<string, string>  $kubeletExtraArgs
      */
     public function __construct(
-        public array $kubeletExtraArgs = ['eviction-hard' => 'nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%'],
+        public array $kubeletExtraArgs = [
+            'cloud-provider' => 'external',
+            'eviction-hard' => 'nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%',
+        ],
     ) {}
 
     /**

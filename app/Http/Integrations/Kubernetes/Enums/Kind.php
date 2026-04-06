@@ -12,7 +12,7 @@ enum Kind: string
     case DockerCluster = 'DockerCluster';
     case DockerMachineTemplate = 'DockerMachineTemplate';
     case HetznerCluster = 'HetznerCluster';
-    case HetznerMachineTemplate = 'HetznerMachineTemplate';
+    case HCloudMachineTemplate = 'HCloudMachineTemplate';
     case KubeadmConfigTemplate = 'KubeadmConfigTemplate';
     case KubeadmControlPlane = 'KubeadmControlPlane';
     case MachineDeployment = 'MachineDeployment';
