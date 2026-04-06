@@ -171,3 +171,122 @@ test('a guest is redirected to login when viewing a provider', function () {
     $this->get(route('admin.settings.providers.show', $provider))
         ->assertRedirect(route('login'));
 });
+
+test('the show page includes the can update permission', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    /** @var Provider $provider */
+    $provider = Provider::factory()->create();
+
+    $this->actingAs($admin)
+        ->get(route('admin.settings.providers.show', $provider))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('admin/providers/show')
+            ->where('can.update', true)
+        );
+});
+
+test('a platform administrator can update a provider api token', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    /** @var Provider $provider */
+    $provider = Provider::factory()->create([
+        'slug' => ProviderSlug::Hetzner,
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.settings.providers.update', $provider), [
+            'api_token' => 'new-secret-token',
+            'is_active' => false,
+        ])
+        ->assertRedirect();
+
+    $provider->refresh();
+
+    expect($provider->api_token)->toBe('new-secret-token');
+});
+
+test('a platform administrator can toggle a provider active status', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    /** @var Provider $provider */
+    $provider = Provider::factory()->create([
+        'slug' => ProviderSlug::Hetzner,
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.settings.providers.update', $provider), [
+            'is_active' => true,
+        ])
+        ->assertRedirect();
+
+    $provider->refresh();
+
+    expect($provider->is_active)->toBeTrue();
+});
+
+test('updating a provider without an api token does not clear the existing token', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    /** @var Provider $provider */
+    $provider = Provider::factory()->withApiToken()->create([
+        'slug' => ProviderSlug::Hetzner,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.settings.providers.update', $provider), [
+            'api_token' => '',
+            'is_active' => true,
+        ])
+        ->assertRedirect();
+
+    $provider->refresh();
+
+    expect($provider->api_token)->toBe('test-api-token');
+});
+
+test('a non-platform administrator is forbidden from updating a provider', function () {
+    /** @var User $user */
+    $user = User::factory()->create(['platform_role' => PlatformRole::Member]);
+
+    /** @var Provider $provider */
+    $provider = Provider::factory()->create();
+
+    $this->actingAs($user)
+        ->patch(route('admin.settings.providers.update', $provider), [
+            'is_active' => true,
+        ])
+        ->assertForbidden();
+});
+
+test('a guest is redirected to login when updating a provider', function () {
+    /** @var Provider $provider */
+    $provider = Provider::factory()->create();
+
+    $this->patch(route('admin.settings.providers.update', $provider), [
+        'is_active' => true,
+    ])
+        ->assertRedirect(route('login'));
+});
+
+test('updating a provider requires is_active to be a boolean', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    /** @var Provider $provider */
+    $provider = Provider::factory()->create();
+
+    $this->actingAs($admin)
+        ->patch(route('admin.settings.providers.update', $provider), [
+            'is_active' => 'not-a-boolean',
+        ])
+        ->assertSessionHasErrors('is_active');
+});

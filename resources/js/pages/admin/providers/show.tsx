@@ -1,10 +1,16 @@
+import { update as updateProvider } from '@/actions/App/Http/Controllers/Admin/ProviderController';
+import InputError from '@/components/input-error';
+import { SettingsField, SettingsSection } from '@/components/settings-section';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { SiAkamai, SiDigitalocean, SiDocker, SiHetzner, SiVultr } from '@icons-pack/react-simple-icons';
-import { Cloud, KeyRound, MapPin } from 'lucide-react';
+import { Cloud, LoaderCircle, MapPin } from 'lucide-react';
 
 interface Provider {
     id: string;
@@ -27,6 +33,9 @@ interface PlatformRegion {
 interface ShowProviderPageProps {
     provider: Provider;
     regions: PlatformRegion[];
+    can: {
+        update: boolean;
+    };
 }
 
 const adminTabs = [
@@ -67,8 +76,13 @@ function ProviderLogo({ slug }: { slug: string }) {
     );
 }
 
-export default function Show({ provider, regions }: ShowProviderPageProps) {
+export default function Show({ provider, regions, can }: ShowProviderPageProps) {
     const currentSection = 'overview';
+
+    const settingsForm = useForm({
+        api_token: '',
+        is_active: provider.is_active,
+    });
 
     return (
         <AppLayout tabs={adminTabs}>
@@ -108,39 +122,38 @@ export default function Show({ provider, regions }: ShowProviderPageProps) {
                 <div className="mt-8 w-[calc(768px+6rem)] max-w-none pt-6 pr-0 pb-20 pl-6 xl:px-12">
                     <div className="mx-auto flex w-full items-start justify-center">
                         <div className="w-full space-y-6">
-                            {/* Header card */}
-                            <div className="rounded-lg border bg-card p-6">
-                                <div className="flex items-center gap-4">
-                                    <ProviderLogo slug={provider.slug} />
-                                    <div className="flex-1">
-                                        <h1 className="text-lg font-semibold">{provider.name}</h1>
-                                        <p className="text-muted-foreground text-sm">Platform cloud provider</p>
+                            {/* Overview card */}
+                            <SettingsSection title="Overview" description="General information about this provider.">
+                                <SettingsField label="Provider" description="The cloud infrastructure provider.">
+                                    <div className="flex items-center gap-3">
+                                        <ProviderLogo slug={provider.slug} />
+                                        <span className="text-sm font-medium">{provider.name}</span>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        {provider.is_active ? (
-                                            <Badge variant="outline" className="gap-1.5">
-                                                <div className="size-2 rounded-full bg-emerald-500" />
-                                                Active
-                                            </Badge>
-                                        ) : (
-                                            <Badge variant="outline" className="gap-1.5 text-muted-foreground">
-                                                <div className="size-2 rounded-full bg-muted-foreground/40" />
-                                                Inactive
-                                            </Badge>
-                                        )}
-                                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                            <KeyRound className="size-3.5" />
-                                            {provider.has_api_token ? 'Token configured' : 'No token'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                </SettingsField>
+
+                                <SettingsField label="Status" description="Whether this provider is currently active.">
+                                    {provider.is_active ? (
+                                        <Badge variant="outline" className="gap-1.5">
+                                            <div className="size-2 rounded-full bg-emerald-500" />
+                                            Active
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="outline" className="gap-1.5 text-muted-foreground">
+                                            <div className="size-2 rounded-full bg-muted-foreground/40" />
+                                            Inactive
+                                        </Badge>
+                                    )}
+                                </SettingsField>
+
+                                <SettingsField label="API token" description="Whether an API token has been configured.">
+                                    <Badge variant="outline" className={provider.has_api_token ? '' : 'text-muted-foreground'}>
+                                        {provider.has_api_token ? 'Configured' : 'Not configured'}
+                                    </Badge>
+                                </SettingsField>
+                            </SettingsSection>
 
                             {/* Regions */}
-                            <div className="rounded-lg border bg-card">
-                                <div className="border-b px-6 py-4">
-                                    <h2 className="text-sm font-medium">Regions ({regions.length})</h2>
-                                </div>
+                            <SettingsSection title="Regions" description={`Regions available for ${provider.name}.`}>
                                 {regions.length === 0 ? (
                                     <div className="px-6 py-8">
                                         <Empty>
@@ -156,36 +169,89 @@ export default function Show({ provider, regions }: ShowProviderPageProps) {
                                         </Empty>
                                     </div>
                                 ) : (
-                                    <div className="divide-y">
-                                        {regions.map((region) => (
-                                            <div key={region.id} className="flex items-center justify-between px-6 py-3">
-                                                <div>
-                                                    <span className="text-sm font-medium">{region.name}</span>
-                                                    <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                                                        <code className="rounded bg-muted px-1 py-0.5">{region.slug}</code>
-                                                        {region.country && region.city && (
-                                                            <span>
-                                                                {region.city}, {region.country}
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                    regions.map((region) => (
+                                        <div key={region.id} className="flex items-center justify-between p-5 sm:px-6">
+                                            <div>
+                                                <span className="text-sm font-medium">{region.name}</span>
+                                                <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                                                    <code className="rounded bg-muted px-1 py-0.5">{region.slug}</code>
+                                                    {region.country && region.city && (
+                                                        <span>
+                                                            {region.city}, {region.country}
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                {region.is_available ? (
-                                                    <Badge variant="outline" className="gap-1.5">
-                                                        <div className="size-2 rounded-full bg-emerald-500" />
-                                                        Available
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="outline" className="gap-1.5 text-muted-foreground">
-                                                        <div className="size-2 rounded-full bg-muted-foreground/40" />
-                                                        Unavailable
-                                                    </Badge>
-                                                )}
                                             </div>
-                                        ))}
-                                    </div>
+                                            {region.is_available ? (
+                                                <Badge variant="outline" className="gap-1.5">
+                                                    <div className="size-2 rounded-full bg-emerald-500" />
+                                                    Available
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="gap-1.5 text-muted-foreground">
+                                                    <div className="size-2 rounded-full bg-muted-foreground/40" />
+                                                    Unavailable
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    ))
                                 )}
-                            </div>
+                            </SettingsSection>
+
+                            {/* Settings */}
+                            <form
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    settingsForm.patch(updateProvider.url(provider.id), {
+                                        preserveScroll: true,
+                                        onSuccess: () => settingsForm.reset('api_token'),
+                                    });
+                                }}
+                            >
+                                <SettingsSection title="Settings" description="Configure API credentials and activation status.">
+                                    <SettingsField
+                                        label="API token"
+                                        description="The API token used to sync catalog data from this provider."
+                                        htmlFor="api_token"
+                                    >
+                                        <div className="w-[260px] space-y-2">
+                                            <Input
+                                                id="api_token"
+                                                type="password"
+                                                placeholder={provider.has_api_token ? '••••••••' : 'Enter API token'}
+                                                value={settingsForm.data.api_token}
+                                                onChange={(event) => settingsForm.setData('api_token', event.target.value)}
+                                                disabled={!can.update || settingsForm.processing}
+                                            />
+                                            <InputError message={settingsForm.errors.api_token} />
+                                        </div>
+                                    </SettingsField>
+
+                                    <SettingsField
+                                        label="Active"
+                                        description="Enable this provider for use across the platform."
+                                        htmlFor="is_active"
+                                    >
+                                        <Switch
+                                            id="is_active"
+                                            checked={settingsForm.data.is_active}
+                                            onCheckedChange={(checked) => settingsForm.setData('is_active', checked)}
+                                            disabled={!can.update || settingsForm.processing}
+                                        />
+                                    </SettingsField>
+
+                                    <div className="bg-muted/20 border-border/70 flex items-center justify-end border-t px-4 py-2.5 sm:px-5">
+                                        <Button
+                                            type="submit"
+                                            size="sm"
+                                            disabled={!can.update || settingsForm.processing || !settingsForm.isDirty}
+                                        >
+                                            {settingsForm.processing && <LoaderCircle className="size-4 animate-spin" />}
+                                            Save changes
+                                        </Button>
+                                    </div>
+                                </SettingsSection>
+                            </form>
                         </div>
                     </div>
                 </div>
