@@ -1,8 +1,9 @@
+import { SettingsSection } from '@/components/settings-section';
 import { Badge } from '@/components/ui/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import AdminSettingsLayout from '@/layouts/admin-settings-layout';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { SiAkamai, SiDigitalocean, SiDocker, SiHetzner, SiVultr } from '@icons-pack/react-simple-icons';
 import { Cloud, KeyRound } from 'lucide-react';
 
@@ -56,57 +57,54 @@ export default function Index({ providers }: ProvidersPageProps) {
         <AppLayout tabs={adminTabs}>
             <Head title="Providers" />
             <AdminSettingsLayout>
-                <div>
-                    <h1 className="text-2xl font-bold">Providers</h1>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                        Platform cloud providers available for provisioning infrastructure.
-                    </p>
-                </div>
-
-                {providers.length === 0 ? (
-                    <Empty>
-                        <EmptyHeader>
-                            <EmptyMedia variant="icon">
-                                <Cloud className="size-6" />
-                            </EmptyMedia>
-                            <EmptyTitle>No providers</EmptyTitle>
-                            <EmptyDescription>No cloud providers have been configured yet.</EmptyDescription>
-                        </EmptyHeader>
-                    </Empty>
-                ) : (
-                    <div className="flex flex-col gap-3">
-                        {providers.map((provider) => (
-                            <div key={provider.id} className="rounded-lg border bg-card p-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <ProviderLogo slug={provider.slug} />
-                                        <div>
-                                            <span className="font-semibold">{provider.name}</span>
-                                            <div className="mt-1 flex items-center gap-2">
-                                                {provider.is_active ? (
-                                                    <Badge variant="outline" className="gap-1.5">
-                                                        <div className="size-2 rounded-full bg-emerald-500" />
-                                                        Active
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="outline" className="gap-1.5 text-muted-foreground">
-                                                        <div className="size-2 rounded-full bg-muted-foreground/40" />
-                                                        Inactive
-                                                    </Badge>
-                                                )}
-                                            </div>
+                <SettingsSection title="Providers" description="Platform cloud providers available for provisioning infrastructure.">
+                    {providers.length === 0 ? (
+                        <div className="px-6 py-8">
+                            <Empty>
+                                <EmptyHeader>
+                                    <EmptyMedia variant="icon">
+                                        <Cloud className="size-6" />
+                                    </EmptyMedia>
+                                    <EmptyTitle>No providers</EmptyTitle>
+                                    <EmptyDescription>No cloud providers have been configured yet.</EmptyDescription>
+                                </EmptyHeader>
+                            </Empty>
+                        </div>
+                    ) : (
+                        providers.map((provider) => (
+                            <Link
+                                key={provider.id}
+                                href={`/admin/settings/providers/${provider.id}`}
+                                className="flex items-center justify-between p-5 transition-colors hover:bg-muted/30 sm:px-6"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <ProviderLogo slug={provider.slug} />
+                                    <div>
+                                        <span className="text-sm font-medium">{provider.name}</span>
+                                        <div className="mt-1 flex items-center gap-2">
+                                            {provider.is_active ? (
+                                                <Badge variant="outline" className="gap-1.5">
+                                                    <div className="size-2 rounded-full bg-emerald-500" />
+                                                    Active
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="gap-1.5 text-muted-foreground">
+                                                    <div className="size-2 rounded-full bg-muted-foreground/40" />
+                                                    Inactive
+                                                </Badge>
+                                            )}
                                         </div>
                                     </div>
-
-                                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                        <KeyRound className="size-3.5" />
-                                        {provider.has_api_token ? 'Token configured' : 'No token'}
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+
+                                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                    <KeyRound className="size-3.5" />
+                                    {provider.has_api_token ? 'Token configured' : 'No token'}
+                                </div>
+                            </Link>
+                        ))
+                    )}
+                </SettingsSection>
             </AdminSettingsLayout>
         </AppLayout>
     );

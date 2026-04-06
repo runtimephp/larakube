@@ -10,6 +10,7 @@ use Database\Factories\ProviderFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property-read string $id
@@ -26,6 +27,12 @@ final class Provider extends Model
     use HasFactory;
 
     use HasUuids;
+
+    /** @return HasMany<PlatformRegion, $this> */
+    public function regions(): HasMany
+    {
+        return $this->hasMany(PlatformRegion::class);
+    }
 
     /**
      * @return array<string, string>
