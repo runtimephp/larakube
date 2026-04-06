@@ -16,7 +16,6 @@ use App\Http\Resources\ProviderResource;
 use App\Models\Provider;
 use App\Queries\ProviderQuery;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -46,9 +45,6 @@ final class ProviderController
         ]);
     }
 
-    /**
-     * @throws ValidationException
-     */
     public function store(StoreProviderRequest $request, StoreProvider $storeProvider): RedirectResponse
     {
         $provider = $storeProvider->handle(
@@ -70,9 +66,6 @@ final class ProviderController
         ]);
     }
 
-    /**
-     * @throws ValidationException
-     */
     public function update(UpdateProviderRequest $request, Provider $provider, UpdateProvider $updateProvider): RedirectResponse
     {
         $updateProvider->handle(

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::index
-* @see app/Http/Controllers/Admin/ProviderController.php:20
+* @see app/Http/Controllers/Admin/ProviderController.php:25
 * @route '/admin/settings/providers'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::index
-* @see app/Http/Controllers/Admin/ProviderController.php:20
+* @see app/Http/Controllers/Admin/ProviderController.php:25
 * @route '/admin/settings/providers'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::index
-* @see app/Http/Controllers/Admin/ProviderController.php:20
+* @see app/Http/Controllers/Admin/ProviderController.php:25
 * @route '/admin/settings/providers'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::index
-* @see app/Http/Controllers/Admin/ProviderController.php:20
+* @see app/Http/Controllers/Admin/ProviderController.php:25
 * @route '/admin/settings/providers'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,8 +44,42 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
 /**
+* @see \App\Http\Controllers\Admin\ProviderController::store
+* @see app/Http/Controllers/Admin/ProviderController.php:52
+* @route '/admin/settings/providers'
+*/
+export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: store.url(options),
+    method: 'post',
+})
+
+store.definition = {
+    methods: ["post"],
+    url: '/admin/settings/providers',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Admin\ProviderController::store
+* @see app/Http/Controllers/Admin/ProviderController.php:52
+* @route '/admin/settings/providers'
+*/
+store.url = (options?: RouteQueryOptions) => {
+    return store.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Admin\ProviderController::store
+* @see app/Http/Controllers/Admin/ProviderController.php:52
+* @route '/admin/settings/providers'
+*/
+store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: store.url(options),
+    method: 'post',
+})
+
+/**
 * @see \App\Http\Controllers\Admin\ProviderController::show
-* @see app/Http/Controllers/Admin/ProviderController.php:29
+* @see app/Http/Controllers/Admin/ProviderController.php:62
 * @route '/admin/settings/providers/{provider}'
 */
 export const show = (args: { provider: string | { id: string } } | [provider: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -60,7 +94,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::show
-* @see app/Http/Controllers/Admin/ProviderController.php:29
+* @see app/Http/Controllers/Admin/ProviderController.php:62
 * @route '/admin/settings/providers/{provider}'
 */
 show.url = (args: { provider: string | { id: string } } | [provider: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
@@ -93,7 +127,7 @@ show.url = (args: { provider: string | { id: string } } | [provider: string | { 
 
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::show
-* @see app/Http/Controllers/Admin/ProviderController.php:29
+* @see app/Http/Controllers/Admin/ProviderController.php:62
 * @route '/admin/settings/providers/{provider}'
 */
 show.get = (args: { provider: string | { id: string } } | [provider: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -103,7 +137,7 @@ show.get = (args: { provider: string | { id: string } } | [provider: string | { 
 
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::show
-* @see app/Http/Controllers/Admin/ProviderController.php:29
+* @see app/Http/Controllers/Admin/ProviderController.php:62
 * @route '/admin/settings/providers/{provider}'
 */
 show.head = (args: { provider: string | { id: string } } | [provider: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -113,7 +147,7 @@ show.head = (args: { provider: string | { id: string } } | [provider: string | {
 
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::update
-* @see app/Http/Controllers/Admin/ProviderController.php:40
+* @see app/Http/Controllers/Admin/ProviderController.php:76
 * @route '/admin/settings/providers/{provider}'
 */
 export const update = (args: { provider: string | { id: string } } | [provider: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -128,7 +162,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::update
-* @see app/Http/Controllers/Admin/ProviderController.php:40
+* @see app/Http/Controllers/Admin/ProviderController.php:76
 * @route '/admin/settings/providers/{provider}'
 */
 update.url = (args: { provider: string | { id: string } } | [provider: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
@@ -161,7 +195,7 @@ update.url = (args: { provider: string | { id: string } } | [provider: string | 
 
 /**
 * @see \App\Http\Controllers\Admin\ProviderController::update
-* @see app/Http/Controllers/Admin/ProviderController.php:40
+* @see app/Http/Controllers/Admin/ProviderController.php:76
 * @route '/admin/settings/providers/{provider}'
 */
 update.patch = (args: { provider: string | { id: string } } | [provider: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -169,6 +203,6 @@ update.patch = (args: { provider: string | { id: string } } | [provider: string 
     method: 'patch',
 })
 
-const ProviderController = { index, show, update }
+const ProviderController = { index, store, show, update }
 
 export default ProviderController

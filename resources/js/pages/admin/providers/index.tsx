@@ -90,6 +90,8 @@ export default function Index({ providers, availableSlugs, can }: ProvidersPageP
     const selectProvider = (slug: AvailableSlug) => {
         setSelectedSlug(slug);
         createForm.setData('slug', slug.value);
+        createForm.setData('api_token', '');
+        createForm.clearErrors();
         setDialogStep('form');
     };
 
