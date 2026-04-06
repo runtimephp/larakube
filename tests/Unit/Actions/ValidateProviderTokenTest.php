@@ -72,7 +72,7 @@ test('it fails when the provider api is unreachable', function () {
         ->and($validator->errors()->first('api_token'))->toContain('try again');
 });
 
-test('it skips validation for providers without a validation service', function () {
+test('it fails for providers without a validation service', function () {
     Http::fake();
 
     $validator = Validator::make(
@@ -80,7 +80,8 @@ test('it skips validation for providers without a validation service', function 
         ['api_token' => [new ValidProviderToken(ProviderSlug::Aws)]],
     );
 
-    expect($validator->passes())->toBeTrue();
+    expect($validator->passes())->toBeFalse()
+        ->and($validator->errors()->first('api_token'))->toContain('not supported');
 
     Http::assertNothingSent();
 });

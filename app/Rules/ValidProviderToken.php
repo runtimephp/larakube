@@ -25,13 +25,11 @@ final readonly class ValidProviderToken implements ValidationRule
             return;
         }
 
-        $type = match ($this->slug) {
-            ProviderSlug::Hetzner => CloudProviderType::Hetzner,
-            ProviderSlug::DigitalOcean => CloudProviderType::DigitalOcean,
-            default => null,
-        };
+        $type = CloudProviderType::tryFrom($this->slug->value);
 
-        if ($type === null) {
+        if (! $type instanceof CloudProviderType) {
+            $fail("Token validation is not supported for {$this->slug->label()}.");
+
             return;
         }
 
