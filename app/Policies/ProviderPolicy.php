@@ -15,6 +15,11 @@ final class ProviderPolicy
         return $user->platform_role === PlatformRole::Admin;
     }
 
+    public function create(User $user): bool
+    {
+        return $user->platform_role === PlatformRole::Admin;
+    }
+
     public function view(User $user, Provider $provider): bool
     {
         return $user->platform_role === PlatformRole::Admin;

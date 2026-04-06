@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])
         Route::prefix('settings')->as('settings.')->group(function () {
             Route::prefix('providers')->as('providers.')->group(function () {
                 Route::get('/', [ProviderController::class, 'index'])->name('index');
+                Route::post('/', [ProviderController::class, 'store'])->name('store');
                 Route::get('/{provider}', [ProviderController::class, 'show'])->name('show');
                 Route::patch('/{provider}', [ProviderController::class, 'update'])->name('update');
             });

@@ -7,6 +7,7 @@ use App\Enums\ProviderSlug;
 use App\Models\PlatformRegion;
 use App\Models\Provider;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('a platform administrator can view the providers list', function () {
@@ -189,6 +190,8 @@ test('the show page includes the can update permission', function () {
 });
 
 test('a platform administrator can update a provider api token', function () {
+    Http::fake(['api.hetzner.cloud/*' => Http::response([], 200)]);
+
     /** @var User $admin */
     $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
 
@@ -208,6 +211,26 @@ test('a platform administrator can update a provider api token', function () {
     $provider->refresh();
 
     expect($provider->api_token)->toBe('new-secret-token');
+});
+
+test('updating a provider with an invalid api token is rejected', function () {
+    Http::fake(['api.hetzner.cloud/*' => Http::response([], 403)]);
+
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    /** @var Provider $provider */
+    $provider = Provider::factory()->create([
+        'slug' => ProviderSlug::Hetzner,
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.settings.providers.update', $provider), [
+            'api_token' => 'bad-token',
+            'is_active' => false,
+        ])
+        ->assertSessionHasErrors('api_token');
 });
 
 test('a platform administrator can toggle a provider active status', function () {
@@ -289,4 +312,137 @@ test('updating a provider requires is_active to be a boolean', function () {
             'is_active' => 'not-a-boolean',
         ])
         ->assertSessionHasErrors('is_active');
+});
+
+test('the index page includes available slugs and can create permission', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    Provider::factory()->create(['slug' => ProviderSlug::Hetzner]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.settings.providers.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('admin/providers/index')
+            ->where('can.create', true)
+            ->has('availableSlugs', 5)
+            ->where('availableSlugs.0.value', 'digital_ocean')
+            ->where('availableSlugs.0.label', 'DigitalOcean')
+        );
+});
+
+test('a platform administrator can create a provider from a valid slug', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.settings.providers.store'), [
+            'slug' => 'hetzner',
+        ])
+        ->assertRedirect();
+
+    /** @var Provider $provider */
+    $provider = Provider::query()->where('slug', 'hetzner')->sole();
+
+    expect($provider->name)->toBe('Hetzner')
+        ->and($provider->slug)->toBe(ProviderSlug::Hetzner)
+        ->and($provider->is_active)->toBeFalse();
+});
+
+test('a platform administrator can create a provider with an api token', function () {
+    Http::fake(['api.hetzner.cloud/*' => Http::response([], 200)]);
+
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.settings.providers.store'), [
+            'slug' => 'hetzner',
+            'api_token' => 'my-secret-token',
+        ])
+        ->assertRedirect();
+
+    /** @var Provider $provider */
+    $provider = Provider::query()->where('slug', 'hetzner')->sole();
+
+    expect($provider->api_token)->toBe('my-secret-token');
+});
+
+test('creating a provider with an invalid api token is rejected', function () {
+    Http::fake(['api.hetzner.cloud/*' => Http::response([], 403)]);
+
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.settings.providers.store'), [
+            'slug' => 'hetzner',
+            'api_token' => 'bad-token',
+        ])
+        ->assertSessionHasErrors('api_token');
+
+    expect(Provider::query()->count())->toBe(0);
+});
+
+test('creating a provider derives the name from the slug label', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.settings.providers.store'), [
+            'slug' => 'digital_ocean',
+        ])
+        ->assertRedirect();
+
+    /** @var Provider $provider */
+    $provider = Provider::query()->where('slug', 'digital_ocean')->sole();
+
+    expect($provider->name)->toBe('DigitalOcean');
+});
+
+test('creating a provider with an invalid slug is rejected', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.settings.providers.store'), [
+            'slug' => 'invalid-provider',
+        ])
+        ->assertSessionHasErrors('slug');
+
+    expect(Provider::query()->count())->toBe(0);
+});
+
+test('creating a provider with a duplicate slug is rejected', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    Provider::factory()->create(['slug' => ProviderSlug::Hetzner]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.settings.providers.store'), [
+            'slug' => 'hetzner',
+        ])
+        ->assertSessionHasErrors('slug');
+
+    expect(Provider::query()->where('slug', 'hetzner')->count())->toBe(1);
+});
+
+test('a non-platform administrator is forbidden from creating a provider', function () {
+    /** @var User $user */
+    $user = User::factory()->create(['platform_role' => PlatformRole::Member]);
+
+    $this->actingAs($user)
+        ->post(route('admin.settings.providers.store'), [
+            'slug' => 'hetzner',
+        ])
+        ->assertForbidden();
+});
+
+test('a guest is redirected to login when creating a provider', function () {
+    $this->post(route('admin.settings.providers.store'), [
+        'slug' => 'hetzner',
+    ])
+        ->assertRedirect(route('login'));
 });
