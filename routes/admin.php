@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified'])
             Route::prefix('providers')->as('providers.')->group(function () {
                 Route::get('/', [ProviderController::class, 'index'])->name('index');
                 Route::get('/{provider}', [ProviderController::class, 'show'])->name('show');
+                Route::patch('/{provider}', [ProviderController::class, 'update'])->name('update');
             });
         });
     });

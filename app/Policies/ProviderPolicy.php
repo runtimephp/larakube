@@ -19,4 +19,9 @@ final class ProviderPolicy
     {
         return $user->platform_role === PlatformRole::Admin;
     }
+
+    public function update(User $user, Provider $provider): bool
+    {
+        return $user->platform_role === PlatformRole::Admin;
+    }
 }
