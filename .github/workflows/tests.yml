@@ -31,16 +31,10 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install Node Dependencies
-        run: npm ci
-
-      - name: Build Assets
-        run: npm run build
-
       - name: Create SQLite Database
         run: touch database/database.sqlite
 
-      - name: Install Dependencies
+      - name: Install Composer Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Copy Environment File
@@ -48,6 +42,15 @@ jobs:
 
       - name: Generate Application Key
         run: php artisan key:generate
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Generate Wayfinder Routes
+        run: php artisan wayfinder:generate
+
+      - name: Build Assets
+        run: npm run build
 
       - name: Tests
         run: composer test
