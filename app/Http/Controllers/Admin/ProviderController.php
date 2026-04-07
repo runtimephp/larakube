@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\StoreProvider;
+use App\Actions\CreateProvider;
 use App\Actions\UpdateProvider;
 use App\Enums\ProviderSlug;
 use App\Http\Requests\Admin\IndexProviderRequest;
@@ -45,7 +45,7 @@ final class ProviderController
         ]);
     }
 
-    public function store(StoreProviderRequest $request, StoreProvider $storeProvider): RedirectResponse
+    public function store(StoreProviderRequest $request, CreateProvider $storeProvider): RedirectResponse
     {
         $provider = $storeProvider->handle(
             $request->enum('slug', ProviderSlug::class),

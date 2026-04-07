@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Actions\StoreProvider;
+use App\Actions\CreateProvider;
 use App\Enums\ProviderSlug;
 use App\Models\Provider;
 
 test('it creates a provider without an api token', function () {
-    /** @var StoreProvider $action */
-    $action = app(StoreProvider::class);
+    /** @var CreateProvider $action */
+    $action = app(CreateProvider::class);
 
     $provider = $action->handle(ProviderSlug::Hetzner, '');
 
@@ -21,8 +21,8 @@ test('it creates a provider without an api token', function () {
 });
 
 test('it creates a provider with an api token', function () {
-    /** @var StoreProvider $action */
-    $action = app(StoreProvider::class);
+    /** @var CreateProvider $action */
+    $action = app(CreateProvider::class);
 
     $provider = $action->handle(ProviderSlug::Hetzner, 'some-token');
 
@@ -34,8 +34,8 @@ test('it creates a provider with an api token', function () {
 });
 
 test('it sets the provider name from the slug label', function () {
-    /** @var StoreProvider $action */
-    $action = app(StoreProvider::class);
+    /** @var CreateProvider $action */
+    $action = app(CreateProvider::class);
 
     $provider = $action->handle(ProviderSlug::DigitalOcean, '');
 
@@ -43,8 +43,8 @@ test('it sets the provider name from the slug label', function () {
 });
 
 test('it sets the provider as inactive by default', function () {
-    /** @var StoreProvider $action */
-    $action = app(StoreProvider::class);
+    /** @var CreateProvider $action */
+    $action = app(CreateProvider::class);
 
     $provider = $action->handle(ProviderSlug::Aws, '');
 

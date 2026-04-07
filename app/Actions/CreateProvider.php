@@ -7,7 +7,7 @@ namespace App\Actions;
 use App\Enums\ProviderSlug;
 use App\Models\Provider;
 
-final readonly class StoreProvider
+final readonly class CreateProvider
 {
     public function handle(ProviderSlug $slug, string $apiToken): Provider
     {
