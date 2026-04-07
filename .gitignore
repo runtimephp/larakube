@@ -26,3 +26,5 @@ yarn-error.log
 agents
 .claude/settings.local.json
 .agents/
+resources/js/routes
+resources/js/actions
