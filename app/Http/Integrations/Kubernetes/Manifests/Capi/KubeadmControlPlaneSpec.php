@@ -16,8 +16,11 @@ final readonly class KubeadmControlPlaneSpec
         public int $replicas,
         public string $version,
         public ObjectReference $infrastructureRef,
-        public array $controllerManagerExtraArgs = ['enable-hostpath-provisioner' => 'true'],
-        public array $kubeletExtraArgs = ['eviction-hard' => 'nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%'],
+        public array $controllerManagerExtraArgs = ['cloud-provider' => 'external'],
+        public array $kubeletExtraArgs = [
+            'cloud-provider' => 'external',
+            'eviction-hard' => 'nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%',
+        ],
     ) {}
 
     /**

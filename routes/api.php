@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\InfrastructureController;
 use App\Http\Controllers\Api\V1\ManagementClusterController;
 use App\Http\Controllers\Api\V1\ManagementClusterKubeconfigController;
 use App\Http\Controllers\Api\V1\ManagementClusterReadyController;
+use App\Http\Controllers\Api\V1\ManagementClusterSshKeyController;
 use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\RegisterController;
 use App\Http\Controllers\Api\V1\ServerController;
@@ -40,6 +41,9 @@ Route::prefix('v1')->as('api.v1.')->group(function (): void {
 
         Route::patch('management-clusters/{management_cluster}/ready', [ManagementClusterReadyController::class, 'update'])
             ->name('management-clusters.ready');
+
+        Route::patch('management-clusters/{management_cluster}/ssh-key', [ManagementClusterSshKeyController::class, 'update'])
+            ->name('management-clusters.ssh-key');
 
         Route::middleware(ResolveOrganization::class)->group(function (): void {
             Route::apiResource('cloud-providers', CloudProviderController::class)

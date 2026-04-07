@@ -15,7 +15,7 @@ test('serializes and exposes routing metadata',
     function (): void {
         $manifest = new HetznerClusterManifest(
             metadata: new ManifestMetadata(name: 'prod-cluster', namespace: 'kuven-org-123'),
-            spec: new HetznerClusterSpec(controlPlaneRegion: 'nuremberg', sshKeyName: 'prod-cluster'),
+            spec: new HetznerClusterSpec(controlPlaneRegions: ['nuremberg'], hetznerSecretName: 'prod-secret'),
         );
 
         expect($manifest->apiVersion())->toBe(ApiVersion::CapiInfrastructureV1Beta1)
@@ -23,8 +23,8 @@ test('serializes and exposes routing metadata',
             ->and($manifest->resource())->toBe('hetznerclusters')
             ->and($manifest->namespace())->toBe('kuven-org-123')
             ->and($manifest->isClusterScoped())->toBeFalse()
-            ->and($manifest->toArray()['spec']['controlPlaneRegion'])->toBe('nuremberg')
-            ->and($manifest->toArray()['spec']['sshKeys']['hcloud'])->toBe(['prod-cluster']);
+            ->and($manifest->toArray()['spec']['controlPlaneRegions'])->toBe(['nuremberg'])
+            ->and($manifest->toArray()['spec']['hetznerSecretRef']['name'])->toBe('prod-secret');
     });
 
 test('rejects missing namespace',
@@ -34,7 +34,7 @@ test('rejects missing namespace',
     function (): void {
         expect(fn () => new HetznerClusterManifest(
             metadata: new ManifestMetadata(name: 'x'),
-            spec: new HetznerClusterSpec(controlPlaneRegion: 'nbg1', sshKeyName: 'x'),
+            spec: new HetznerClusterSpec(controlPlaneRegions: ['nbg1'], hetznerSecretName: 'x'),
         ))->toThrow(InvalidArgumentException::class);
     });
 
@@ -44,30 +44,67 @@ test('spec serializes with custom ssh key',
      */
     function (): void {
         $spec = new HetznerClusterSpec(
-            controlPlaneRegion: 'falkenstein',
+            controlPlaneRegions: ['falkenstein'],
+            hetznerSecretName: 'my-secret',
             sshKeyName: 'my-key',
         );
 
-        expect($spec->toArray())->toBe([
-            'controlPlaneRegion' => 'falkenstein',
-            'sshKeys' => ['hcloud' => ['my-key']],
+        expect($spec->toArray()['sshKeys']['hcloud'])->toBe([['name' => 'my-key']]);
+    });
+
+test('spec rejects empty controlPlaneRegions',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        expect(fn () => new HetznerClusterSpec(controlPlaneRegions: [], hetznerSecretName: 'x'))
+            ->toThrow(InvalidArgumentException::class);
+    });
+
+test('spec rejects empty hetznerSecretName',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        expect(fn () => new HetznerClusterSpec(controlPlaneRegions: ['nbg1'], hetznerSecretName: ''))
+            ->toThrow(InvalidArgumentException::class);
+    });
+
+test('spec omits sshKeys names when sshKeyName is null',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $spec = new HetznerClusterSpec(controlPlaneRegions: ['nbg1'], hetznerSecretName: 'x');
+
+        expect($spec->toArray()['sshKeys']['hcloud'])->toBe([]);
+    });
+
+test('spec includes hetznerSecretRef with robot keys',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $spec = new HetznerClusterSpec(controlPlaneRegions: ['nbg1'], hetznerSecretName: 'my-secret');
+
+        expect($spec->toArray()['hetznerSecretRef'])->toBe([
+            'key' => [
+                'hcloudToken' => 'hcloud',
+                'hetznerRobotUser' => 'robot-user',
+                'hetznerRobotPassword' => 'robot-password',
+            ],
+            'name' => 'my-secret',
         ]);
     });
 
-test('spec rejects empty controlPlaneRegion',
+test('spec includes controlPlaneLoadBalancer with region',
     /**
      * @throws Throwable
      */
     function (): void {
-        expect(fn () => new HetznerClusterSpec(controlPlaneRegion: '', sshKeyName: 'key'))
-            ->toThrow(InvalidArgumentException::class);
-    });
+        $spec = new HetznerClusterSpec(controlPlaneRegions: ['fsn1'], hetznerSecretName: 'x');
 
-test('spec rejects empty sshKeyName',
-    /**
-     * @throws Throwable
-     */
-    function (): void {
-        expect(fn () => new HetznerClusterSpec(controlPlaneRegion: 'nbg1', sshKeyName: ''))
-            ->toThrow(InvalidArgumentException::class);
+        expect($spec->toArray()['controlPlaneLoadBalancer'])->toBe([
+            'region' => 'fsn1',
+        ]);
     });

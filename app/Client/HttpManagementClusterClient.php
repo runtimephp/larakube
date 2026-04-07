@@ -47,6 +47,13 @@ final readonly class HttpManagementClusterClient implements ManagementClusterCli
         ]);
     }
 
+    public function storeSshPrivateKey(string $id, string $sshPrivateKey): void
+    {
+        $this->client->patch("/api/v1/management-clusters/{$id}/ssh-key", [
+            'ssh_private_key' => $sshPrivateKey,
+        ]);
+    }
+
     public function markReady(string $id): void
     {
         $this->client->patch("/api/v1/management-clusters/{$id}/ready");

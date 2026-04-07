@@ -235,3 +235,26 @@ test('ready update marks cluster as ready',
 
         expect($cluster->status->value)->toBe('ready');
     });
+
+test('ssh key update stores encrypted ssh private key',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        /** @var User $user */
+        $user = User::factory()->admin()->create();
+
+        /** @var ManagementCluster $cluster */
+        $cluster = ManagementCluster::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->patchJson(route('api.v1.management-clusters.ssh-key', $cluster), [
+                'ssh_private_key' => 'fake-private-key-content',
+            ]);
+
+        $response->assertNoContent();
+
+        $cluster->refresh();
+
+        expect($cluster->ssh_private_key)->toBe('fake-private-key-content');
+    });

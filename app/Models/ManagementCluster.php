@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read string $region
  * @property-read string $provider
  * @property-read string|null $kubeconfig
+ * @property-read string|null $ssh_private_key
  * @property-read ManagementClusterStatus $status
  * @property-read string $kubernetes_version
  */
@@ -42,6 +43,7 @@ final class ManagementCluster extends Model
             'region' => 'string',
             'provider' => 'string',
             'kubeconfig' => 'encrypted',
+            'ssh_private_key' => 'encrypted',
             'status' => ManagementClusterStatus::class,
         ];
     }

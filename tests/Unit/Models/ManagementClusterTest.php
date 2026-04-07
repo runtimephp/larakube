@@ -89,5 +89,6 @@ test('to array has all fields in correct order',
                 'kubeconfig',
                 'status',
                 'kubernetes_version',
+                'ssh_private_key',
             ]);
     });
