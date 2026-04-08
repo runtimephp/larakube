@@ -95,7 +95,42 @@ test('has_api_token is false when a provider has no api token', function () {
         );
 });
 
-test('a platform administrator can view a single provider with regions', function () {
+test('the show route redirects to overview', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    /** @var Provider $provider */
+    $provider = Provider::factory()->create();
+
+    $this->actingAs($admin)
+        ->get(route('admin.settings.providers.show', $provider))
+        ->assertRedirect(route('admin.settings.providers.overview', $provider));
+});
+
+test('a platform administrator can view the provider overview', function () {
+    /** @var User $admin */
+    $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
+
+    /** @var Provider $provider */
+    $provider = Provider::factory()->active()->create([
+        'name' => 'Hetzner',
+        'slug' => ProviderSlug::Hetzner,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.settings.providers.overview', $provider))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('admin/providers/overview')
+            ->where('provider.id', $provider->id)
+            ->where('provider.name', 'Hetzner')
+            ->where('provider.slug', 'hetzner')
+            ->where('provider.is_active', true)
+            ->has('provider.created_at')
+        );
+});
+
+test('a platform administrator can view the provider regions', function () {
     /** @var User $admin */
     $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
 
@@ -116,15 +151,11 @@ test('a platform administrator can view a single provider with regions', functio
     ]);
 
     $this->actingAs($admin)
-        ->get(route('admin.settings.providers.show', $provider))
+        ->get(route('admin.settings.providers.regions', $provider))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/show')
+            ->component('admin/providers/regions')
             ->where('provider.id', $provider->id)
-            ->where('provider.name', 'Hetzner')
-            ->where('provider.slug', 'hetzner')
-            ->where('provider.is_active', true)
-            ->has('provider.created_at')
             ->has('regions', 1)
             ->where('regions.0.id', $region->id)
             ->where('regions.0.name', 'Falkenstein')
@@ -145,10 +176,10 @@ test('a platform administrator sees empty regions for a provider without regions
     ]);
 
     $this->actingAs($admin)
-        ->get(route('admin.settings.providers.show', $provider))
+        ->get(route('admin.settings.providers.regions', $provider))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/show')
+            ->component('admin/providers/regions')
             ->has('regions', 0)
         );
 });
@@ -173,7 +204,7 @@ test('a guest is redirected to login when viewing a provider', function () {
         ->assertRedirect(route('login'));
 });
 
-test('the show page includes the can update permission', function () {
+test('the settings page includes the can update permission', function () {
     /** @var User $admin */
     $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
 
@@ -181,10 +212,10 @@ test('the show page includes the can update permission', function () {
     $provider = Provider::factory()->create();
 
     $this->actingAs($admin)
-        ->get(route('admin.settings.providers.show', $provider))
+        ->get(route('admin.settings.providers.settings', $provider))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/show')
+            ->component('admin/providers/settings')
             ->where('can.update', true)
         );
 });

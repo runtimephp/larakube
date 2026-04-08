@@ -5,9 +5,10 @@ interface SettingsSectionProps {
     description?: string;
     children: React.ReactNode;
     variant?: 'default' | 'danger';
+    action?: React.ReactNode;
 }
 
-export function SettingsSection({ title, description, children, variant = 'default' }: SettingsSectionProps) {
+export function SettingsSection({ title, description, children, variant = 'default', action }: SettingsSectionProps) {
     return (
         <div className="bg-muted/55 border-border/80 rounded-2xl border p-0.75">
             <div className="flex items-center justify-between px-5 py-3 sm:px-6">
@@ -17,6 +18,7 @@ export function SettingsSection({ title, description, children, variant = 'defau
                     </h3>
                     {description && <p className="text-muted-foreground max-w-2xl text-[13px] leading-5 text-pretty">{description}</p>}
                 </div>
+                {action && <div className="shrink-0">{action}</div>}
             </div>
             <div className="divide-border/80 bg-background ring-border/70 relative divide-y overflow-hidden rounded-xl shadow-xs ring-1">
                 {children}
