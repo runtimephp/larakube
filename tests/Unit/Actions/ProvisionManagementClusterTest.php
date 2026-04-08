@@ -42,9 +42,9 @@ test('provisions a management cluster end to end',
      */
     function (): void {
         $result = $this->action->handle(new ProvisionManagementClusterData(
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
             force: false,
         ));
 
@@ -61,16 +61,16 @@ test('throws when cluster already exists and force is false',
      */
     function (): void {
         $this->action->handle(new ProvisionManagementClusterData(
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
             force: false,
         ));
 
         expect(fn () => $this->action->handle(new ProvisionManagementClusterData(
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
             force: false,
         )))->toThrow(RuntimeException::class, 'already exists');
     });
@@ -81,18 +81,18 @@ test('re-provisions with force flag',
      */
     function (): void {
         $first = $this->action->handle(new ProvisionManagementClusterData(
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
             force: false,
         ));
 
         $this->kubeconfig->setKubeconfig('kuven-mgmt-local', 'apiVersion: v1\nclusters: [updated]');
 
         $second = $this->action->handle(new ProvisionManagementClusterData(
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
             force: true,
         ));
 
@@ -108,9 +108,9 @@ test('throws when prerequisites are missing',
         $this->prereqs->setAvailable(['kind', 'kubectl', 'docker']);
 
         expect(fn () => $this->action->handle(new ProvisionManagementClusterData(
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
             force: false,
         )))->toThrow(RuntimeException::class, 'clusterctl');
     });

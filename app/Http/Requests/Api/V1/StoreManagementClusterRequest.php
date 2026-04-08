@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Enums\KubernetesVersion;
 use App\Models\ManagementCluster;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class StoreManagementClusterRequest extends FormRequest
 {
@@ -15,15 +17,15 @@ final class StoreManagementClusterRequest extends FormRequest
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, mixed>>
      */
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'provider' => ['required', 'string', 'max:255'],
-            'region' => ['required', 'string', 'max:255'],
-            'kubernetes_version' => ['required', 'string', 'max:255'],
+            'provider_id' => ['required', 'string', Rule::exists('providers', 'id')],
+            'platform_region_id' => ['required', 'string', Rule::exists('platform_regions', 'id')],
+            'version' => ['required', 'string', Rule::enum(KubernetesVersion::class)],
         ];
     }
 }

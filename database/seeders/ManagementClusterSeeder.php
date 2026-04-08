@@ -4,27 +4,33 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\KubernetesVersion;
 use App\Enums\ManagementClusterStatus;
+use App\Enums\ProviderSlug;
 use App\Models\ManagementCluster;
+use App\Models\PlatformRegion;
+use App\Models\Provider;
 use Illuminate\Database\Seeder;
 
 final class ManagementClusterSeeder extends Seeder
 {
     public function run(): void
     {
-        ManagementCluster::query()->firstOrCreate(
-            ['provider' => 'hetzner', 'region' => 'eu-central'],
-            ['name' => 'mgmt-production', 'status' => ManagementClusterStatus::Ready, 'kubernetes_version' => 'v1.32.3', 'kubeconfig' => 'apiVersion: v1\nclusters:\n- cluster:\n    server: https://127.0.0.1:6443'],
-        );
+        /** @var Provider $hetzner */
+        $hetzner = Provider::query()->where('slug', ProviderSlug::Hetzner)->sole();
+
+        /** @var PlatformRegion $region */
+        $region = $hetzner->regions()->where('slug', 'fsn1')->sole();
 
         ManagementCluster::query()->firstOrCreate(
-            ['provider' => 'hetzner', 'region' => 'us-east'],
-            ['name' => 'mgmt-staging', 'status' => ManagementClusterStatus::Ready, 'kubernetes_version' => 'v1.31.4', 'kubeconfig' => 'apiVersion: v1\nclusters:\n- cluster:\n    server: https://127.0.0.1:6443'],
-        );
-
-        ManagementCluster::query()->firstOrCreate(
-            ['provider' => 'docker', 'region' => 'local'],
-            ['name' => 'mgmt-dev', 'status' => ManagementClusterStatus::Bootstrapping, 'kubernetes_version' => 'v1.32.3'],
+            ['name' => 'mgmt-production'],
+            [
+                'provider_id' => $hetzner->id,
+                'platform_region_id' => $region->id,
+                'status' => ManagementClusterStatus::Ready,
+                'version' => KubernetesVersion::V1_35_3,
+                'kubeconfig' => 'apiVersion: v1\nclusters:\n- cluster:\n    server: https://127.0.0.1:6443',
+            ],
         );
     }
 }

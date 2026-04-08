@@ -69,9 +69,9 @@ test('aborts when management cluster already exists',
     function (): void {
         $this->clusterClient->create(new CreateManagementClusterData(
             name: 'kuven-mgmt-local',
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
         ));
 
         $this->artisan('kuven:init', ['--provider' => 'docker'])
@@ -86,9 +86,9 @@ test('re-bootstraps with force flag',
     function (): void {
         $existing = $this->clusterClient->create(new CreateManagementClusterData(
             name: 'kuven-mgmt-local',
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
         ));
 
         $this->bootstrap->addCluster($existing->name);
@@ -123,7 +123,7 @@ test('uses custom region when provided',
         $cluster = $this->clusterClient->findByProviderAndRegion('docker', 'nuremberg');
 
         expect($cluster)->not->toBeNull()
-            ->and($cluster->region)->toBe('nuremberg');
+            ->and($cluster->platformRegionId)->toBe('nuremberg');
     });
 
 test('aborts when provider option is missing',

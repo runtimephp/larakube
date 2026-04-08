@@ -18,17 +18,17 @@ final readonly class HttpManagementClusterClient implements ManagementClusterCli
     {
         $response = $this->client->post('/api/v1/management-clusters', [
             'name' => $data->name,
-            'provider' => $data->provider,
-            'region' => $data->region,
-            'kubernetes_version' => $data->kubernetesVersion,
+            'provider_id' => $data->providerId,
+            'platform_region_id' => $data->platformRegionId,
+            'version' => $data->version,
         ]);
 
         return ManagementClusterData::fromArray($response->json('data'));
     }
 
-    public function findByProviderAndRegion(string $provider, string $region): ?ManagementClusterData
+    public function findByProviderAndRegion(string $providerId, string $platformRegionId): ?ManagementClusterData
     {
-        $query = http_build_query(['provider' => $provider, 'region' => $region]);
+        $query = http_build_query(['provider_id' => $providerId, 'platform_region_id' => $platformRegionId]);
         $response = $this->client->get("/api/v1/management-clusters?{$query}");
 
         $data = $response->json('data');

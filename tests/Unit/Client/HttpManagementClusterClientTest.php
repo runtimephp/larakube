@@ -27,19 +27,19 @@ test('create returns management cluster data',
                 'data' => [
                     'id' => 'uuid-123',
                     'name' => 'kuven-mgmt-local',
-                    'provider' => 'docker',
-                    'region' => 'local',
+                    'provider_id' => 'docker',
+                    'platform_region_id' => 'local',
                     'status' => 'bootstrapping',
-                    'kubernetes_version' => 'v1.32.3',
+                    'version' => 'v1.32.3',
                 ],
             ], 201),
         ]);
 
         $result = $this->client->create(new CreateManagementClusterData(
             name: 'kuven-mgmt-local',
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
         ));
 
         expect($result)
@@ -59,10 +59,10 @@ test('find by provider and region returns first matching cluster',
                     [
                         'id' => 'uuid-123',
                         'name' => 'kuven-mgmt-local',
-                        'provider' => 'docker',
-                        'region' => 'local',
+                        'provider_id' => 'docker',
+                        'platform_region_id' => 'local',
                         'status' => 'ready',
-                        'kubernetes_version' => 'v1.32.3',
+                        'version' => 'v1.32.3',
                     ],
                 ],
             ]),

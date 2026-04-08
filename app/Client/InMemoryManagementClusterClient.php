@@ -26,10 +26,10 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
         $cluster = new ManagementClusterData(
             id: Str::uuid()->toString(),
             name: $data->name,
-            provider: $data->provider,
-            region: $data->region,
+            providerId: $data->providerId,
+            platformRegionId: $data->platformRegionId,
             status: ManagementClusterStatus::Bootstrapping->value,
-            kubernetesVersion: $data->kubernetesVersion,
+            version: $data->version,
         );
 
         $this->clusters[$cluster->id] = $cluster;
@@ -37,10 +37,10 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
         return $cluster;
     }
 
-    public function findByProviderAndRegion(string $provider, string $region): ?ManagementClusterData
+    public function findByProviderAndRegion(string $providerId, string $platformRegionId): ?ManagementClusterData
     {
         foreach ($this->clusters as $cluster) {
-            if ($cluster->provider === $provider && $cluster->region === $region) {
+            if ($cluster->providerId === $providerId && $cluster->platformRegionId === $platformRegionId) {
                 return $cluster;
             }
         }
@@ -61,10 +61,10 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
         $this->clusters[$id] = new ManagementClusterData(
             id: $existing->id,
             name: $existing->name,
-            provider: $existing->provider,
-            region: $existing->region,
+            providerId: $existing->providerId,
+            platformRegionId: $existing->platformRegionId,
             status: ManagementClusterStatus::Ready->value,
-            kubernetesVersion: $existing->kubernetesVersion,
+            version: $existing->version,
         );
     }
 

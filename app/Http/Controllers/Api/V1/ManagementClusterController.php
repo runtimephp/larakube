@@ -25,14 +25,6 @@ final class ManagementClusterController
     ): AnonymousResourceCollection {
         $query = ($managementClusterQuery)();
 
-        if ($request->has('provider')) {
-            $query = $query->byProvider($request->string('provider')->toString());
-        }
-
-        if ($request->has('region')) {
-            $query = $query->byRegion($request->string('region')->toString());
-        }
-
         return ManagementClusterResource::collection($query->get());
     }
 
@@ -43,9 +35,9 @@ final class ManagementClusterController
         $cluster = $createManagementCluster->handle(
             new CreateManagementClusterData(
                 name: $request->string('name')->toString(),
-                provider: $request->string('provider')->toString(),
-                region: $request->string('region')->toString(),
-                kubernetesVersion: $request->string('kubernetes_version')->toString(),
+                providerId: $request->string('provider_id')->toString(),
+                platformRegionId: $request->string('platform_region_id')->toString(),
+                version: $request->string('version')->toString(),
             ),
         );
 

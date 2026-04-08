@@ -15,23 +15,9 @@ final class ManagementClusterQuery
 
     public function __invoke(): self
     {
-        $this->builder = ManagementCluster::query();
+        $this->builder = ManagementCluster::query()->with(['provider', 'platformRegion']);
 
         return clone $this;
-    }
-
-    public function byProvider(string $provider): self
-    {
-        $this->builder->where('provider', $provider);
-
-        return $this;
-    }
-
-    public function byRegion(string $region): self
-    {
-        $this->builder->where('region', $region);
-
-        return $this;
     }
 
     /** @return Collection<int, ManagementCluster> */

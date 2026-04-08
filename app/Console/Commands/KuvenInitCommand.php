@@ -39,9 +39,9 @@ final class KuvenInitCommand extends AuthenticatedCommand
             $kubernetesVersion = $this->option('kubernetes-version');
 
             $cluster = $provisionManagementCluster->handle(new ProvisionManagementClusterData(
-                provider: $provider,
-                region: $region,
-                kubernetesVersion: $kubernetesVersion,
+                providerId: $provider,
+                platformRegionId: $region,
+                version: $kubernetesVersion,
                 force: (bool) $this->option('force'),
             ));
 

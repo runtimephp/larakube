@@ -14,9 +14,9 @@ final class CreateManagementCluster
     {
         return ManagementCluster::query()->create([
             'name' => $data->name,
-            'provider' => $data->provider,
-            'region' => $data->region,
-            'kubernetes_version' => $data->kubernetesVersion,
+            'provider_id' => $data->providerId,
+            'platform_region_id' => $data->platformRegionId,
+            'version' => $data->version,
             'status' => ManagementClusterStatus::Bootstrapping,
         ]);
     }

@@ -25,6 +25,8 @@ final class ManagementClusterController
 
     public function show(ShowManagementClusterRequest $request, ManagementCluster $managementCluster): Response
     {
+        $managementCluster->load(['provider', 'platformRegion']);
+
         return Inertia::render('admin/management-clusters/show', [
             'cluster' => (new ManagementClusterResource($managementCluster))->resolve(),
         ]);

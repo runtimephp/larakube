@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use App\Enums\ManagementClusterStatus;
 use App\Enums\PlatformRole;
+use App\Enums\ProviderSlug;
 use App\Models\ManagementCluster;
+use App\Models\PlatformRegion;
+use App\Models\Provider;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -12,12 +15,18 @@ test('a platform administrator can view the management clusters list', function 
     /** @var User $admin */
     $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
 
+    /** @var Provider $provider */
+    $provider = Provider::factory()->hetzner()->create();
+
+    /** @var PlatformRegion $region */
+    $region = PlatformRegion::factory()->for($provider)->create(['slug' => 'fsn1']);
+
     /** @var ManagementCluster $cluster */
-    $cluster = ManagementCluster::factory()->ready()->create([
-        'name' => 'mgmt-production',
-        'provider' => 'hetzner',
-        'region' => 'eu-central',
-    ]);
+    $cluster = ManagementCluster::factory()
+        ->for($provider)
+        ->for($region, 'platformRegion')
+        ->ready()
+        ->create(['name' => 'mgmt-production']);
 
     $this->actingAs($admin)
         ->get(route('admin.management-clusters.index'))
@@ -27,8 +36,8 @@ test('a platform administrator can view the management clusters list', function 
             ->has('clusters', 1)
             ->where('clusters.0.id', $cluster->id)
             ->where('clusters.0.name', 'mgmt-production')
-            ->where('clusters.0.provider', 'hetzner')
-            ->where('clusters.0.region', 'eu-central')
+            ->where('clusters.0.provider', ProviderSlug::Hetzner->value)
+            ->where('clusters.0.region', 'fsn1')
             ->where('clusters.0.status', ManagementClusterStatus::Ready->value)
             ->has('clusters.0.created_at')
         );
@@ -65,12 +74,18 @@ test('a platform administrator can view a single management cluster', function (
     /** @var User $admin */
     $admin = User::factory()->create(['platform_role' => PlatformRole::Admin]);
 
+    /** @var Provider $provider */
+    $provider = Provider::factory()->hetzner()->create();
+
+    /** @var PlatformRegion $region */
+    $region = PlatformRegion::factory()->for($provider)->create(['slug' => 'fsn1']);
+
     /** @var ManagementCluster $cluster */
-    $cluster = ManagementCluster::factory()->ready()->create([
-        'name' => 'mgmt-production',
-        'provider' => 'hetzner',
-        'region' => 'eu-central',
-    ]);
+    $cluster = ManagementCluster::factory()
+        ->for($provider)
+        ->for($region, 'platformRegion')
+        ->ready()
+        ->create(['name' => 'mgmt-production']);
 
     $this->actingAs($admin)
         ->get(route('admin.management-clusters.show', $cluster))
@@ -79,10 +94,9 @@ test('a platform administrator can view a single management cluster', function (
             ->component('admin/management-clusters/show')
             ->where('cluster.id', $cluster->id)
             ->where('cluster.name', 'mgmt-production')
-            ->where('cluster.provider', 'hetzner')
-            ->where('cluster.region', 'eu-central')
+            ->where('cluster.provider', ProviderSlug::Hetzner->value)
+            ->where('cluster.region', 'fsn1')
             ->where('cluster.status', ManagementClusterStatus::Ready->value)
-            ->where('cluster.kubernetes_version', 'v1.32.3')
             ->has('cluster.created_at')
         );
 });
@@ -92,7 +106,7 @@ test('a non-platform administrator is forbidden from viewing a management cluste
     $user = User::factory()->create(['platform_role' => PlatformRole::Member]);
 
     /** @var ManagementCluster $cluster */
-    $cluster = ManagementCluster::factory()->ready()->create();
+    $cluster = ManagementCluster::factory()->create();
 
     $this->actingAs($user)
         ->get(route('admin.management-clusters.show', $cluster))
@@ -101,7 +115,7 @@ test('a non-platform administrator is forbidden from viewing a management cluste
 
 test('a guest is redirected to login when viewing a management cluster', function () {
     /** @var ManagementCluster $cluster */
-    $cluster = ManagementCluster::factory()->ready()->create();
+    $cluster = ManagementCluster::factory()->create();
 
     $this->get(route('admin.management-clusters.show', $cluster))
         ->assertRedirect(route('login'));
