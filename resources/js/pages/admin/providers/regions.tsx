@@ -19,7 +19,7 @@ interface RegionsPageProps {
 }
 
 const adminTabs = [
-    { title: 'Management Clusters', url: '/admin/management-clusters' },
+    { title: 'Clusters', url: '/admin/management-clusters' },
     { title: 'Settings', url: '/admin/settings/providers' },
 ];
 
