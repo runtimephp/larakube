@@ -28,4 +28,9 @@ export default defineConfig(async () => ({
     esbuild: {
         jsx: 'automatic',
     },
+    server: {
+        watch: {
+            ignored: ['**/.junie/**'],
+        },
+    },
 }));

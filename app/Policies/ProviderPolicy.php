@@ -29,4 +29,9 @@ final class ProviderPolicy
     {
         return $user->platform_role === PlatformRole::Admin;
     }
+
+    public function syncRegions(User $user, Provider $provider): bool
+    {
+        return $user->platform_role === PlatformRole::Admin;
+    }
 }

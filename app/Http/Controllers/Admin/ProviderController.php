@@ -11,7 +11,6 @@ use App\Http\Requests\Admin\IndexProviderRequest;
 use App\Http\Requests\Admin\ShowProviderRequest;
 use App\Http\Requests\Admin\StoreProviderRequest;
 use App\Http\Requests\Admin\UpdateProviderRequest;
-use App\Http\Resources\PlatformRegionResource;
 use App\Http\Resources\ProviderResource;
 use App\Models\Provider;
 use App\Queries\ProviderQuery;
@@ -52,18 +51,12 @@ final class ProviderController
             $request->string('api_token')->toString(),
         );
 
-        return redirect()->route('admin.settings.providers.show', $provider);
+        return redirect()->route('admin.settings.providers.overview', $provider);
     }
 
-    public function show(ShowProviderRequest $request, Provider $provider): Response
+    public function show(ShowProviderRequest $request, Provider $provider): RedirectResponse
     {
-        return Inertia::render('admin/providers/show', [
-            'provider' => ProviderResource::make($provider)->resolve(),
-            'regions' => PlatformRegionResource::collection($provider->regions)->resolve(),
-            'can' => [
-                'update' => $request->user()->can('update', $provider),
-            ],
-        ]);
+        return redirect()->route('admin.settings.providers.overview', $provider);
     }
 
     public function update(UpdateProviderRequest $request, Provider $provider, UpdateProvider $updateProvider): RedirectResponse
