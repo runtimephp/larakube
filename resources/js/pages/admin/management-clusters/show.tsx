@@ -78,7 +78,6 @@ const adminTabs = [
 
 export default function Show({ cluster }: ShowManagementClusterPageProps) {
     const currentSection = 'overview';
-    const providerConfig = PROVIDER_CONFIG[cluster.provider] ?? null;
 
     return (
         <AppLayout tabs={adminTabs}>
