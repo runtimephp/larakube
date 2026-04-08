@@ -50,10 +50,6 @@ final class KubernetesVersionCast implements CastsAttributes
             return $value->value;
         }
 
-        if (is_string($value)) {
-            return $value;
-        }
-
-        throw new InvalidArgumentException('Invalid Kubernetes version value.');
+        return (string) $value;
     }
 }

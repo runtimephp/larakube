@@ -61,7 +61,7 @@ final class ManagementCluster extends Model
     }
 
     /**
-     * @return BelongsTo<Region, $this>
+     * @return BelongsTo<PlatformRegion, $this>
      */
     public function platformRegion(): BelongsTo
     {
