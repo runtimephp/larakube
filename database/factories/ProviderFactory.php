@@ -39,4 +39,52 @@ final class ProviderFactory extends Factory
             'api_token' => 'test-api-token',
         ]);
     }
+
+    public function hetzner(): self
+    {
+        return $this->state([
+            'name' => ProviderSlug::Hetzner->label(),
+            'slug' => ProviderSlug::Hetzner,
+        ]);
+    }
+
+    public function digitalOcean(): self
+    {
+        return $this->state([
+            'name' => ProviderSlug::DigitalOcean->label(),
+            'slug' => ProviderSlug::DigitalOcean,
+        ]);
+    }
+
+    public function akamai(): self
+    {
+        return $this->state([
+            'name' => ProviderSlug::Akamai->label(),
+            'slug' => ProviderSlug::Akamai,
+        ]);
+    }
+
+    public function aws(): self
+    {
+        return $this->state([
+            'name' => ProviderSlug::Aws->label(),
+            'slug' => ProviderSlug::Aws,
+        ]);
+    }
+
+    public function vultr(): self
+    {
+        return $this->state([
+            'name' => ProviderSlug::Vultr->label(),
+            'slug' => ProviderSlug::Vultr,
+        ]);
+    }
+
+    public function docker(): self
+    {
+        return $this->state([
+            'name' => ProviderSlug::Docker->label(),
+            'slug' => ProviderSlug::Docker,
+        ]);
+    }
 }

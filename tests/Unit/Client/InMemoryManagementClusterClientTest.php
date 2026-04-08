@@ -17,14 +17,14 @@ test('create returns management cluster data',
     function (): void {
         $result = $this->client->create(new CreateManagementClusterData(
             name: 'kuven-mgmt-local',
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
         ));
 
         expect($result->name)->toBe('kuven-mgmt-local')
-            ->and($result->provider)->toBe('docker')
-            ->and($result->region)->toBe('local')
+            ->and($result->providerId)->toBe('docker')
+            ->and($result->platformRegionId)->toBe('local')
             ->and($result->status)->toBe('bootstrapping')
             ->and($result->id)->toBeUuid();
     });
@@ -36,16 +36,16 @@ test('find by provider and region returns matching cluster',
     function (): void {
         $this->client->create(new CreateManagementClusterData(
             name: 'kuven-mgmt-local',
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
         ));
 
         $result = $this->client->findByProviderAndRegion('docker', 'local');
 
         expect($result)->not->toBeNull()
-            ->and($result->provider)->toBe('docker')
-            ->and($result->region)->toBe('local');
+            ->and($result->providerId)->toBe('docker')
+            ->and($result->platformRegionId)->toBe('local');
     });
 
 test('find by provider and region returns null when not found',
@@ -65,9 +65,9 @@ test('store kubeconfig persists kubeconfig',
     function (): void {
         $cluster = $this->client->create(new CreateManagementClusterData(
             name: 'kuven-mgmt-local',
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
         ));
 
         $this->client->storeKubeconfig($cluster->id, 'apiVersion: v1');
@@ -82,9 +82,9 @@ test('mark ready updates cluster status',
     function (): void {
         $cluster = $this->client->create(new CreateManagementClusterData(
             name: 'kuven-mgmt-local',
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
         ));
 
         $this->client->markReady($cluster->id);
@@ -101,9 +101,9 @@ test('delete removes cluster',
     function (): void {
         $cluster = $this->client->create(new CreateManagementClusterData(
             name: 'kuven-mgmt-local',
-            provider: 'docker',
-            region: 'local',
-            kubernetesVersion: 'v1.32.3',
+            providerId: 'docker',
+            platformRegionId: 'local',
+            version: 'v1.32.3',
         ));
 
         $this->client->delete($cluster->id);

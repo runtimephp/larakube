@@ -7,9 +7,9 @@ namespace App\Data;
 final readonly class ProvisionManagementClusterData
 {
     public function __construct(
-        public string $provider,
-        public string $region,
-        public string $kubernetesVersion,
+        public string $providerId,
+        public string $platformRegionId,
+        public string $version,
         public bool $force = false,
     ) {}
 }

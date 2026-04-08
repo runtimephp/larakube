@@ -9,9 +9,11 @@ interface ManagementCluster {
     id: string;
     name: string;
     provider: string;
+    provider_name: string;
     region: string;
+    region_name: string;
     status: string;
-    kubernetes_version: string;
+    version: string;
     created_at: string;
 }
 
@@ -23,14 +25,6 @@ const STATUS_DOT_COLORS: Record<string, string> = {
     ready: 'bg-emerald-500',
     bootstrapping: 'bg-amber-500',
     failed: 'bg-destructive',
-};
-
-const REGION_LABELS: Record<string, string> = {
-    'eu-central': 'EU Central (Frankfurt)',
-    'us-east': 'US East (Virginia)',
-    'us-west': 'US West (Oregon)',
-    'ap-southeast': 'AP Southeast (Singapore)',
-    local: 'Local',
 };
 
 const PROVIDER_CONFIG: Record<string, { icon: React.ReactNode; bg: string; color: string; label: string }> = {
@@ -84,7 +78,7 @@ const adminTabs = [
 
 export default function Show({ cluster }: ShowManagementClusterPageProps) {
     const currentSection = 'overview';
-    const providerConfig = PROVIDER_CONFIG[cluster.provider];
+    const providerConfig = PROVIDER_CONFIG[cluster.provider] ?? null;
 
     return (
         <AppLayout tabs={adminTabs}>
@@ -131,7 +125,7 @@ export default function Show({ cluster }: ShowManagementClusterPageProps) {
                                     <div className="flex-1">
                                         <h1 className="text-lg font-semibold">{cluster.name}</h1>
                                         <p className="text-muted-foreground text-sm">
-                                            {providerConfig?.label ?? cluster.provider} management cluster
+                                            {cluster.provider_name} management cluster
                                         </p>
                                     </div>
                                     <Badge variant="outline" className="gap-1.5">
@@ -150,17 +144,17 @@ export default function Show({ cluster }: ShowManagementClusterPageProps) {
                                     <DetailRow
                                         icon={<Server className="size-4" />}
                                         label="Provider"
-                                        value={providerConfig?.label ?? cluster.provider}
+                                        value={cluster.provider_name}
                                     />
                                     <DetailRow
                                         icon={<MapPin className="size-4" />}
                                         label="Region"
-                                        value={REGION_LABELS[cluster.region] ?? cluster.region}
+                                        value={cluster.region_name}
                                     />
                                     <DetailRow
                                         icon={<SiKubernetes className="size-4" />}
                                         label="Kubernetes Version"
-                                        value={cluster.kubernetes_version}
+                                        value={cluster.version}
                                     />
                                     <DetailRow
                                         icon={<Layers className="size-4" />}

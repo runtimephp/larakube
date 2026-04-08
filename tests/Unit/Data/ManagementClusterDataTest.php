@@ -3,27 +3,38 @@
 declare(strict_types=1);
 
 use App\Data\ManagementClusterData;
+use App\Enums\KubernetesVersion;
 use App\Models\ManagementCluster;
+use App\Models\PlatformRegion;
+use App\Models\Provider;
 
 test('creates from model',
     /**
      * @throws Throwable
      */
     function (): void {
+        /** @var Provider $provider */
+        $provider = Provider::factory()->hetzner()->create();
+
+        /** @var PlatformRegion $region */
+        $region = PlatformRegion::factory()->for($provider)->create();
+
         /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::factory()->ready()->create([
-            'name' => 'kuven-mgmt-local',
-            'provider' => 'docker',
-            'region' => 'local',
-        ]);
+        $cluster = ManagementCluster::factory()
+            ->for($provider)
+            ->for($region, 'platformRegion')
+            ->ready()
+            ->create(['name' => 'kuven-mgmt-local'])
+            ->fresh();
 
         $data = ManagementClusterData::fromModel($cluster);
 
         expect($data->id)->toBe($cluster->id)
             ->and($data->name)->toBe('kuven-mgmt-local')
-            ->and($data->provider)->toBe('docker')
-            ->and($data->region)->toBe('local')
-            ->and($data->status)->toBe('ready');
+            ->and($data->providerId)->toBe($provider->id)
+            ->and($data->platformRegionId)->toBe($region->id)
+            ->and($data->status)->toBe('ready')
+            ->and($data->version)->toBe(KubernetesVersion::V1_35_3->value);
     });
 
 test('creates from array',
@@ -34,16 +45,16 @@ test('creates from array',
         $data = ManagementClusterData::fromArray([
             'id' => 'uuid-123',
             'name' => 'kuven-mgmt-nuremberg',
-            'provider' => 'hetzner',
-            'region' => 'nuremberg',
+            'provider_id' => 'provider-uuid',
+            'platform_region_id' => 'region-uuid',
             'status' => 'bootstrapping',
-            'kubernetes_version' => 'v1.32.3',
+            'version' => '1.35.3',
         ]);
 
         expect($data->id)->toBe('uuid-123')
             ->and($data->name)->toBe('kuven-mgmt-nuremberg')
-            ->and($data->provider)->toBe('hetzner')
-            ->and($data->region)->toBe('nuremberg')
+            ->and($data->providerId)->toBe('provider-uuid')
+            ->and($data->platformRegionId)->toBe('region-uuid')
             ->and($data->status)->toBe('bootstrapping');
     });
 
@@ -55,18 +66,18 @@ test('converts to array',
         $data = new ManagementClusterData(
             id: 'uuid-123',
             name: 'kuven-mgmt-local',
-            provider: 'docker',
-            region: 'local',
+            providerId: 'provider-uuid',
+            platformRegionId: 'region-uuid',
             status: 'ready',
-            kubernetesVersion: 'v1.32.3',
+            version: '1.35.3',
         );
 
         expect($data->toArray())->toBe([
             'id' => 'uuid-123',
             'name' => 'kuven-mgmt-local',
-            'provider' => 'docker',
-            'region' => 'local',
+            'provider_id' => 'provider-uuid',
+            'platform_region_id' => 'region-uuid',
             'status' => 'ready',
-            'kubernetes_version' => 'v1.32.3',
+            'version' => '1.35.3',
         ]);
     });

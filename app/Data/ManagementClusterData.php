@@ -11,10 +11,10 @@ final readonly class ManagementClusterData
     public function __construct(
         public string $id,
         public string $name,
-        public string $provider,
-        public string $region,
+        public string $providerId,
+        public string $platformRegionId,
         public string $status,
-        public string $kubernetesVersion,
+        public string $version,
     ) {}
 
     public static function fromModel(ManagementCluster $cluster): self
@@ -22,40 +22,40 @@ final readonly class ManagementClusterData
         return new self(
             id: $cluster->id,
             name: $cluster->name,
-            provider: $cluster->provider,
-            region: $cluster->region,
+            providerId: $cluster->provider_id,
+            platformRegionId: $cluster->platform_region_id,
             status: $cluster->status->value,
-            kubernetesVersion: $cluster->kubernetes_version,
+            version: $cluster->version->name,
         );
     }
 
     /**
-     * @param  array{id: string, name: string, provider: string, region: string, status: string, kubernetes_version: string}  $data
+     * @param  array{id: string, name: string, provider_id: string, platform_region_id: string, status: string, version: string}  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
             id: $data['id'],
             name: $data['name'],
-            provider: $data['provider'],
-            region: $data['region'],
+            providerId: $data['provider_id'],
+            platformRegionId: $data['platform_region_id'],
             status: $data['status'],
-            kubernetesVersion: $data['kubernetes_version'],
+            version: $data['version'],
         );
     }
 
     /**
-     * @return array{id: string, name: string, provider: string, region: string, status: string, kubernetes_version: string}
+     * @return array{id: string, name: string, provider_id: string, platform_region_id: string, status: string, version: string}
      */
     public function toArray(): array
     {
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'provider' => $this->provider,
-            'region' => $this->region,
+            'provider_id' => $this->providerId,
+            'platform_region_id' => $this->platformRegionId,
             'status' => $this->status,
-            'kubernetes_version' => $this->kubernetesVersion,
+            'version' => $this->version,
         ];
     }
 }

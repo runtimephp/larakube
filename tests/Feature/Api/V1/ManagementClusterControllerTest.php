@@ -3,13 +3,22 @@
 declare(strict_types=1);
 
 use App\Contracts\BootstrapClusterService;
+use App\Enums\KubernetesVersion;
 use App\Models\ManagementCluster;
+use App\Models\PlatformRegion;
+use App\Models\Provider;
 use App\Models\User;
 use App\Services\InMemory\InMemoryBootstrapClusterService;
 
 beforeEach(function (): void {
     $this->bootstrapService = new InMemoryBootstrapClusterService;
     $this->app->instance(BootstrapClusterService::class, $this->bootstrapService);
+
+    /** @var Provider $provider */
+    $this->provider = Provider::factory()->hetzner()->create();
+
+    /** @var PlatformRegion $region */
+    $this->region = PlatformRegion::factory()->for($this->provider)->create(['slug' => 'fsn1']);
 });
 
 test('store creates a management cluster',
@@ -23,24 +32,23 @@ test('store creates a management cluster',
         $response = $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.management-clusters.store'), [
                 'name' => 'kuven-mgmt-local',
-                'provider' => 'docker',
-                'region' => 'local',
-                'kubernetes_version' => 'v1.32.3',
+                'provider_id' => $this->provider->id,
+                'platform_region_id' => $this->region->id,
+                'version' => KubernetesVersion::V1_35_3->value,
             ]);
 
         $response->assertCreated()
             ->assertJsonStructure([
-                'data' => ['id', 'name', 'provider', 'region', 'status', 'kubernetes_version'],
+                'data' => ['id', 'name', 'provider', 'region', 'status', 'version'],
             ])
             ->assertJsonPath('data.name', 'kuven-mgmt-local')
-            ->assertJsonPath('data.provider', 'docker')
-            ->assertJsonPath('data.region', 'local')
+            ->assertJsonPath('data.provider', 'hetzner')
             ->assertJsonPath('data.status', 'bootstrapping');
 
         $this->assertDatabaseHas('management_clusters', [
             'name' => 'kuven-mgmt-local',
-            'provider' => 'docker',
-            'region' => 'local',
+            'provider_id' => $this->provider->id,
+            'platform_region_id' => $this->region->id,
         ]);
     });
 
@@ -56,7 +64,7 @@ test('store validates required fields',
             ->postJson(route('api.v1.management-clusters.store'), []);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['name', 'provider', 'region', 'kubernetes_version']);
+            ->assertJsonValidationErrors(['name', 'provider_id', 'platform_region_id', 'version']);
     });
 
 test('store requires authentication',
@@ -66,9 +74,9 @@ test('store requires authentication',
     function (): void {
         $response = $this->postJson(route('api.v1.management-clusters.store'), [
             'name' => 'kuven-mgmt-local',
-            'provider' => 'docker',
-            'region' => 'local',
-            'kubernetes_version' => 'v1.32.3',
+            'provider_id' => $this->provider->id,
+            'platform_region_id' => $this->region->id,
+            'version' => KubernetesVersion::V1_35_3->value,
         ]);
 
         $response->assertUnauthorized();
@@ -85,9 +93,9 @@ test('non-admin cannot access management clusters',
         $this->actingAs($user, 'sanctum')
             ->postJson(route('api.v1.management-clusters.store'), [
                 'name' => 'kuven-mgmt-local',
-                'provider' => 'docker',
-                'region' => 'local',
-                'kubernetes_version' => 'v1.32.3',
+                'provider_id' => $this->provider->id,
+                'platform_region_id' => $this->region->id,
+                'version' => KubernetesVersion::V1_35_3->value,
             ])
             ->assertForbidden();
 
@@ -96,7 +104,7 @@ test('non-admin cannot access management clusters',
             ->assertForbidden();
     });
 
-test('index lists management clusters filtered by provider and region',
+test('index lists management clusters',
     /**
      * @throws Throwable
      */
@@ -104,22 +112,14 @@ test('index lists management clusters filtered by provider and region',
         /** @var User $user */
         $user = User::factory()->admin()->create();
 
-        ManagementCluster::factory()->ready()->create([
-            'name' => 'kuven-mgmt-local',
-            'provider' => 'docker',
-            'region' => 'local',
-        ]);
-
-        ManagementCluster::factory()->create([
-            'provider' => 'hetzner',
-            'region' => 'nuremberg',
-        ]);
+        ManagementCluster::factory()
+            ->for($this->provider)
+            ->for($this->region, 'platformRegion')
+            ->ready()
+            ->create(['name' => 'kuven-mgmt-local']);
 
         $response = $this->actingAs($user, 'sanctum')
-            ->getJson(route('api.v1.management-clusters.index', [
-                'provider' => 'docker',
-                'region' => 'local',
-            ]));
+            ->getJson(route('api.v1.management-clusters.index'));
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')
@@ -127,7 +127,7 @@ test('index lists management clusters filtered by provider and region',
             ->assertJsonPath('data.0.status', 'ready');
     });
 
-test('index returns empty array when no clusters match',
+test('index returns empty array when no clusters exist',
     /**
      * @throws Throwable
      */
@@ -136,10 +136,7 @@ test('index returns empty array when no clusters match',
         $user = User::factory()->admin()->create();
 
         $response = $this->actingAs($user, 'sanctum')
-            ->getJson(route('api.v1.management-clusters.index', [
-                'provider' => 'docker',
-                'region' => 'nonexistent',
-            ]));
+            ->getJson(route('api.v1.management-clusters.index'));
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
@@ -154,11 +151,11 @@ test('show returns a management cluster by id',
         $user = User::factory()->admin()->create();
 
         /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::factory()->ready()->create([
-            'name' => 'kuven-mgmt-local',
-            'provider' => 'docker',
-            'region' => 'local',
-        ]);
+        $cluster = ManagementCluster::factory()
+            ->for($this->provider)
+            ->for($this->region, 'platformRegion')
+            ->ready()
+            ->create(['name' => 'kuven-mgmt-local']);
 
         $response = $this->actingAs($user, 'sanctum')
             ->getJson(route('api.v1.management-clusters.show', $cluster));
@@ -177,9 +174,10 @@ test('destroy deletes a management cluster and its bootstrap cluster',
         $user = User::factory()->admin()->create();
 
         /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::factory()->create([
-            'name' => 'kuven-mgmt-local',
-        ]);
+        $cluster = ManagementCluster::factory()
+            ->for($this->provider)
+            ->for($this->region, 'platformRegion')
+            ->create(['name' => 'kuven-mgmt-local']);
 
         $this->bootstrapService->addCluster($cluster->name);
 
@@ -201,7 +199,10 @@ test('kubeconfig update stores encrypted kubeconfig',
         $user = User::factory()->admin()->create();
 
         /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::factory()->create();
+        $cluster = ManagementCluster::factory()
+            ->for($this->provider)
+            ->for($this->region, 'platformRegion')
+            ->create();
 
         $response = $this->actingAs($user, 'sanctum')
             ->patchJson(route('api.v1.management-clusters.kubeconfig', $cluster), [
@@ -224,7 +225,10 @@ test('ready update marks cluster as ready',
         $user = User::factory()->admin()->create();
 
         /** @var ManagementCluster $cluster */
-        $cluster = ManagementCluster::factory()->create();
+        $cluster = ManagementCluster::factory()
+            ->for($this->provider)
+            ->for($this->region, 'platformRegion')
+            ->create();
 
         $response = $this->actingAs($user, 'sanctum')
             ->patchJson(route('api.v1.management-clusters.ready', $cluster));

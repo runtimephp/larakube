@@ -27,10 +27,10 @@ final readonly class ProvisionManagementCluster
 
     public function handle(ProvisionManagementClusterData $data): ManagementClusterData
     {
-        $existing = $this->managementClusterClient->findByProviderAndRegion($data->provider, $data->region);
+        $existing = $this->managementClusterClient->findByProviderAndRegion($data->providerId, $data->platformRegionId);
 
         if ($existing && ! $data->force) {
-            throw new RuntimeException("Management cluster for provider [{$data->provider}] in region [{$data->region}] already exists.");
+            throw new RuntimeException("Management cluster for provider [{$data->providerId}] in region [{$data->platformRegionId}] already exists.");
         }
 
         if ($existing) {
@@ -44,20 +44,20 @@ final readonly class ProvisionManagementCluster
             throw new RuntimeException('Missing prerequisites: '.implode(', ', $result->missing));
         }
 
-        $clusterName = "kuven-mgmt-{$data->region}";
+        $clusterName = "kuven-mgmt-{$data->platformRegionId}";
 
         $cluster = $this->managementClusterClient->create(new CreateManagementClusterData(
             name: $clusterName,
-            provider: $data->provider,
-            region: $data->region,
-            kubernetesVersion: $data->kubernetesVersion,
+            providerId: $data->providerId,
+            platformRegionId: $data->platformRegionId,
+            version: $data->version,
         ));
 
         $this->bootstrapClusterService->create($clusterName);
 
         $kubeconfigPath = $this->writeKubeconfigToTempFile->handle($clusterName);
 
-        $this->capiInstallerService->init($data->provider, $kubeconfigPath);
+        $this->capiInstallerService->init($data->providerId, $kubeconfigPath);
 
         $this->cleanupTempKubeconfig->handle($kubeconfigPath);
 
@@ -68,10 +68,10 @@ final readonly class ProvisionManagementCluster
         return new ManagementClusterData(
             id: $cluster->id,
             name: $cluster->name,
-            provider: $cluster->provider,
-            region: $cluster->region,
+            providerId: $cluster->providerId,
+            platformRegionId: $cluster->platformRegionId,
             status: 'ready',
-            kubernetesVersion: $data->kubernetesVersion,
+            version: $data->version,
         );
     }
 }

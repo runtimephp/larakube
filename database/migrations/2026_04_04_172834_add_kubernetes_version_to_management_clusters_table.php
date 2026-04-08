@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('management_clusters', function (Blueprint $table) {
-            $table->string('kubernetes_version');
+            $table->string('version');
         });
     }
 };

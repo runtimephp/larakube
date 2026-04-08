@@ -11,9 +11,11 @@ interface ManagementCluster {
     id: string;
     name: string;
     provider: string;
+    provider_name: string;
     region: string;
+    region_name: string;
     status: string;
-    kubernetes_version: string;
+    version: string;
     created_at: string;
 }
 
@@ -25,14 +27,6 @@ const STATUS_DOT_COLORS: Record<string, string> = {
     ready: 'bg-emerald-500',
     bootstrapping: 'bg-amber-500',
     failed: 'bg-destructive',
-};
-
-const REGION_LABELS: Record<string, string> = {
-    'eu-central': 'EU Central (Frankfurt)',
-    'us-east': 'US East (Virginia)',
-    'us-west': 'US West (Oregon)',
-    'ap-southeast': 'AP Southeast (Singapore)',
-    local: 'Local',
 };
 
 const PROVIDER_CONFIG: Record<string, { icon: React.ReactNode; bg: string; color: string }> = {
@@ -136,12 +130,12 @@ export default function Index({ clusters }: ManagementClustersPageProps) {
                                 <div className="mt-2 flex items-center gap-4 pl-12 text-sm text-muted-foreground">
                                     <span className="flex items-center gap-1.5">
                                         <MapPin className="size-3.5" />
-                                        {REGION_LABELS[cluster.region] ?? cluster.region}
+                                        {cluster.region_name}
                                     </span>
                                     <span>&middot;</span>
                                     <span className="flex items-center gap-1.5">
                                         <SiKubernetes className="size-3.5" />
-                                        {cluster.kubernetes_version}
+                                        {cluster.version}
                                     </span>
                                     <span>&middot;</span>
                                     <span className="flex items-center gap-1.5">

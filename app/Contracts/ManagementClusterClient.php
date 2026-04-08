@@ -18,7 +18,7 @@ interface ManagementClusterClient
     /**
      * @throws LarakubeApiException
      */
-    public function findByProviderAndRegion(string $provider, string $region): ?ManagementClusterData;
+    public function findByProviderAndRegion(string $providerId, string $platformRegionId): ?ManagementClusterData;
 
     /**
      * @throws LarakubeApiException
