@@ -38,6 +38,7 @@ final class ProviderSeeder extends Seeder
         }
 
         $this->seedHetznerRegions();
+        $this->seedDigitalOceanRegions();
     }
 
     private function seedHetznerRegions(): void
@@ -56,6 +57,48 @@ final class ProviderSeeder extends Seeder
         }
 
         $this->createStaticHetznerRegions($hetzner);
+    }
+
+    private function seedDigitalOceanRegions(): void
+    {
+        /** @var Provider $digitalOcean */
+        $digitalOcean = Provider::query()->where('slug', ProviderSlug::DigitalOcean)->sole();
+
+        if ($digitalOcean->regions()->exists()) {
+            return;
+        }
+
+        if ($this->digitalOceanToken !== null) {
+            app(SyncProviderRegions::class)->handle($digitalOcean);
+
+            return;
+        }
+
+        $this->createStaticDigitalOceanRegions($digitalOcean);
+    }
+
+    private function createStaticDigitalOceanRegions(Provider $digitalOcean): void
+    {
+        $regions = [
+            ['slug' => 'nyc1', 'name' => 'New York 1', 'country' => 'US', 'city' => 'New York'],
+            ['slug' => 'ams3', 'name' => 'Amsterdam 3', 'country' => 'NL', 'city' => 'Amsterdam'],
+            ['slug' => 'sgp1', 'name' => 'Singapore 1', 'country' => 'SG', 'city' => 'Singapore'],
+        ];
+
+        foreach ($regions as $region) {
+            PlatformRegion::query()->firstOrCreate(
+                [
+                    'provider_id' => $digitalOcean->id,
+                    'slug' => $region['slug'],
+                ],
+                [
+                    'name' => $region['name'],
+                    'country' => $region['country'],
+                    'city' => $region['city'],
+                    'is_available' => true,
+                ],
+            );
+        }
     }
 
     private function createStaticHetznerRegions(Provider $hetzner): void

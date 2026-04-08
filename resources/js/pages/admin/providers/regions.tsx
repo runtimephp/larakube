@@ -5,27 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import AppLayout from '@/layouts/app-layout';
 import AdminProviderLayout from '@/layouts/admin-provider-layout';
+import { type PlatformRegion, type Provider } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { LoaderCircle, MapPin, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
-
-interface Provider {
-    id: string;
-    name: string;
-    slug: string;
-    is_active: boolean;
-    has_api_token: boolean;
-    created_at: string;
-}
-
-interface PlatformRegion {
-    id: string;
-    name: string;
-    slug: string;
-    country: string | null;
-    city: string | null;
-    is_available: boolean;
-}
 
 interface RegionsPageProps {
     provider: Provider;

@@ -1,21 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
+import { type ManagementCluster } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { SiDigitalocean, SiDocker, SiHetzner, SiKubernetes } from '@icons-pack/react-simple-icons';
 import { Cloud, Layers, MapPin, Server } from 'lucide-react';
-
-interface ManagementCluster {
-    id: string;
-    name: string;
-    provider: string;
-    provider_name: string;
-    region: string;
-    region_name: string;
-    status: string;
-    version: string;
-    created_at: string;
-}
 
 interface ShowManagementClusterPageProps {
     cluster: ManagementCluster;
@@ -27,10 +16,10 @@ const STATUS_DOT_COLORS: Record<string, string> = {
     failed: 'bg-destructive',
 };
 
-const PROVIDER_CONFIG: Record<string, { icon: React.ReactNode; bg: string; color: string; label: string }> = {
-    hetzner: { icon: <SiHetzner className="size-[18px]" />, bg: 'bg-[#d50c2d]', color: 'text-white', label: 'Hetzner' },
-    docker: { icon: <SiDocker className="size-[18px]" />, bg: 'bg-[#2496ed]', color: 'text-white', label: 'Docker' },
-    digital_ocean: { icon: <SiDigitalocean className="size-[18px]" />, bg: 'bg-[#0080ff]', color: 'text-white', label: 'DigitalOcean' },
+const PROVIDER_CONFIG: Record<string, { icon: React.ReactNode; bg: string; color: string }> = {
+    hetzner: { icon: <SiHetzner className="size-[18px]" />, bg: 'bg-[#d50c2d]', color: 'text-white' },
+    docker: { icon: <SiDocker className="size-[18px]" />, bg: 'bg-[#2496ed]', color: 'text-white' },
+    digital_ocean: { icon: <SiDigitalocean className="size-[18px]" />, bg: 'bg-[#0080ff]', color: 'text-white' },
 };
 
 const NAV_ITEMS = [
@@ -41,8 +30,8 @@ const NAV_ITEMS = [
     { title: 'Danger Zone', section: 'danger-zone' },
 ];
 
-function ProviderLogo({ provider }: { provider: string }) {
-    const config = PROVIDER_CONFIG[provider];
+function ProviderLogo({ slug }: { slug: string }) {
+    const config = PROVIDER_CONFIG[slug];
 
     if (!config) {
         return (
@@ -120,11 +109,11 @@ export default function Show({ cluster }: ShowManagementClusterPageProps) {
                             {/* Header card */}
                             <div className="rounded-lg border bg-card p-6">
                                 <div className="flex items-center gap-4">
-                                    <ProviderLogo provider={cluster.provider} />
+                                    <ProviderLogo slug={cluster.provider.slug} />
                                     <div className="flex-1">
                                         <h1 className="text-lg font-semibold">{cluster.name}</h1>
                                         <p className="text-muted-foreground text-sm">
-                                            {cluster.provider_name} management cluster
+                                            {cluster.provider.name} management cluster
                                         </p>
                                     </div>
                                     <Badge variant="outline" className="gap-1.5">
@@ -143,17 +132,29 @@ export default function Show({ cluster }: ShowManagementClusterPageProps) {
                                     <DetailRow
                                         icon={<Server className="size-4" />}
                                         label="Provider"
-                                        value={cluster.provider_name}
+                                        value={cluster.provider.name}
                                     />
                                     <DetailRow
                                         icon={<MapPin className="size-4" />}
                                         label="Region"
-                                        value={cluster.region_name}
+                                        value={
+                                            <span className="flex items-center gap-2">
+                                                {cluster.region.name}
+                                                <code className="bg-muted rounded px-1 py-0.5 text-xs">{cluster.region.slug}</code>
+                                            </span>
+                                        }
                                     />
                                     <DetailRow
                                         icon={<SiKubernetes className="size-4" />}
                                         label="Kubernetes Version"
-                                        value={cluster.version}
+                                        value={
+                                            <span className="flex items-center gap-2">
+                                                {cluster.version.name}
+                                                {!cluster.version.is_supported && (
+                                                    <Badge variant="outline" className="text-destructive gap-1.5">EOL</Badge>
+                                                )}
+                                            </span>
+                                        }
                                     />
                                     <DetailRow
                                         icon={<Layers className="size-4" />}

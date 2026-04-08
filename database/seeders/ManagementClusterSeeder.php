@@ -32,5 +32,22 @@ final class ManagementClusterSeeder extends Seeder
                 'kubeconfig' => 'apiVersion: v1\nclusters:\n- cluster:\n    server: https://127.0.0.1:6443',
             ],
         );
+
+        /** @var Provider $digitalOcean */
+        $digitalOcean = Provider::query()->where('slug', ProviderSlug::DigitalOcean)->sole();
+
+        /** @var PlatformRegion $doRegion */
+        $doRegion = $digitalOcean->regions()->where('slug', 'nyc1')->sole();
+
+        ManagementCluster::query()->firstOrCreate(
+            ['name' => 'mgmt-staging'],
+            [
+                'provider_id' => $digitalOcean->id,
+                'platform_region_id' => $doRegion->id,
+                'status' => ManagementClusterStatus::Ready,
+                'version' => KubernetesVersion::V1_34_6,
+                'kubeconfig' => 'apiVersion: v1\nclusters:\n- cluster:\n    server: https://127.0.0.1:6443',
+            ],
+        );
     }
 }

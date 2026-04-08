@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { type Provider } from '@/types';
 import { show as showProvider } from '@/actions/App/Http/Controllers/Admin/ProviderOverviewController';
 import { show as showRegions } from '@/actions/App/Http/Controllers/Admin/ProviderRegionsController';
 import { show as showSettings } from '@/actions/App/Http/Controllers/Admin/ProviderSettingsController';
@@ -6,15 +7,9 @@ import { Link } from '@inertiajs/react';
 import { SiAkamai, SiDigitalocean, SiDocker, SiHetzner, SiVultr } from '@icons-pack/react-simple-icons';
 import { Cloud } from 'lucide-react';
 
-interface Provider {
-    id: string;
-    name: string;
-    slug: string;
-}
-
 interface AdminProviderLayoutProps {
     children: React.ReactNode;
-    provider: Provider;
+    provider: Pick<Provider, 'id' | 'name' | 'slug'>;
 }
 
 const PROVIDER_CONFIG: Record<string, { icon: React.ReactNode; bg: string; color: string }> = {

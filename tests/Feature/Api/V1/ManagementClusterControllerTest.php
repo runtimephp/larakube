@@ -39,10 +39,11 @@ test('store creates a management cluster',
 
         $response->assertCreated()
             ->assertJsonStructure([
-                'data' => ['id', 'name', 'provider', 'region', 'status', 'version'],
+                'data' => ['id', 'name', 'provider' => ['id', 'slug'], 'region' => ['id', 'slug'], 'status', 'version' => ['name']],
             ])
             ->assertJsonPath('data.name', 'kuven-mgmt-local')
-            ->assertJsonPath('data.provider', 'hetzner')
+            ->assertJsonPath('data.provider.slug', 'hetzner')
+            ->assertJsonPath('data.region.slug', 'fsn1')
             ->assertJsonPath('data.status', 'bootstrapping');
 
         $this->assertDatabaseHas('management_clusters', [
