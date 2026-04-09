@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Casts\KubernetesVersionCast;
 use App\Data\KubernetesVersionData;
 use App\Enums\KubernetesVersion;
+use App\Models\ManagementCluster;
+use App\Models\PlatformRegion;
+use App\Models\Provider;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Model;
 
 test('each version returns a kubernetes version data object', function (): void {
     foreach (KubernetesVersion::cases() as $version) {
@@ -54,33 +55,80 @@ test('is end of life returns true when end of life is in the past', function ():
         ->and($data->isSupported())->toBeFalse();
 });
 
-test('cast get returns null for null value', function (): void {
-    $cast = new KubernetesVersionCast;
+test('cast returns kubernetes version data when reading from model', function (): void {
+    /** @var Provider $provider */
+    $provider = Provider::factory()->hetzner()->create();
 
-    $result = $cast->get(Mockery::mock(Model::class), 'version', null, []);
+    /** @var PlatformRegion $region */
+    $region = PlatformRegion::factory()->for($provider)->create();
 
-    expect($result)->toBeNull();
+    /** @var ManagementCluster $cluster */
+    $cluster = ManagementCluster::factory()
+        ->for($provider)
+        ->for($region, 'platformRegion')
+        ->create(['version' => KubernetesVersion::V1_35_3])
+        ->fresh();
+
+    expect($cluster->version)->toBeInstanceOf(KubernetesVersionData::class)
+        ->and($cluster->version->name)->toBe('1.35.3');
 });
 
-test('cast get throws for unknown version', function (): void {
-    $cast = new KubernetesVersionCast;
+test('cast stores string version value from enum', function (): void {
+    /** @var Provider $provider */
+    $provider = Provider::factory()->hetzner()->create();
 
-    $cast->get(Mockery::mock(Model::class), 'version', 'invalid', []);
-})->throws(InvalidArgumentException::class, 'Unknown Kubernetes version: invalid');
+    /** @var PlatformRegion $region */
+    $region = PlatformRegion::factory()->for($provider)->create();
 
-test('cast set returns null for null value', function (): void {
-    $cast = new KubernetesVersionCast;
+    /** @var ManagementCluster $cluster */
+    $cluster = ManagementCluster::factory()
+        ->for($provider)
+        ->for($region, 'platformRegion')
+        ->create(['version' => KubernetesVersion::V1_34_6]);
 
-    $result = $cast->set(Mockery::mock(Model::class), 'version', null, []);
+    $raw = DB::table('management_clusters')
+        ->where('id', $cluster->id)
+        ->value('version');
 
-    expect($result)->toBeNull();
+    expect($raw)->toBe('1.34.6');
 });
 
-test('cast set extracts name from kubernetes version data', function (): void {
-    $cast = new KubernetesVersionCast;
-    $data = KubernetesVersion::V1_35_3->data();
+test('cast stores string version value from data object', function (): void {
+    /** @var Provider $provider */
+    $provider = Provider::factory()->hetzner()->create();
 
-    $result = $cast->set(Mockery::mock(Model::class), 'version', $data, []);
+    /** @var PlatformRegion $region */
+    $region = PlatformRegion::factory()->for($provider)->create();
 
-    expect($result)->toBe('1.35.3');
+    /** @var ManagementCluster $cluster */
+    $cluster = ManagementCluster::factory()
+        ->for($provider)
+        ->for($region, 'platformRegion')
+        ->create(['version' => KubernetesVersion::V1_35_3->data()]);
+
+    $raw = DB::table('management_clusters')
+        ->where('id', $cluster->id)
+        ->value('version');
+
+    expect($raw)->toBe('1.35.3');
+});
+
+test('cast stores raw string version', function (): void {
+    /** @var Provider $provider */
+    $provider = Provider::factory()->hetzner()->create();
+
+    /** @var PlatformRegion $region */
+    $region = PlatformRegion::factory()->for($provider)->create();
+
+    /** @var ManagementCluster $cluster */
+    $cluster = ManagementCluster::factory()
+        ->for($provider)
+        ->for($region, 'platformRegion')
+        ->create(['version' => '1.35.3']);
+
+    $raw = DB::table('management_clusters')
+        ->where('id', $cluster->id)
+        ->value('version');
+
+    expect($raw)->toBe('1.35.3');
 });
