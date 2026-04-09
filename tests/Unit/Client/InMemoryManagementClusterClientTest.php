@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Client\InMemoryManagementClusterClient;
 use App\Data\CreateManagementClusterData;
+use App\Enums\KubernetesVersion;
 use App\Exceptions\LarakubeApiException;
 
 beforeEach(function (): void {
@@ -19,7 +20,7 @@ test('create returns management cluster data',
             name: 'kuven-mgmt-local',
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3,
         ));
 
         expect($result->name)->toBe('kuven-mgmt-local')
@@ -38,7 +39,7 @@ test('find by provider and region returns matching cluster',
             name: 'kuven-mgmt-local',
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3,
         ));
 
         $result = $this->client->findByProviderAndRegion('docker', 'local');
@@ -67,7 +68,7 @@ test('store kubeconfig persists kubeconfig',
             name: 'kuven-mgmt-local',
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3,
         ));
 
         $this->client->storeKubeconfig($cluster->id, 'apiVersion: v1');
@@ -84,7 +85,7 @@ test('mark ready updates cluster status',
             name: 'kuven-mgmt-local',
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3,
         ));
 
         $this->client->markReady($cluster->id);
@@ -103,7 +104,7 @@ test('delete removes cluster',
             name: 'kuven-mgmt-local',
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3,
         ));
 
         $this->client->delete($cluster->id);

@@ -6,6 +6,7 @@ use App\Client\HttpManagementClusterClient;
 use App\Client\LarakubeClient;
 use App\Data\CreateManagementClusterData;
 use App\Data\ManagementClusterData;
+use App\Enums\KubernetesVersion;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function (): void {
@@ -39,7 +40,7 @@ test('create returns management cluster data',
             name: 'kuven-mgmt-local',
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3,
         ));
 
         expect($result)

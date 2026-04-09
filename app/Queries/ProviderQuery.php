@@ -20,9 +20,26 @@ final class ProviderQuery
         return clone $this;
     }
 
+    /**
+     * @param  array<int, string>  $relations
+     */
+    public function with(array $relations): self
+    {
+        $this->builder->with($relations);
+
+        return $this;
+    }
+
     public function orderBy(string $column = 'name', string $direction = 'asc'): self
     {
         $this->builder->orderBy($column, $direction);
+
+        return $this;
+    }
+
+    public function active(): self
+    {
+        $this->builder->where('is_active', true);
 
         return $this;
     }

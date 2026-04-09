@@ -6,6 +6,7 @@ namespace App\Enums;
 
 enum ManagementClusterStatus: string
 {
+    case Pending = 'pending';
     case Bootstrapping = 'bootstrapping';
     case Ready = 'ready';
     case Failed = 'failed';

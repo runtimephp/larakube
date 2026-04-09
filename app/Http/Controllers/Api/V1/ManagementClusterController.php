@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Actions\CreateManagementCluster;
 use App\Actions\DeleteManagementCluster;
 use App\Data\CreateManagementClusterData;
+use App\Enums\KubernetesVersion;
 use App\Http\Requests\Api\V1\DestroyManagementClusterRequest;
 use App\Http\Requests\Api\V1\IndexManagementClusterRequest;
 use App\Http\Requests\Api\V1\ShowManagementClusterRequest;
@@ -37,7 +38,7 @@ final class ManagementClusterController
                 name: $request->string('name')->toString(),
                 providerId: $request->string('provider_id')->toString(),
                 platformRegionId: $request->string('platform_region_id')->toString(),
-                version: $request->string('version')->toString(),
+                version: KubernetesVersion::from($request->string('version')->toString()),
             ),
         );
 

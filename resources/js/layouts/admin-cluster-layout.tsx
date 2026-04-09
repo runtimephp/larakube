@@ -1,50 +1,20 @@
 import { cn } from '@/lib/utils';
-import { type Provider } from '@/types';
-import { show as showProvider } from '@/actions/App/Http/Controllers/Admin/ProviderOverviewController';
-import { show as showRegions } from '@/actions/App/Http/Controllers/Admin/ProviderRegionsController';
-import { show as showSettings } from '@/actions/App/Http/Controllers/Admin/ProviderSettingsController';
+import { type ManagementCluster } from '@/types';
+import { show as showCluster } from '@/routes/admin/management-clusters';
 import { Link } from '@inertiajs/react';
-import { SiAkamai, SiDigitalocean, SiDocker, SiHetzner, SiVultr } from '@icons-pack/react-simple-icons';
-import { Cloud } from 'lucide-react';
 
-interface AdminProviderLayoutProps {
+interface AdminClusterLayoutProps {
     children: React.ReactNode;
-    provider: Pick<Provider, 'id' | 'name' | 'slug'>;
+    cluster: Pick<ManagementCluster, 'id' | 'name' >;
 }
 
-const PROVIDER_CONFIG: Record<string, { icon: React.ReactNode; bg: string; color: string }> = {
-    hetzner: { icon: <SiHetzner className="size-[18px]" />, bg: 'bg-[#d50c2d]', color: 'text-white' },
-    digital_ocean: { icon: <SiDigitalocean className="size-[18px]" />, bg: 'bg-[#0080ff]', color: 'text-white' },
-    aws: { icon: <Cloud className="size-[18px]" />, bg: 'bg-[#232f3e]', color: 'text-white' },
-    vultr: { icon: <SiVultr className="size-[18px]" />, bg: 'bg-[#007bfc]', color: 'text-white' },
-    akamai: { icon: <SiAkamai className="size-[18px]" />, bg: 'bg-[#0096d6]', color: 'text-white' },
-    docker: { icon: <SiDocker className="size-[18px]" />, bg: 'bg-[#2496ed]', color: 'text-white' },
-};
 
-export function ProviderLogo({ slug }: { slug: string }) {
-    const config = PROVIDER_CONFIG[slug];
-
-    if (!config) {
-        return (
-            <div className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg">
-                <Cloud className="text-muted-foreground size-4" />
-            </div>
-        );
-    }
-
-    return (
-        <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${config.bg} ${config.color}`}>
-            {config.icon}
-        </div>
-    );
-}
-
-export default function AdminProviderLayout({ children, provider }: AdminProviderLayoutProps) {
+export default function AdminClusterLayout({ children, cluster }: AdminClusterLayoutProps) {
     const currentPath = window.location.pathname;
     const navigationItems = [
-        { title: 'Overview', href: showProvider.url(provider.id) },
-        { title: 'Regions', href: showRegions.url(provider.id) },
-        { title: 'Settings', href: showSettings.url(provider.id) },
+        { title: 'Overview', href: showCluster.url(cluster.id) },
+        { title: 'Regions', href: '#' },
+        { title: 'Settings', href: '#' },
     ];
 
     return (
@@ -59,7 +29,7 @@ export default function AdminProviderLayout({ children, provider }: AdminProvide
                         >
                             &larr; All providers
                         </Link>
-                        <h2 className="text-foreground mt-2 pl-3 text-xl/8 font-medium">{provider.name}</h2>
+                        <h2 className="text-foreground mt-2 pl-3 text-xl/8 font-medium">{cluster.name}</h2>
                     </div>
                     <nav className="space-y-1">
                         {navigationItems.map((item) => (

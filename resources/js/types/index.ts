@@ -65,6 +65,7 @@ export interface Provider {
     is_active: boolean;
     has_api_token: boolean;
     created_at: string;
+    regions?: PlatformRegion[]
 }
 
 export interface PlatformRegion {

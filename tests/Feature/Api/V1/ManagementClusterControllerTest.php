@@ -44,7 +44,7 @@ test('store creates a management cluster',
             ->assertJsonPath('data.name', 'kuven-mgmt-local')
             ->assertJsonPath('data.provider.slug', 'hetzner')
             ->assertJsonPath('data.region.slug', 'fsn1')
-            ->assertJsonPath('data.status', 'bootstrapping');
+            ->assertJsonPath('data.status', 'pending');
 
         $this->assertDatabaseHas('management_clusters', [
             'name' => 'kuven-mgmt-local',
