@@ -61,7 +61,7 @@ export default function Index({ clusters }: ManagementClustersPageProps) {
                                             className="bg-card hover:bg-muted/30 block rounded-lg border p-4 transition-colors"
                                         >
                                             <ItemMedia variant="icon">
-                                                <div className="flex size-8 items-center justify-center rounded-md bg-gray-800 dark:bg-gray-600">
+                                                <div className="flex size-8 aspect-square items-center justify-center rounded-md bg-gray-800 dark:bg-gray-600">
                                                     <Server className="size-5 fill-gray-50" />
                                                 </div>
                                             </ItemMedia>
