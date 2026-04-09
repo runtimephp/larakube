@@ -25,6 +25,8 @@ final class ProviderResource extends JsonResource
             'is_active' => $this->is_active,
             'has_api_token' => $this->api_token !== null,
             'created_at' => $this->created_at->toIso8601String(),
+            'updated_at' => $this->updated_at->toIso8601String(),
+            'regions' => $this->whenLoaded('regions', fn () => PlatformRegionResource::collection($this->regions)->resolve()),
         ];
     }
 }

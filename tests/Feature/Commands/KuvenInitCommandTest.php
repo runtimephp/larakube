@@ -11,6 +11,7 @@ use App\Contracts\KubeconfigReaderService;
 use App\Contracts\ManagementClusterClient;
 use App\Contracts\PrerequisiteChecker;
 use App\Data\CreateManagementClusterData;
+use App\Enums\KubernetesVersion;
 use App\Models\User;
 use App\Services\InMemory\InMemoryBootstrapClusterService;
 use App\Services\InMemory\InMemoryCapiInstallerService;
@@ -71,7 +72,7 @@ test('aborts when management cluster already exists',
             name: 'kuven-mgmt-local',
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3,
         ));
 
         $this->artisan('kuven:init', ['--provider' => 'docker'])
@@ -88,7 +89,7 @@ test('re-bootstraps with force flag',
             name: 'kuven-mgmt-local',
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3,
         ));
 
         $this->bootstrap->addCluster($existing->name);

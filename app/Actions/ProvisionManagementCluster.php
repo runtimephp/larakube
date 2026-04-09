@@ -11,6 +11,7 @@ use App\Contracts\ManagementClusterClient;
 use App\Data\CreateManagementClusterData;
 use App\Data\ManagementClusterData;
 use App\Data\ProvisionManagementClusterData;
+use App\Enums\KubernetesVersion;
 use RuntimeException;
 
 final readonly class ProvisionManagementCluster
@@ -50,7 +51,7 @@ final readonly class ProvisionManagementCluster
             name: $clusterName,
             providerId: $data->providerId,
             platformRegionId: $data->platformRegionId,
-            version: $data->version,
+            version: KubernetesVersion::from($data->version),
         ));
 
         $this->bootstrapClusterService->create($clusterName);

@@ -29,7 +29,7 @@ final class InMemoryManagementClusterClient implements ManagementClusterClient
             providerId: $data->providerId,
             platformRegionId: $data->platformRegionId,
             status: ManagementClusterStatus::Bootstrapping->value,
-            version: $data->version,
+            version: $data->version->value,
         );
 
         $this->clusters[$cluster->id] = $cluster;

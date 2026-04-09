@@ -10,6 +10,7 @@ use App\Contracts\KubeconfigReaderService;
 use App\Contracts\ManagementClusterClient;
 use App\Contracts\PrerequisiteChecker;
 use App\Data\ProvisionManagementClusterData;
+use App\Enums\KubernetesVersion;
 use App\Services\InMemory\InMemoryBootstrapClusterService;
 use App\Services\InMemory\InMemoryCapiInstallerService;
 use App\Services\InMemory\InMemoryKubeconfigReaderService;
@@ -44,7 +45,7 @@ test('provisions a management cluster end to end',
         $result = $this->action->handle(new ProvisionManagementClusterData(
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3->value,
             force: false,
         ));
 
@@ -63,14 +64,14 @@ test('throws when cluster already exists and force is false',
         $this->action->handle(new ProvisionManagementClusterData(
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3->value,
             force: false,
         ));
 
         expect(fn () => $this->action->handle(new ProvisionManagementClusterData(
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3->value,
             force: false,
         )))->toThrow(RuntimeException::class, 'already exists');
     });
@@ -83,7 +84,7 @@ test('re-provisions with force flag',
         $first = $this->action->handle(new ProvisionManagementClusterData(
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3->value,
             force: false,
         ));
 
@@ -92,7 +93,7 @@ test('re-provisions with force flag',
         $second = $this->action->handle(new ProvisionManagementClusterData(
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3->value,
             force: true,
         ));
 
@@ -110,7 +111,7 @@ test('throws when prerequisites are missing',
         expect(fn () => $this->action->handle(new ProvisionManagementClusterData(
             providerId: 'docker',
             platformRegionId: 'local',
-            version: 'v1.32.3',
+            version: KubernetesVersion::V1_35_3->value,
             force: false,
         )))->toThrow(RuntimeException::class, 'clusterctl');
     });

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Data\CreateManagementClusterData;
 use App\Data\ManagementClusterData;
 use App\Enums\KubernetesVersion;
 use App\Models\ManagementCluster;
@@ -79,5 +80,25 @@ test('converts to array',
             'platform_region_id' => 'region-uuid',
             'status' => 'ready',
             'version' => '1.35.3',
+        ]);
+    });
+
+test('create management cluster data converts to array',
+    /**
+     * @throws Throwable
+     */
+    function (): void {
+        $data = new CreateManagementClusterData(
+            name: 'kuven-mgmt-local',
+            providerId: 'provider-uuid',
+            platformRegionId: 'region-uuid',
+            version: KubernetesVersion::V1_35_3,
+        );
+
+        expect($data->toArray())->toBe([
+            'name' => 'kuven-mgmt-local',
+            'provider_id' => 'provider-uuid',
+            'region_id' => 'region-uuid',
+            'version' => KubernetesVersion::V1_35_3,
         ]);
     });
