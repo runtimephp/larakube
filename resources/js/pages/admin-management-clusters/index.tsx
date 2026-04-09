@@ -59,8 +59,10 @@ export default function Index({ clusters }: ManagementClustersPageProps) {
                                             href={`/admin/management-clusters/${cluster.id}`}
                                             className="bg-card hover:bg-muted/30 block rounded-lg border p-4 transition-colors"
                                         >
-                                        <ItemMedia>
-                                            <Server />
+                                        <ItemMedia variant="icon">
+                                            <div className="flex items-center justify-center bg-gray-800 dark:bg-gray-600 rounded-md size-8">
+                                                <Server className="fill-gray-50 size-5" />
+                                            </div>
                                         </ItemMedia>
                                         <ItemContent>
                                             <ItemTitle>{cluster.name}</ItemTitle>

@@ -35,7 +35,7 @@ final class ProviderController
             ->values()
             ->all();
 
-        return Inertia::render('admin/providers/index', [
+        return Inertia::render('admin-providers/index', [
             'providers' => ProviderResource::collection($providers)->resolve(),
             'availableSlugs' => $availableSlugs,
             'can' => [
