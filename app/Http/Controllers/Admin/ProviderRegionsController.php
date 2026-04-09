@@ -15,7 +15,7 @@ final class ProviderRegionsController
 {
     public function show(ShowProviderRegionsRequest $request, Provider $provider): Response
     {
-        return Inertia::render('admin/providers/regions', [
+        return Inertia::render('admin-providers-regions/index', [
             'provider' => ProviderResource::make($provider)->resolve(),
             'regions' => PlatformRegionResource::collection($provider->regions)->resolve(),
             'can' => [

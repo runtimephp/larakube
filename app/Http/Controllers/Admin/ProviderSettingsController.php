@@ -14,7 +14,7 @@ final class ProviderSettingsController
 {
     public function show(ShowProviderSettingsRequest $request, Provider $provider): Response
     {
-        return Inertia::render('admin/providers/settings', [
+        return Inertia::render('admin-providers/settings', [
             'provider' => ProviderResource::make($provider)->resolve(),
             'can' => [
                 'update' => $request->user()->can('update', $provider),

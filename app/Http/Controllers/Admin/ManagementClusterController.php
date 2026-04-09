@@ -18,7 +18,7 @@ final class ManagementClusterController
     {
         $clusters = ($query)()->get();
 
-        return Inertia::render('admin/management-clusters/index', [
+        return Inertia::render('admin-management-clusters/index', [
             'clusters' => ManagementClusterResource::collection($clusters)->resolve(),
         ]);
     }
@@ -27,7 +27,7 @@ final class ManagementClusterController
     {
         $managementCluster->load(['provider', 'platformRegion']);
 
-        return Inertia::render('admin/management-clusters/show', [
+        return Inertia::render('admin-management-clusters/show', [
             'cluster' => (new ManagementClusterResource($managementCluster))->resolve(),
         ]);
     }

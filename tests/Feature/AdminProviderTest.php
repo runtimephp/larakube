@@ -24,7 +24,7 @@ test('a platform administrator can view the providers list', function () {
         ->get(route('admin.settings.providers.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/index')
+            ->component('admin-providers/index')
             ->has('providers', 1)
             ->where('providers.0.id', $provider->id)
             ->where('providers.0.name', 'Hetzner')
@@ -42,7 +42,7 @@ test('a platform administrator sees an empty list when no providers exist', func
         ->get(route('admin.settings.providers.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/index')
+            ->component('admin-providers/index')
             ->has('providers', 0)
         );
 });
@@ -73,7 +73,7 @@ test('has_api_token is true when a provider has an api token', function () {
         ->get(route('admin.settings.providers.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/index')
+            ->component('admin-providers/index')
             ->where('providers.0.has_api_token', true)
         );
 });
@@ -90,7 +90,7 @@ test('has_api_token is false when a provider has no api token', function () {
         ->get(route('admin.settings.providers.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/index')
+            ->component('admin-providers/index')
             ->where('providers.0.has_api_token', false)
         );
 });
@@ -121,7 +121,7 @@ test('a platform administrator can view the provider overview', function () {
         ->get(route('admin.settings.providers.overview', $provider))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/overview')
+            ->component('admin-providers/overview')
             ->where('provider.id', $provider->id)
             ->where('provider.name', 'Hetzner')
             ->where('provider.slug', 'hetzner')
@@ -154,7 +154,7 @@ test('a platform administrator can view the provider regions', function () {
         ->get(route('admin.settings.providers.regions', $provider))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/regions')
+            ->component('admin-providers-regions/index')
             ->where('provider.id', $provider->id)
             ->has('regions', 1)
             ->where('regions.0.id', $region->id)
@@ -179,7 +179,7 @@ test('a platform administrator sees empty regions for a provider without regions
         ->get(route('admin.settings.providers.regions', $provider))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/regions')
+            ->component('admin-providers-regions/index')
             ->has('regions', 0)
         );
 });
@@ -215,7 +215,7 @@ test('the settings page includes the can update permission', function () {
         ->get(route('admin.settings.providers.settings', $provider))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/settings')
+            ->component('admin-providers/settings')
             ->where('can.update', true)
         );
 });
@@ -355,7 +355,7 @@ test('the index page includes available slugs and can create permission', functi
         ->get(route('admin.settings.providers.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/providers/index')
+            ->component('admin-providers/index')
             ->where('can.create', true)
             ->has('availableSlugs', 5)
             ->where('availableSlugs.0.value', 'digital_ocean')

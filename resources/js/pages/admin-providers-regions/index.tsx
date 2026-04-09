@@ -23,7 +23,7 @@ const adminTabs = [
     { title: 'Settings', url: '/admin/settings/providers' },
 ];
 
-export default function Regions({ provider, regions, can }: RegionsPageProps) {
+export default function Index({ provider, regions, can }: RegionsPageProps) {
     const [syncing, setSyncing] = useState(false);
 
     function handleSync() {

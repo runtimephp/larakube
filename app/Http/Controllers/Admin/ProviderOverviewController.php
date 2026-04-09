@@ -14,7 +14,7 @@ final class ProviderOverviewController
 {
     public function show(ShowProviderOverviewRequest $request, Provider $provider): Response
     {
-        return Inertia::render('admin/providers/overview', [
+        return Inertia::render('admin-providers/overview', [
             'provider' => ProviderResource::make($provider)->resolve(),
             'regionsCount' => $provider->regions()->count(),
         ]);
