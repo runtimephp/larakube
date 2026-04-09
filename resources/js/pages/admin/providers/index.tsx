@@ -10,19 +10,11 @@ import { Label } from '@/components/ui/label';
 import { StepDialog, StepDialogBody, StepDialogFooter, StepDialogHeader } from '@/components/ui/step-dialog';
 import AdminSettingsLayout from '@/layouts/admin-settings-layout';
 import AppLayout from '@/layouts/app-layout';
+import { type Provider } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { SiAkamai, SiDigitalocean, SiDocker, SiHetzner, SiVultr } from '@icons-pack/react-simple-icons';
 import { Cloud, KeyRound, LoaderCircle, Plus } from 'lucide-react';
 import { useState } from 'react';
-
-interface Provider {
-    id: string;
-    name: string;
-    slug: string;
-    is_active: boolean;
-    has_api_token: boolean;
-    created_at: string;
-}
 
 interface AvailableSlug {
     value: string;
@@ -38,7 +30,7 @@ interface ProvidersPageProps {
 }
 
 const adminTabs = [
-    { title: 'Management Clusters', url: '/admin/management-clusters' },
+    { title: 'Clusters', url: '/admin/management-clusters' },
     { title: 'Settings', url: '/admin/settings/providers' },
 ];
 

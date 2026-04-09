@@ -6,17 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
 import AdminProviderLayout from '@/layouts/admin-provider-layout';
+import { type Provider } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-
-interface Provider {
-    id: string;
-    name: string;
-    slug: string;
-    is_active: boolean;
-    has_api_token: boolean;
-    created_at: string;
-}
 
 interface SettingsPageProps {
     provider: Provider;
@@ -26,7 +18,7 @@ interface SettingsPageProps {
 }
 
 const adminTabs = [
-    { title: 'Management Clusters', url: '/admin/management-clusters' },
+    { title: 'Clusters', url: '/admin/management-clusters' },
     { title: 'Settings', url: '/admin/settings/providers' },
 ];
 

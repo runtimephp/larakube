@@ -57,3 +57,37 @@ export interface User {
     updated_at: string;
     [key: string]: unknown;
 }
+
+export interface Provider {
+    id: string;
+    name: string;
+    slug: string;
+    is_active: boolean;
+    has_api_token: boolean;
+    created_at: string;
+}
+
+export interface PlatformRegion {
+    id: string;
+    name: string;
+    slug: string;
+    country: string | null;
+    city: string | null;
+    is_available: boolean;
+}
+
+export interface KubernetesVersion {
+    name: string;
+    is_supported: boolean;
+    end_of_life: string;
+}
+
+export interface ManagementCluster {
+    id: string;
+    name: string;
+    provider: Provider;
+    region: PlatformRegion;
+    status: string;
+    version: KubernetesVersion;
+    created_at: string;
+}

@@ -166,7 +166,7 @@ export function AppTopBar({ tabs }: { tabs?: TabItem[] }) {
                                     href={tab.url}
                                     prefetch
                                     className={cn(
-                                        'text-xs font-medium uppercase tracking-wider transition-colors duration-200',
+                                        'text-xs font-medium tracking-wider transition-colors duration-200',
                                         isActive
                                             ? 'text-primary border-b-2 border-primary pb-2.5 -mb-3 font-bold'
                                             : 'text-muted-foreground/70 hover:text-primary',

@@ -36,9 +36,10 @@ test('a platform administrator can view the management clusters list', function 
             ->has('clusters', 1)
             ->where('clusters.0.id', $cluster->id)
             ->where('clusters.0.name', 'mgmt-production')
-            ->where('clusters.0.provider', ProviderSlug::Hetzner->value)
-            ->where('clusters.0.region', 'fsn1')
+            ->where('clusters.0.provider.slug', ProviderSlug::Hetzner->value)
+            ->where('clusters.0.region.slug', 'fsn1')
             ->where('clusters.0.status', ManagementClusterStatus::Ready->value)
+            ->where('clusters.0.version.is_supported', true)
             ->has('clusters.0.created_at')
         );
 });
@@ -94,9 +95,10 @@ test('a platform administrator can view a single management cluster', function (
             ->component('admin/management-clusters/show')
             ->where('cluster.id', $cluster->id)
             ->where('cluster.name', 'mgmt-production')
-            ->where('cluster.provider', ProviderSlug::Hetzner->value)
-            ->where('cluster.region', 'fsn1')
+            ->where('cluster.provider.slug', ProviderSlug::Hetzner->value)
+            ->where('cluster.region.slug', 'fsn1')
             ->where('cluster.status', ManagementClusterStatus::Ready->value)
+            ->where('cluster.version.is_supported', true)
             ->has('cluster.created_at')
         );
 });
