@@ -32,7 +32,7 @@ test('a platform administrator can view the management clusters list', function 
         ->get(route('admin.management-clusters.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/management-clusters/index')
+            ->component('admin-management-clusters/index')
             ->has('clusters', 1)
             ->where('clusters.0.id', $cluster->id)
             ->where('clusters.0.name', 'mgmt-production')
@@ -52,7 +52,7 @@ test('a platform administrator sees an empty list when no management clusters ex
         ->get(route('admin.management-clusters.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/management-clusters/index')
+            ->component('admin-management-clusters/index')
             ->has('clusters', 0)
         );
 });
@@ -92,7 +92,7 @@ test('a platform administrator can view a single management cluster', function (
         ->get(route('admin.management-clusters.show', $cluster))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('admin/management-clusters/show')
+            ->component('admin-management-clusters/show')
             ->where('cluster.id', $cluster->id)
             ->where('cluster.name', 'mgmt-production')
             ->where('cluster.provider.slug', ProviderSlug::Hetzner->value)

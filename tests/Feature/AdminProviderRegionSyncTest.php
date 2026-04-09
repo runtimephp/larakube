@@ -110,7 +110,7 @@ test('the regions page includes the can sync_regions permission', function () {
         ->get(route('admin.settings.providers.regions', $provider))
         ->assertOk()
         ->assertInertia(fn (Inertia\Testing\AssertableInertia $page) => $page
-            ->component('admin/providers/regions')
+            ->component('admin-providers-regions/index')
             ->where('can.sync_regions', true)
         );
 });
