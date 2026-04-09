@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Casts\KubernetesVersionCast;
 use App\Data\KubernetesVersionData;
 use App\Enums\KubernetesVersion;
 use App\Models\ManagementCluster;
@@ -71,6 +72,28 @@ test('cast returns kubernetes version data when reading from model', function ()
 
     expect($cluster->version)->toBeInstanceOf(KubernetesVersionData::class)
         ->and($cluster->version->name)->toBe('1.35.3');
+});
+
+test('cast get returns null for null value', function (): void {
+    $cast = new KubernetesVersionCast;
+
+    $result = $cast->get(new ManagementCluster, 'version', null, []);
+
+    expect($result)->toBeNull();
+});
+
+test('cast get throws for unknown version', function (): void {
+    $cast = new KubernetesVersionCast;
+
+    $cast->get(new ManagementCluster, 'version', 'invalid', []);
+})->throws(InvalidArgumentException::class, 'Unknown Kubernetes version: invalid');
+
+test('cast set returns null for null value', function (): void {
+    $cast = new KubernetesVersionCast;
+
+    $result = $cast->set(new ManagementCluster, 'version', null, []);
+
+    expect($result)->toBeNull();
 });
 
 test('cast stores string version value from enum', function (): void {
