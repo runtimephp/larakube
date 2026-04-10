@@ -38,7 +38,6 @@ function OrgSwitcher({ currentOrganization, organizations }: { currentOrganizati
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-md border border-border/15 px-3 py-1.5 transition-colors hover:bg-accent">
-                    <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Org</span>
                     <span className="text-sm font-semibold">{currentOrganization.name}</span>
                     <ChevronsUpDown className="text-muted-foreground size-3.5" />
                 </button>

@@ -1,6 +1,6 @@
 import { store as storeProvider } from '@/actions/App/Http/Controllers/Admin/ProviderController';
-import { AwsLogo } from '@/components/icons/aws-logo';
 import InputError from '@/components/input-error';
+import { PROVIDER_CONFIG, ProviderLogo } from '@/components/provider-logo';
 import { SettingsSection } from '@/components/settings-section';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import AdminSettingsLayout from '@/layouts/admin-settings-layout';
 import AppLayout from '@/layouts/app-layout';
 import { type Provider } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { SiAkamai, SiDigitalocean, SiDocker, SiHetzner, SiVultr } from '@icons-pack/react-simple-icons';
 import { Cloud, KeyRound, LoaderCircle, Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -33,33 +32,6 @@ const adminTabs = [
     { title: 'Clusters', url: '/admin/management-clusters' },
     { title: 'Settings', url: '/admin/settings/providers' },
 ];
-
-const PROVIDER_CONFIG: Record<string, { icon: React.ReactNode; bg: string; color: string }> = {
-    hetzner: { icon: <SiHetzner className="size-[18px]" />, bg: 'bg-[#d50c2d]', color: 'text-white' },
-    digital_ocean: { icon: <SiDigitalocean className="size-[18px]" />, bg: 'bg-[#0080ff]', color: 'text-white' },
-    aws: { icon: <AwsLogo className="size-[18px]" />, bg: 'bg-[#232f3e]', color: 'text-[#ff9900]' },
-    vultr: { icon: <SiVultr className="size-[18px]" />, bg: 'bg-[#007bfc]', color: 'text-white' },
-    akamai: { icon: <SiAkamai className="size-[18px]" />, bg: 'bg-[#0096d6]', color: 'text-white' },
-    docker: { icon: <SiDocker className="size-[18px]" />, bg: 'bg-[#2496ed]', color: 'text-white' },
-};
-
-function ProviderLogo({ slug }: { slug: string }) {
-    const config = PROVIDER_CONFIG[slug];
-
-    if (!config) {
-        return (
-            <div className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg">
-                <Cloud className="text-muted-foreground size-4" />
-            </div>
-        );
-    }
-
-    return (
-        <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${config.bg} ${config.color}`}>
-            {config.icon}
-        </div>
-    );
-}
 
 export default function Index({ providers, availableSlugs, can }: ProvidersPageProps) {
     const [dialogOpen, setDialogOpen] = useState(false);

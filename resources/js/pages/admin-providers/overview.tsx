@@ -1,7 +1,8 @@
 import { SettingsField, SettingsSection } from '@/components/settings-section';
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
-import AdminProviderLayout, { ProviderLogo } from '@/layouts/admin-provider-layout';
+import { ProviderLogo } from '@/components/provider-logo';
+import AdminProviderLayout from '@/layouts/admin-provider-layout';
 import { type Provider } from '@/types';
 import { Head } from '@inertiajs/react';
 

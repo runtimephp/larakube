@@ -28,6 +28,7 @@
         "nunomaduro/essentials": "^1.2",
         "saloonphp/laravel-plugin": "^4.1",
         "saloonphp/saloon": "^4.0",
+        "spatie/laravel-sluggable": "^3.8",
         "tightenco/ziggy": "^2.4"
     },
     "require-dev": {
